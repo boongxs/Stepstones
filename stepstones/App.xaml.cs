@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using System.IO;
 using System.Windows;
+using stepstones.Services;
 using stepstones.ViewModels;
 
 namespace stepstones
@@ -25,6 +26,9 @@ namespace stepstones
                 .UseSerilog()
                 .ConfigureServices((context, services) =>
                 {
+                    services.AddSingleton<ISettingsService, SettingsService>();
+                    services.AddTransient<IFolderDialogService, FolderDialogService>();
+
                     services.AddTransient<MainViewModel>();
                     services.AddTransient<MainWindow>();
                 })
