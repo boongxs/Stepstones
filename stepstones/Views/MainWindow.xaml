@@ -5,8 +5,68 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:stepstones"
         mc:Ignorable="d"
-        Title="Stepstones" Height="450" Width="800">
+        Title="Stepstones" 
+        Height="450" 
+        Width="800"
+        WindowState="Maximized"
+        Background="#282828">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
+        <Label Grid.Row="0"
+               Content="Stepstones"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center"
+               FontSize="90"
+               Foreground="#f0f0f0">
+        </Label>
+
+        <TextBox Grid.Row="1"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 Width="600"
+                 Height="72"
+                 Background="#303030"
+                 Foreground="#f0f0f0"
+                 CaretBrush="#f0f0f0"
+                 BorderThickness="0"
+                 FontSize="32"
+                 VerticalContentAlignment="Center"
+                 Margin="0,20,0,20"
+                 Padding="10,0,0,0">
+        </TextBox>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    Margin="0,0,0,10">
+            <Button Content="Sel"
+                    Width="50"
+                    Height="50"
+                    Background="#404040"
+                    Foreground="#f0f0f0"
+                    BorderThickness="0"
+                    Margin="5">
+            </Button>
+
+            <Button Content="Upl"
+                    Width="50"
+                    Height="50"
+                    Background="#404040"
+                    Foreground="#f0f0f0"
+                    BorderThickness="0"
+                    Margin="5">
+            </Button>
+        </StackPanel>
+
+        <Border Grid.Row="3"
+                BorderBrush="Red"
+                BorderThickness="2"
+                Margin="20,0,20,20">
+        </Border>
     </Grid>
 </Window>
