@@ -33,5 +33,21 @@ namespace stepstones.Services
                 }
             });
         }
+
+        public IEnumerable<string> GetAllFiles(string folderPath)
+        {
+            try
+            {
+                if (Directory.Exists(folderPath))
+                {
+                    return Directory.EnumerateFiles(folderPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to enumerate files in folder '{FolderPath}'", folderPath);
+            }
+            return Enumerable.Empty<string>();
+        }
     }
 }

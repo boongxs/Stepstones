@@ -31,6 +31,8 @@ namespace stepstones
                     services.AddTransient<IFileDialogService, FileDialogService>();
                     services.AddTransient<IMessageBoxService, MessageBoxService>();
                     services.AddTransient<IFileService, FileService>();
+                    services.AddSingleton<IDatabaseService, DatabaseService>();
+                    services.AddTransient<ISynchronizationService, SynchronizationService>();
 
                     services.AddTransient<MainViewModel>();
                     services.AddTransient<MainWindow>();

@@ -1,8 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
-using System.Linq;
-using System.Threading.Tasks;
+using System.IO;
+using stepstones.Models;
 using stepstones.Services;
 
 namespace stepstones.ViewModels
@@ -15,13 +15,17 @@ namespace stepstones.ViewModels
         private readonly IFileDialogService _fileDialogService;
         private readonly IMessageBoxService _messageBoxService;
         private readonly IFileService _fileService;
+        private readonly IDatabaseService _databaseService;
+        private readonly ISynchronizationService _synchronizationService;
 
         public MainViewModel(ILogger<MainViewModel> logger,
                              ISettingsService settingsService,
                              IFolderDialogService folderDialogService,
                              IFileDialogService fileDialogService,
                              IMessageBoxService messageBoxService,
-                             IFileService fileService)
+                             IFileService fileService,
+                             IDatabaseService databaseService,
+                             ISynchronizationService synchronizationService)
         {
             _logger = logger;
             _settingsService = settingsService;
@@ -29,7 +33,16 @@ namespace stepstones.ViewModels
             _fileDialogService = fileDialogService;
             _messageBoxService = messageBoxService;
             _fileService = fileService;
+            _databaseService = databaseService;
+            _synchronizationService = synchronizationService;
 
+            _ = InitializeAsync();
+
+            logger.LogInformation("MainViewModel has been created.");
+        }
+
+        private async Task InitializeAsync()
+        {
             var savedPath = _settingsService.LoadMediaFolderPath();
             if (string.IsNullOrWhiteSpace(savedPath))
             {
@@ -37,10 +50,10 @@ namespace stepstones.ViewModels
             }
             else
             {
-                _logger.LogInformation("Application startup: Located saved media folder path: {Path}", savedPath);
+                _logger.LogInformation("Application startup: Located saved media folder, '{Path}'", savedPath);
             }
 
-            logger.LogInformation("MainViewModel has been created.");
+            await _synchronizationService.SynchronizeDataAsync();
         }
 
         [RelayCommand]
@@ -85,6 +98,18 @@ namespace stepstones.ViewModels
             _logger.LogInformation("{FileCount} file(s) have been selected for upload.", fileList.Count);
 
             await _fileService.CopyFilesAsync(fileList, mediaFolderPath);
+
+            foreach (var sourcePath in fileList)
+            {
+                var newItem = new MediaItem
+                {
+                    FileName = Path.GetFileName(sourcePath),
+                    FilePath = Path.Combine(mediaFolderPath, Path.GetFileName(sourcePath)),
+                    FileType = Path.GetExtension(sourcePath).ToLowerInvariant()
+                };
+
+                await _databaseService.AddMediaItemAsync(newItem);
+            }
         }
     }
 }
