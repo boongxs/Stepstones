@@ -28,6 +28,9 @@ namespace stepstones
                 {
                     services.AddSingleton<ISettingsService, SettingsService>();
                     services.AddTransient<IFolderDialogService, FolderDialogService>();
+                    services.AddTransient<IFileDialogService, FileDialogService>();
+                    services.AddTransient<IMessageBoxService, MessageBoxService>();
+                    services.AddTransient<IFileService, FileService>();
 
                     services.AddTransient<MainViewModel>();
                     services.AddTransient<MainWindow>();

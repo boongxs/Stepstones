@@ -4,6 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:stepstones"
+        xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
+        d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
         Title="Stepstones" 
         Height="450" 
@@ -55,6 +57,7 @@
             </Button>
 
             <Button Content="Upl"
+                    Command="{Binding UploadFilesCommand}"
                     Width="50"
                     Height="50"
                     Background="#404040"
