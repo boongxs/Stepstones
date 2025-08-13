@@ -94,5 +94,20 @@ namespace stepstones.Services
                 }
             });
         }
+
+        public async Task<List<MediaItem>> GetAllItemsForFolderAsync(string folderPath)
+        {
+            await InitAsync();
+            if (_database is null)
+            {
+                return new List<MediaItem>();
+            }
+
+            _logger.LogInformation("Fetching media items for folder '{Path}'", folderPath);
+
+            return await _database.Table<MediaItem>()
+                .Where(i => i.FilePath.StartsWith(folderPath))
+                .ToListAsync();
+        }
     }
 }

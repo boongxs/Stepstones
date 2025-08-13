@@ -7,5 +7,6 @@ namespace stepstones.Services
         Task AddMediaItemAsync(MediaItem mediaItem);
         Task<List<string>> GetAllFilePathsAsync();
         Task DeleteItemsByPathsAsync(IEnumerable<string> paths);
+        Task<List<MediaItem>> GetAllItemsForFolderAsync(string folderPath);
     }
 }

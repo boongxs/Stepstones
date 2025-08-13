@@ -67,10 +67,24 @@
             </Button>
         </StackPanel>
 
-        <Border Grid.Row="3"
-                BorderBrush="Red"
-                BorderThickness="2"
-                Margin="20,0,20,20">
-        </Border>
+        <ItemsControl Grid.Row="3"
+                      ItemsSource="{Binding MediaItems}"
+                      Margin="20,0,20,20">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding FileName}"
+                               Foreground="White"
+                               Margin="5"
+                               Background="Blue">
+                    </TextBlock>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
     </Grid>
 </Window>

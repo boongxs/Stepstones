@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using System.Collections.ObjectModel;
 using System.IO;
 using stepstones.Models;
 using stepstones.Services;
@@ -17,6 +18,8 @@ namespace stepstones.ViewModels
         private readonly IFileService _fileService;
         private readonly IDatabaseService _databaseService;
         private readonly ISynchronizationService _synchronizationService;
+
+        public ObservableCollection<MediaItem> MediaItems { get; } = new();
 
         public MainViewModel(ILogger<MainViewModel> logger,
                              ISettingsService settingsService,
@@ -54,10 +57,33 @@ namespace stepstones.ViewModels
             }
 
             await _synchronizationService.SynchronizeDataAsync();
+            await LoadMediaItemsAsync();
+        }
+
+        private async Task LoadMediaItemsAsync()
+        {
+            var mediaFolderPath = _settingsService.LoadMediaFolderPath();
+            if (string.IsNullOrWhiteSpace(mediaFolderPath))
+            {
+                _logger.LogInformation("Load media items skipped: Media folder not set.");
+                MediaItems.Clear();
+                return;
+            }
+
+            _logger.LogInformation("Loading media items from database for folder '{Path}'", mediaFolderPath);
+            var items = await _databaseService.GetAllItemsForFolderAsync(mediaFolderPath);
+
+            MediaItems.Clear();
+            foreach (var item in items)
+            {
+                MediaItems.Add(item);
+            }
+
+            _logger.LogInformation("Loaded {Count} media items.", MediaItems.Count);
         }
 
         [RelayCommand]
-        private void SelectFolder()
+        private async void SelectFolder()
         {
             _logger.LogInformation("'Select Folder' button clicked, opening folder dialog.");
 
@@ -71,6 +97,8 @@ namespace stepstones.ViewModels
             {
                 _logger.LogInformation("User selected folder: {Path}", selectedPath);
                 _settingsService.SaveMediaFolderPath(selectedPath);
+
+                await LoadMediaItemsAsync();
             }
         }
 
@@ -109,6 +137,7 @@ namespace stepstones.ViewModels
                 };
 
                 await _databaseService.AddMediaItemAsync(newItem);
+                MediaItems.Add(newItem);
             }
         }
     }
