@@ -41,6 +41,8 @@ namespace stepstones.ViewModels
 
         public bool IsOverlayVisible => _activeDialogViewModel != null;
 
+        private RequestEditTagsMessage? _pendingEditTagsRequest;
+
         public MainViewModel(ILogger<MainViewModel> logger,
                              ISettingsService settingsService,
                              IFolderDialogService folderDialogService,
@@ -76,6 +78,13 @@ namespace stepstones.ViewModels
             _messenger.Register<ShowDialogMessage>(this, (recipient, message) =>
             {
                 ActiveDialogViewModel = message.ViewModel;
+            });
+
+            _messenger.Register<RequestEditTagsMessage>(this, (recipient, message) =>
+            {
+                _pendingEditTagsRequest = message;
+                var dialogViewModel = new EditTagsViewModel(message.InitialTags);
+                ActiveDialogViewModel = dialogViewModel;
             });
 
             logger.LogInformation("MainViewModel has been created.");
@@ -200,9 +209,24 @@ namespace stepstones.ViewModels
         }
 
         [RelayCommand]
-        private void CloseDialog()
+        private void CloseDialog(string? result)
         {
+            object? dialogResult = null;
+
+            if (ActiveDialogViewModel is EditTagsViewModel editTagsVM)
+            {
+                var wasSaved = result == "Save";
+                if (wasSaved)
+                {
+                    editTagsVM.Save();
+                }
+
+                dialogResult = new EditTagsResult { WasSaved = wasSaved, NewTags = editTagsVM.Result };
+            }
+
             ActiveDialogViewModel = null;
+
+            _messenger.Send(new DialogClosedMessage(dialogResult));
         }
     }
 }

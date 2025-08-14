@@ -116,5 +116,24 @@ namespace stepstones.Services
                 }
             });
         }
+
+        public async Task UpdateMediaItemAsync(MediaItem item)
+        {
+            await InitAsync();
+            if (_database is null)
+            {
+                return;
+            }
+
+            try
+            {
+                await _database.UpdateAsync(item);
+                _logger.LogInformation("Successfully updated database record for '{FileName}'", item.FileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update the database record for '{FileName}'", item.FileName);
+            }
+        }
     }
 }

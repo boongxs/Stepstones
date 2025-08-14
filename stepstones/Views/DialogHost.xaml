@@ -14,6 +14,9 @@
         <DataTemplate DataType="{x:Type viewmodels:EnlargeMediaViewModel}">
             <views:EnlargeMediaView/>
         </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:EditTagsViewModel}">
+            <views:EditTagsView/>
+        </DataTemplate>
     </UserControl.Resources>
 
     <Grid>
@@ -33,7 +36,8 @@
         <Border Background="#aa000000">
             <Border.InputBindings>
                 <MouseBinding Gesture="LeftClick"
-                              Command="{Binding CloseDialogCommand}">
+                              Command="{Binding CloseDialogCommand}"
+                              CommandParameter="Save">
                 </MouseBinding>
             </Border.InputBindings>
         </Border>

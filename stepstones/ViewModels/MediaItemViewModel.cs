@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -20,6 +21,7 @@ namespace stepstones.ViewModels
         private readonly IDatabaseService _databaseService;
         private readonly IMessenger _messenger;
         private readonly IImageDimensionService _imageDimensionService;
+        private readonly IDialogCoordinatorService _dialogCoordinatorService;
 
         [ObservableProperty]
         private BitmapImage? _thumbnailImage;
@@ -30,7 +32,8 @@ namespace stepstones.ViewModels
                                   IFileService fileService,
                                   IDatabaseService databaseService,
                                   IMessenger messenger,
-                                  IImageDimensionService imageDimensionService)
+                                  IImageDimensionService imageDimensionService,
+                                  IDialogCoordinatorService dialogCoordinatorService)
         {
             _mediaItem = mediaItem;
             _clipboardService = clipboardService;
@@ -39,6 +42,7 @@ namespace stepstones.ViewModels
             _databaseService = databaseService;
             _messenger = messenger;
             _imageDimensionService = imageDimensionService;
+            _dialogCoordinatorService = dialogCoordinatorService;
         }
 
         public string FileName => _mediaItem.FileName;
@@ -78,6 +82,24 @@ namespace stepstones.ViewModels
         private void Copy()
         {
             _clipboardService.CopyFileToClipboard(FilePath);
+        }
+
+        [RelayCommand]
+        private async Task Tags()
+        {
+            var originalTags = _mediaItem.Tags;
+            var result = await _dialogCoordinatorService.ShowEditTagsDialogAsync(_mediaItem.Tags);
+
+            if (result.WasSaved)
+            {
+                var newTags = result.NewTags?.Trim();
+
+                if (originalTags != newTags)
+                {
+                    _mediaItem.Tags = newTags;
+                    await _databaseService.UpdateMediaItemAsync(_mediaItem);
+                }
+            }
         }
 
         [RelayCommand]

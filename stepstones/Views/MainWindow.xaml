@@ -156,6 +156,7 @@
                                 <Button Grid.Row="0"
                                         Grid.Column="1"
                                         Style="{StaticResource QuadrantIconButtonStyle}"
+                                        Command="{Binding TagsCommand}"
                                         Tag="/Resources/Icons/edit.png"
                                         Content="/Resources/Icons/edit-hover.png">
                                 </Button>
@@ -163,6 +164,7 @@
                                 <Button Grid.Row="1"
                                         Grid.Column="0"
                                         Style="{StaticResource QuadrantIconButtonStyle}"
+                                        Command="{Binding EnlargeCommand}"
                                         Tag="/Resources/Icons/enlarge.png"
                                         Content="/Resources/Icons/enlarge-hover.png">
                                 </Button>
