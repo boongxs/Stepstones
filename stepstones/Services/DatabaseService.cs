@@ -65,16 +65,38 @@ namespace stepstones.Services
             }
         }
 
-        public async Task<List<string>> GetAllFilePathsAsync()
+        public async Task<List<MediaItem>> GetAllItemsForFolderAsync(string folderPath)
         {
             await InitAsync();
             if (_database is null)
             {
-                return new List<string>();
+                return new List<MediaItem>();
             }
 
-            var allItems = await _database.Table<MediaItem>().ToListAsync();
-            return allItems.Select(i => i.FilePath).ToList();
+            _logger.LogInformation("Fetching media items for folder '{Path}'", folderPath);
+
+            return await _database.Table<MediaItem>()
+                .Where(i => i.FilePath.StartsWith(folderPath))
+                .ToListAsync();
+        }
+
+        public async Task DeleteMediaItemAsync(MediaItem item)
+        {
+            await InitAsync();
+            if (_database is null)
+            {
+                return;
+            }
+
+            try
+            {
+                await _database.DeleteAsync(item);
+                _logger.LogInformation("Successfully deleted database record for '{FileName}'", item.FileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete database record for '{FileName}'", item.FileName);
+            }
         }
 
         public async Task DeleteItemsByPathsAsync(IEnumerable<string> paths)
@@ -93,21 +115,6 @@ namespace stepstones.Services
                     _logger.LogInformation("Deleted ghost record from database for path '{Path}'", path);
                 }
             });
-        }
-
-        public async Task<List<MediaItem>> GetAllItemsForFolderAsync(string folderPath)
-        {
-            await InitAsync();
-            if (_database is null)
-            {
-                return new List<MediaItem>();
-            }
-
-            _logger.LogInformation("Fetching media items for folder '{Path}'", folderPath);
-
-            return await _database.Table<MediaItem>()
-                .Where(i => i.FilePath.StartsWith(folderPath))
-                .ToListAsync();
         }
     }
 }

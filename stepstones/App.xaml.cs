@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System.IO;
@@ -34,6 +36,11 @@ namespace stepstones
                     services.AddSingleton<IDatabaseService, DatabaseService>();
                     services.AddTransient<ISynchronizationService, SynchronizationService>();
                     services.AddSingleton<IThumbnailService, ThumbnailService>();
+                    services.AddTransient<IClipboardService, ClipboardService>();
+
+                    services.AddSingleton<IMediaItemViewModelFactory, MediaItemViewModelFactory>();
+
+                    services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 
                     services.AddTransient<MainViewModel>();
                     services.AddTransient<MainWindow>();

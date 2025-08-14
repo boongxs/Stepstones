@@ -1,11 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using stepstones.Messages;
 using stepstones.Models;
 using stepstones.Services;
-using System.ComponentModel.DataAnnotations;
 
 namespace stepstones.ViewModels
 {
@@ -20,6 +23,8 @@ namespace stepstones.ViewModels
         private readonly IDatabaseService _databaseService;
         private readonly ISynchronizationService _synchronizationService;
         private readonly IThumbnailService _thumbnailService;
+        private readonly IMediaItemViewModelFactory _mediaItemViewModelFactory;
+        private readonly IMessenger _messenger;
 
         public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
 
@@ -37,7 +42,9 @@ namespace stepstones.ViewModels
                              IFileService fileService,
                              IDatabaseService databaseService,
                              ISynchronizationService synchronizationService,
-                             IThumbnailService thumbnailService)
+                             IThumbnailService thumbnailService,
+                             IMediaItemViewModelFactory mediaItemViewModelFactory,
+                             IMessenger messenger)
         {
             _logger = logger;
             _settingsService = settingsService;
@@ -48,6 +55,14 @@ namespace stepstones.ViewModels
             _databaseService = databaseService;
             _synchronizationService = synchronizationService;
             _thumbnailService = thumbnailService;
+            _mediaItemViewModelFactory = mediaItemViewModelFactory;
+            _messenger = messenger;
+
+            _messenger.Register<MediaItemDeletedMessage>(this, (recipient, message) =>
+            {
+                MediaItems.Remove(message.Value);
+                _logger.LogInformation("Removed deleted item from UI: '{FileName}'", message.Value.FileName);
+            });
 
             logger.LogInformation("MainViewModel has been created.");
 
@@ -86,7 +101,7 @@ namespace stepstones.ViewModels
             MediaItems.Clear();
             foreach (var item in items)
             {
-                MediaItems.Add(new MediaItemViewModel(item));
+                MediaItems.Add(_mediaItemViewModelFactory.Create(item));
             }
 
             _logger.LogInformation("Loaded {Count} media items.", MediaItems.Count);
@@ -151,7 +166,7 @@ namespace stepstones.ViewModels
                 };
 
                 await _databaseService.AddMediaItemAsync(newItem);
-                MediaItems.Add(new MediaItemViewModel(newItem));
+                MediaItems.Add(_mediaItemViewModelFactory.Create(newItem));
             }
         }
     }

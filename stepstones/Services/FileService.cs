@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.IO;
+using stepstones.Models;
 
 namespace stepstones.Services
 {
@@ -48,6 +49,37 @@ namespace stepstones.Services
                 _logger.LogError(ex, "Failed to enumerate files in folder '{FolderPath}'", folderPath);
             }
             return Enumerable.Empty<string>();
+        }
+
+        public void DeleteMediaFile(MediaItem item)
+        {
+            // delete the media file
+            try
+            {
+                if (File.Exists(item.FilePath))
+                {
+                    File.Delete(item.FilePath);
+                    _logger.LogInformation("Successfully deleted media file '{Path}'", item.FilePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete media file '{Path}'", item.FilePath);
+            }
+
+            // delete media file's thumbnail file
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(item.ThumbnailPath) && File.Exists(item.ThumbnailPath))
+                {
+                    File.Delete(item.ThumbnailPath);
+                    _logger.LogInformation("Sucessfully deleted thumbnail file '{Path}'", item.ThumbnailPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete thumbnail file '{Path}'", item.ThumbnailPath);
+            }
         }
     }
 }
