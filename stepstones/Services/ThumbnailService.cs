@@ -5,6 +5,7 @@ using SixLabors.ImageSharp.Processing;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using stepstones.Models;
 
 namespace stepstones.Services
 {
@@ -23,7 +24,7 @@ namespace stepstones.Services
             Directory.CreateDirectory(_thumbnailCacheFolder);
         }
 
-        public async Task<string?> CreateThumbnailAsync(string sourceFilePath)
+        public async Task<string?> CreateThumbnailAsync(string sourceFilePath, MediaType mediaType)
         {
             var tempImagePath = string.Empty;
 
@@ -39,26 +40,27 @@ namespace stepstones.Services
 
                 Image? sourceImage = null;
 
-                try
+                switch (mediaType)
                 {
-                    sourceImage = await Image.LoadAsync(sourceFilePath);
-                    _logger.LogInformation("'{SourceFile}' identified as an image.", sourceFilePath);
-                }
-                catch (UnknownImageFormatException)
-                {
-                    _logger.LogInformation("'{SourceFile}' is not a supported image. Attempting to process as video.", sourceFilePath);
-                    tempImagePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.png");
-                    var success = await FFMpeg.SnapshotAsync(sourceFilePath, tempImagePath, new System.Drawing.Size(1920, 1080), TimeSpan.FromSeconds(1));
+                    case MediaType.Image:
+                        sourceImage = await Image.LoadAsync(sourceFilePath);
+                        _logger.LogInformation("'{SourceFile}' identified as an image.", sourceFilePath);
+                        break;
 
-                    if (success)
-                    {
-                        sourceImage = await Image.LoadAsync(tempImagePath);
-                        _logger.LogInformation("Successfully extracted frame from video '{SourceFile}'", sourceFilePath);
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Failed to extract frame from video '{SourceFile}'", sourceFilePath);
-                    }
+                    case MediaType.Video:
+                        tempImagePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.png");
+                        var success = await FFMpeg.SnapshotAsync(sourceFilePath, tempImagePath, new System.Drawing.Size(1920, 1080), TimeSpan.FromSeconds(1));
+                        
+                        if (success)
+                        {
+                            sourceImage = await Image.LoadAsync(tempImagePath);
+                            _logger.LogInformation("Successfully extracted frame from video '{SourceFile}'", sourceFilePath);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Failed to extract frame from video '{SourceFile}'", sourceFilePath);
+                        }
+                        break;
                 }
 
                 if (sourceImage is null)

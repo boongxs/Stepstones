@@ -40,7 +40,7 @@ namespace stepstones.ViewModels
 
         public string FileName => _mediaItem.FileName;
         public string FilePath => _mediaItem.FilePath;
-        public string FileType => _mediaItem.FileType;
+        public MediaType FileType => _mediaItem.FileType;
         public string? ThumbnailPath => _mediaItem.ThumbnailPath;
 
         private void LoadThumbnail()

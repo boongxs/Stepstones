@@ -37,6 +37,7 @@ namespace stepstones
                     services.AddTransient<ISynchronizationService, SynchronizationService>();
                     services.AddSingleton<IThumbnailService, ThumbnailService>();
                     services.AddTransient<IClipboardService, ClipboardService>();
+                    services.AddTransient<IFileTypeIdentifierService, FileTypeIdentifierService>();
 
                     services.AddSingleton<IMediaItemViewModelFactory, MediaItemViewModelFactory>();
 

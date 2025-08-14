@@ -25,6 +25,7 @@ namespace stepstones.ViewModels
         private readonly IThumbnailService _thumbnailService;
         private readonly IMediaItemViewModelFactory _mediaItemViewModelFactory;
         private readonly IMessenger _messenger;
+        private readonly IFileTypeIdentifierService _fileTypeIdentifierService;
 
         public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
 
@@ -44,7 +45,8 @@ namespace stepstones.ViewModels
                              ISynchronizationService synchronizationService,
                              IThumbnailService thumbnailService,
                              IMediaItemViewModelFactory mediaItemViewModelFactory,
-                             IMessenger messenger)
+                             IMessenger messenger,
+                             IFileTypeIdentifierService fileTypeIdentifierService)
         {
             _logger = logger;
             _settingsService = settingsService;
@@ -57,6 +59,7 @@ namespace stepstones.ViewModels
             _thumbnailService = thumbnailService;
             _mediaItemViewModelFactory = mediaItemViewModelFactory;
             _messenger = messenger;
+            _fileTypeIdentifierService = fileTypeIdentifierService;
 
             _messenger.Register<MediaItemDeletedMessage>(this, (recipient, message) =>
             {
@@ -155,13 +158,20 @@ namespace stepstones.ViewModels
 
             foreach (var sourcePath in fileList)
             {
-                var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(sourcePath);
+                var mediaType = await _fileTypeIdentifierService.IdentifyAsync(sourcePath);
+                if (mediaType == MediaType.Unknown)
+                {
+                    _logger.LogInformation("Skipping unsupported file '{File}'", sourcePath);
+                    continue;
+                }
+
+                var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(sourcePath, mediaType);
 
                 var newItem = new MediaItem
                 {
                     FileName = Path.GetFileName(sourcePath),
                     FilePath = Path.Combine(mediaFolderPath, Path.GetFileName(sourcePath)),
-                    FileType = Path.GetExtension(sourcePath).ToLowerInvariant(),
+                    FileType = mediaType,
                     ThumbnailPath = thumbnailPath
                 };
 

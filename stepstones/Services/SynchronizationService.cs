@@ -10,16 +10,19 @@ namespace stepstones.Services
         private readonly IDatabaseService _databaseService;
         private readonly IFileService _fileService;
         private readonly IThumbnailService _thumbnailService;
+        private readonly IFileTypeIdentifierService _fileTypeIdentifierService;
 
         public SynchronizationService(ILogger<SynchronizationService> logger,
                                       IDatabaseService databaseService,
                                       IFileService fileService,
-                                      IThumbnailService thumbnailService)
+                                      IThumbnailService thumbnailService,
+                                      IFileTypeIdentifierService fileTypeIdentifierService)
         {
             _logger = logger;
             _databaseService = databaseService;
             _fileService = fileService;
             _thumbnailService = thumbnailService;
+            _fileTypeIdentifierService = fileTypeIdentifierService;
         }
 
         public async Task SynchronizeDataAsync(string folderPath)
@@ -41,13 +44,19 @@ namespace stepstones.Services
                 _logger.LogInformation("Found {Count} orphan files to import into the database.", orphans.Count);
                 foreach (var orphanPath in orphans)
                 {
-                    var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(orphanPath);
+                    var mediaType = await _fileTypeIdentifierService.IdentifyAsync(orphanPath);
+                    if (mediaType == MediaType.Unknown)
+                    {
+                        continue;
+                    }
+
+                    var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(orphanPath, mediaType);
 
                     var newItem = new MediaItem
                     {
                         FileName = Path.GetFileName(orphanPath),
                         FilePath = orphanPath,
-                        FileType = Path.GetExtension(orphanPath).ToLowerInvariant(),
+                        FileType = mediaType,
                         ThumbnailPath = thumbnailPath
                     };
                     await _databaseService.AddMediaItemAsync(newItem);
