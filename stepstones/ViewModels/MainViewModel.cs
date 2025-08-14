@@ -62,7 +62,7 @@ namespace stepstones.ViewModels
                 _logger.LogInformation("Application startup: Located saved media folder, '{Path}'", savedPath);
             }
 
-            await _synchronizationService.SynchronizeDataAsync();
+            await _synchronizationService.SynchronizeDataAsync(savedPath);
             await LoadMediaItemsAsync();
         }
 
@@ -104,6 +104,7 @@ namespace stepstones.ViewModels
                 _logger.LogInformation("User selected folder: {Path}", selectedPath);
                 _settingsService.SaveMediaFolderPath(selectedPath);
 
+                await _synchronizationService.SynchronizeDataAsync(selectedPath);
                 await LoadMediaItemsAsync();
             }
         }

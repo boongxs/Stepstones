@@ -2,6 +2,6 @@
 {
     public interface ISynchronizationService
     {
-        Task SynchronizeDataAsync();
+        Task SynchronizeDataAsync(string folderPath);
     }
 }
