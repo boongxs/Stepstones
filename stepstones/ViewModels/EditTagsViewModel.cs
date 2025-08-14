@@ -9,6 +9,7 @@ namespace stepstones.ViewModels
 
         public EditTagsViewModel(string? currentTags)
         {
+            // pre-populate the text box with existing tags
             _tagsText = currentTags;
         }
     }

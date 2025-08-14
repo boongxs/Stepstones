@@ -25,14 +25,14 @@
                 <Setter Property="Visibility" Value="Collapsed"/>
 
                 <Style.Triggers>
-                    <DataTrigger Binding="{Binding IsOverlayBisible}"
+                    <DataTrigger Binding="{Binding IsOverlayVisible}"
                                  Value="True">
                         <Setter Property="Visibility" Value="Visible"/>
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
         </Grid.Style>
-
+        
         <Border Background="#aa000000">
             <Border.InputBindings>
                 <MouseBinding Gesture="LeftClick"

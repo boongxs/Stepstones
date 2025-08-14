@@ -34,7 +34,7 @@ namespace stepstones.Services.Infrastructure
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to copy '{Path}' to clipboard.", filePath);
+                _logger.LogError(ex, "Failed to copy file to clipboard: {Path}", filePath);
             }
         }
     }

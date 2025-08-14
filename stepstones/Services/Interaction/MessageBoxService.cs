@@ -14,11 +14,7 @@ namespace stepstones.Services.Interaction
 
         public bool ShowConfirmation(string title, string message)
         {
-            var result = MessageBox.Show(message, 
-                                         title, 
-                                         MessageBoxButton.YesNo, 
-                                         MessageBoxImage.Question);
-
+            var result = MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Question);
             return result == MessageBoxResult.Yes;
         }
     }

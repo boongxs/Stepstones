@@ -5,10 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
              xmlns:local="clr-namespace:stepstones.Views"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" 
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=viewmodels:EnlargeMediaViewModel}"
+             d:DesignHeight="600" 
              d:DesignWidth="800">
-    <Grid MaxWidth="{Binding OriginalWidth}"
+    <Grid MaxWidth="{Binding OriginalWidth}" 
           MaxHeight="{Binding OriginalHeight}"
           Background="Transparent"
           MouseLeftButtonDown="OnMediaViewMouseDown"
@@ -27,7 +28,7 @@
 
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding IsImage}"
-                                         Value="True">
+                                             Value="True">
                                 <Setter Property="Opacity" Value="1"/>
                                 <Setter Property="Source" Value="{Binding FilePath}"/>
                             </DataTrigger>
@@ -37,9 +38,9 @@
             </Image>
 
             <MediaElement x:Name="VideoPlayer"
-                          LoadedBehavior="Manual"
-                          UnloadedBehavior="Close"
-                          MouseLeftButtonDown="VideoPlayer_MouseLeftButtonDown">
+                              LoadedBehavior="Manual"
+                              UnloadedBehavior="Close"
+                              MouseLeftButtonDown="VideoPlayer_MouseLeftButtonDown">
                 <MediaElement.Style>
                     <Style TargetType="MediaElement">
                         <Setter Property="Opacity" Value="0"/>
@@ -47,7 +48,7 @@
 
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding IsVideo}"
-                                         Value="True">
+                                             Value="True">
                                 <Setter Property="Opacity" Value="1"/>
                                 <Setter Property="Source" Value="{Binding FilePath}"/>
                             </DataTrigger>

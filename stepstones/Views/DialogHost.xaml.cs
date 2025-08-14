@@ -15,6 +15,9 @@ using System.Windows.Shapes;
 
 namespace stepstones.Views
 {
+    /// <summary>
+    /// Interaction logic for DialogHost.xaml
+    /// </summary>
     public partial class DialogHost : UserControl
     {
         public DialogHost()

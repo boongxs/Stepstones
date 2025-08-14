@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using stepstones.Models;
+﻿using stepstones.Models;
+using System.Threading.Tasks;
 
 namespace stepstones.Services.Core
 {

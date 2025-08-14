@@ -1,21 +1,21 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
+﻿using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using System.IO;
 using System.Windows;
 using stepstones.ViewModels;
-using stepstones.Services.Core;
-using stepstones.Services.Data;
-using stepstones.Services.Infrastructure;
+using System.IO;
+using CommunityToolkit.Mvvm.Messaging;
 using stepstones.Services.Interaction;
+using stepstones.Services.Data;
+using stepstones.Services.Core;
+using stepstones.Services.Infrastructure;
 
 namespace stepstones
 {
     public partial class App : Application
     {
-        private IHost _host;
+        private readonly IHost _host;
 
         public App()
         {
@@ -75,5 +75,4 @@ namespace stepstones
             base.OnExit(e);
         }
     }
-
 }

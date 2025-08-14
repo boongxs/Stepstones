@@ -32,6 +32,7 @@ namespace stepstones.Services.Core
             {
                 var cachePath = GetCachePath(sourceFilePath);
 
+                // in perfect flow should never true but in case a crash happens during thumbnail service execution in previous sessions
                 if (File.Exists(cachePath))
                 {
                     _logger.LogInformation("Thumbnail found in cache for {SourceFile}", sourceFilePath);
@@ -50,7 +51,6 @@ namespace stepstones.Services.Core
                     case MediaType.Video:
                         tempImagePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.png");
                         var success = await FFMpeg.SnapshotAsync(sourceFilePath, tempImagePath, new System.Drawing.Size(1920, 1080), TimeSpan.FromSeconds(1));
-                        
                         if (success)
                         {
                             sourceImage = await Image.LoadAsync(tempImagePath);
@@ -80,7 +80,7 @@ namespace stepstones.Services.Core
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An unexpected error occurred while creating thumbnail for '{SourceFile}'", sourceFilePath);
+                _logger.LogError(ex, "An unexpected error occurred while creating thumbnail for '{SourceFile}'.", sourceFilePath);
                 return null;
             }
             finally
@@ -105,7 +105,7 @@ namespace stepstones.Services.Core
             var options = new ResizeOptions
             {
                 Size = new Size(ThumbnailSize, ThumbnailSize),
-                Mode = ResizeMode.Crop
+                Mode = ResizeMode.Crop,
             };
             image.Mutate(x => x.Resize(options));
         }

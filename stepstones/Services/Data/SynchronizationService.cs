@@ -13,8 +13,8 @@ namespace stepstones.Services.Data
         private readonly IThumbnailService _thumbnailService;
         private readonly IFileTypeIdentifierService _fileTypeIdentifierService;
 
-        public SynchronizationService(ILogger<SynchronizationService> logger,
-                                      IDatabaseService databaseService,
+        public SynchronizationService(ILogger<SynchronizationService> logger,  
+                                      IDatabaseService databaseService, 
                                       IFileService fileService,
                                       IThumbnailService thumbnailService,
                                       IFileTypeIdentifierService fileTypeIdentifierService)
@@ -31,17 +31,19 @@ namespace stepstones.Services.Data
             var filesInFolder = _fileService.GetAllFiles(folderPath).ToList();
             var filePathsInDatabase = await _databaseService.GetFilePathsForFolderAsync(folderPath);
 
+            // find and delete ghosts (in DB, not in folder)
             var ghosts = filePathsInDatabase.Except(filesInFolder).ToList();
             if (ghosts.Any())
             {
-                _logger.LogInformation("Found {Count} ghost records to delete from the database.", ghosts.Count);
+                _logger.LogInformation("[SynchronizationService] Found {Count} ghost records to delete from the database.", ghosts.Count);
                 await _databaseService.DeleteItemsByPathsAsync(ghosts);
             }
 
+            // find and import orphans (in folder, not in DB)
             var orphans = filesInFolder.Except(filePathsInDatabase).ToList();
             if (orphans.Any())
             {
-                _logger.LogInformation("Found {Count} orphan files to import into the database.", orphans.Count);
+                _logger.LogInformation("[SynchronizationService] Found {Count} orphan files to import into the database.", orphans.Count);
                 foreach (var orphanPath in orphans)
                 {
                     var mediaType = await _fileTypeIdentifierService.IdentifyAsync(orphanPath);

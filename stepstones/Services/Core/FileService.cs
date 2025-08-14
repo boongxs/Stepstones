@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.IO;
 using stepstones.Models;
+using System.IO;
 
 namespace stepstones.Services.Core
 {
@@ -25,11 +25,11 @@ namespace stepstones.Services.Core
                         var destinationPath = Path.Combine(destinationFolderPath, fileName);
 
                         File.Copy(sourcePath, destinationPath, true);
-                        _logger.LogInformation("Successfully copied '{SourceFile}' to '{DestinationFile}'", sourcePath, destinationPath);
+                        _logger.LogInformation("[FileService] Successfully copied '{SourceFile}' to '{DestinationFile}'", sourcePath, destinationPath);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Failed to copy '{SourceFile}'", sourcePath);
+                        _logger.LogError(ex, "[FileService] Failed to copy file: {SourceFile}", sourcePath);
                     }
                 }
             });
@@ -67,13 +67,13 @@ namespace stepstones.Services.Core
                 _logger.LogError(ex, "Failed to delete media file '{Path}'", item.FilePath);
             }
 
-            // delete media file's thumbnail file
+            // delete media file's thumbnail
             try
             {
                 if (!string.IsNullOrWhiteSpace(item.ThumbnailPath) && File.Exists(item.ThumbnailPath))
                 {
                     File.Delete(item.ThumbnailPath);
-                    _logger.LogInformation("Sucessfully deleted thumbnail file '{Path}'", item.ThumbnailPath);
+                    _logger.LogInformation("Successfully deleted thumbnail file '{Path}'", item.ThumbnailPath);
                 }
             }
             catch (Exception ex)

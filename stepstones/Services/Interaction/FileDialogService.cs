@@ -8,7 +8,7 @@ namespace stepstones.Services.Interaction
         {
             var dialog = new VistaOpenFileDialog
             {
-                Title = "Select file(s) to upload.",
+                Title = "Select file(s) to upload",
                 Multiselect = true
             };
 

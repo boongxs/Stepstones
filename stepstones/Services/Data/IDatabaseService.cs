@@ -4,7 +4,7 @@ namespace stepstones.Services.Data
 {
     public interface IDatabaseService
     {
-        Task AddMediaItemAsync(MediaItem mediaItem);
+        Task AddMediaItemAsync(MediaItem item);
         Task DeleteItemsByPathsAsync(IEnumerable<string> paths);
         Task<List<MediaItem>> GetAllItemsForFolderAsync(string folderPath, int pageNumber, int pageSize, string? filterText = null);
         Task DeleteMediaItemAsync(MediaItem item);

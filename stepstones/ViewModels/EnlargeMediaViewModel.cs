@@ -3,7 +3,7 @@ using stepstones.Models;
 
 namespace stepstones.ViewModels
 {
-    public class EnlargeMediaViewModel : ObservableObject
+    public partial class EnlargeMediaViewModel : ObservableObject
     {
         public string FilePath { get; }
         public MediaType FileType { get; }

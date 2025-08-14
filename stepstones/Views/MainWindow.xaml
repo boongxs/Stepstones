@@ -3,18 +3,19 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:stepstones"
+        xmlns:local="clr-namespace:stepstones" 
         xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
         xmlns:views="clr-namespace:stepstones.Views"
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
-        Title="Stepstones"
+        Title="MainWindow" 
+        Height="650" 
         Width="1000"
-        Height="650"
-        MinWidth="700"
-        MinHeight="600"
         WindowState="Maximized"
-        Background="#282828">
+        Background="#282828"
+        MinWidth="700"
+        MinHeight="600">
+
     <Grid x:Name="MainGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -49,9 +50,10 @@
                  Padding="10,0,0,0">
         </TextBox>
 
-        <!-- General Buttons -->
+        <!-- General buttons -->
         <StackPanel Grid.Row="2"
                     Orientation="Horizontal"
+                    HorizontalAlignment="Center"
                     Margin="0,0,0,10">
             <Button Content="Sel"
                     Command="{Binding SelectFolderCommand}"
@@ -123,7 +125,7 @@
                             <Image Source="{Binding ThumbnailImage}"
                                    Stretch="UniformToFill">
                             </Image>
-                            
+
                             <!-- Layer 3: Darkening overlay -->
                             <Border Background="#80000000">
                                 <Border.Style>
@@ -141,7 +143,7 @@
                                     </Style>
                                 </Border.Style>
                             </Border>
-                            
+
                             <!-- Layer 4: Command buttons overlay -->
                             <Grid>
                                 <Grid.Style>
@@ -206,6 +208,7 @@
             </ItemsControl>
         </ScrollViewer>
 
+        <!-- Enlarge and EditTags button's Overlay -->
         <views:DialogHost Grid.Row="0"
                           Grid.RowSpan="4">
         </views:DialogHost>

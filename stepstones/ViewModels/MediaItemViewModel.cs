@@ -1,23 +1,24 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using System.Diagnostics;
-using System.IO;
 using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Windows.Media.Imaging;
-using stepstones.Models;
 using stepstones.Messages;
-using stepstones.Services.Core;
-using stepstones.Services.Data;
-using stepstones.Services.Infrastructure;
+using stepstones.Models;
+using System.Windows.Media.Imaging;
+using System.IO;
+using System.Windows.Forms;
+using System.Diagnostics;
 using stepstones.Services.Interaction;
+using stepstones.Services.Data;
+using stepstones.Services.Core;
+using stepstones.Services.Infrastructure;
 
 namespace stepstones.ViewModels
 {
     public partial class MediaItemViewModel : ObservableObject
     {
         private readonly MediaItem _mediaItem;
+
         private readonly IClipboardService _clipboardService;
         private readonly IMessageBoxService _messageBoxService;
         private readonly IFileService _fileService;
@@ -29,16 +30,17 @@ namespace stepstones.ViewModels
         [ObservableProperty]
         private BitmapImage? _thumbnailImage;
 
-        public MediaItemViewModel(MediaItem mediaItem,
-                                  IClipboardService clipboardService,
-                                  IMessageBoxService messageBoxService,
-                                  IFileService fileService,
-                                  IDatabaseService databaseService,
+        public MediaItemViewModel(MediaItem mediaItem, 
+                                  IClipboardService clipboardService, 
+                                  IMessageBoxService messageBoxService, 
+                                  IFileService fileService, 
+                                  IDatabaseService databaseService, 
                                   IMessenger messenger,
                                   IImageDimensionService imageDimensionService,
                                   IDialogPresenter dialogPresenter)
         {
             _mediaItem = mediaItem;
+
             _clipboardService = clipboardService;
             _messageBoxService = messageBoxService;
             _fileService = fileService;
@@ -114,10 +116,11 @@ namespace stepstones.ViewModels
                 return;
             }
 
-            var dialogViewModel = new EnlargeMediaViewModel(this.FilePath,
-                                                            this.FileType,
-                                                            dimensions.Width,
-                                                            dimensions.Height);
+            var dialogViewModel = new EnlargeMediaViewModel(
+                this.FilePath,
+                this.FileType,
+                dimensions.Width,
+                dimensions.Height);
 
             _messenger.Send(new ShowDialogMessage(dialogViewModel));
         }

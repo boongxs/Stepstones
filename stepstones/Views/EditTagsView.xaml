@@ -8,8 +8,7 @@
              xmlns:local="clr-namespace:stepstones.Views"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewmodels:EditTagsViewModel}"
-             d:DesignHeight="150" 
-             d:DesignWidth="400">
+             d:DesignHeight="150" d:DesignWidth="400">
     <Border Background="#282828"
             BorderBrush="#505050"
             BorderThickness="1"

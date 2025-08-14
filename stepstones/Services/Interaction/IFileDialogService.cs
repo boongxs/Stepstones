@@ -2,6 +2,6 @@
 {
     public interface IFileDialogService
     {
-        IEnumerable<string> ShowDialog();
+        IEnumerable<string>? ShowDialog();
     }
 }

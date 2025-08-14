@@ -41,7 +41,7 @@ namespace stepstones.Services.Core
             }
             catch (Exception)
             {
-                _logger.LogInformation("File '{File}' has not been identified as Video.", filePath);
+                _logger.LogInformation("File '{Path}' has not been identified as Video.", filePath);
             }
 
             _logger.LogWarning("Could not identify '{File}' as a Image or Video.", filePath);
