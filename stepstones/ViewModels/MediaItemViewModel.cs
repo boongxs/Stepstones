@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using System.IO;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using stepstones.Models;
 using stepstones.Services;
@@ -18,6 +19,7 @@ namespace stepstones.ViewModels
         private readonly IFileService _fileService;
         private readonly IDatabaseService _databaseService;
         private readonly IMessenger _messenger;
+        private readonly IImageDimensionService _imageDimensionService;
 
         public BitmapImage? ThumbnailImage { get; private set; }
 
@@ -26,7 +28,8 @@ namespace stepstones.ViewModels
                                   IMessageBoxService messageBoxService,
                                   IFileService fileService,
                                   IDatabaseService databaseService,
-                                  IMessenger messenger)
+                                  IMessenger messenger,
+                                  IImageDimensionService imageDimensionService)
         {
             _mediaItem = mediaItem;
             _clipboardService = clipboardService;
@@ -34,6 +37,7 @@ namespace stepstones.ViewModels
             _fileService = fileService;
             _databaseService = databaseService;
             _messenger = messenger;
+            _imageDimensionService = imageDimensionService;
 
             LoadThumbnail();
         }
@@ -61,7 +65,7 @@ namespace stepstones.ViewModels
 
                 ThumbnailImage = bitmap;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 ThumbnailImage = null;
             }
@@ -71,6 +75,23 @@ namespace stepstones.ViewModels
         private void Copy()
         {
             _clipboardService.CopyFileToClipboard(FilePath);
+        }
+
+        [RelayCommand]
+        private async Task Enlarge()
+        {
+            var dimensions = await _imageDimensionService.GetDimensionsAsync(this.FilePath, this.FileType);
+            if (dimensions.Width == 0 || dimensions.Height == 0)
+            {
+                return;
+            }
+
+            var dialogViewModel = new EnlargeMediaViewModel(this.FilePath,
+                                                            this.FileType,
+                                                            dimensions.Width,
+                                                            dimensions.Height);
+
+            _messenger.Send(new ShowDialogMessage(dialogViewModel));
         }
 
         [RelayCommand]

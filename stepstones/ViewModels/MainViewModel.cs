@@ -35,6 +35,12 @@ namespace stepstones.ViewModels
         [ObservableProperty]
         private int _gridColumns = 4;
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsOverlayVisible))]
+        private object? _activeDialogViewModel;
+
+        public bool IsOverlayVisible => _activeDialogViewModel != null;
+
         public MainViewModel(ILogger<MainViewModel> logger,
                              ISettingsService settingsService,
                              IFolderDialogService folderDialogService,
@@ -65,6 +71,11 @@ namespace stepstones.ViewModels
             {
                 MediaItems.Remove(message.Value);
                 _logger.LogInformation("Removed deleted item from UI: '{FileName}'", message.Value.FileName);
+            });
+
+            _messenger.Register<ShowDialogMessage>(this, (recipient, message) =>
+            {
+                ActiveDialogViewModel = message.ViewModel;
             });
 
             logger.LogInformation("MainViewModel has been created.");
@@ -111,7 +122,7 @@ namespace stepstones.ViewModels
         }
 
         [RelayCommand]
-        private async void SelectFolder()
+        private async Task SelectFolder()
         {
             _logger.LogInformation("'Select Folder' button clicked, opening folder dialog.");
 
@@ -178,6 +189,12 @@ namespace stepstones.ViewModels
                 await _databaseService.AddMediaItemAsync(newItem);
                 MediaItems.Add(_mediaItemViewModelFactory.Create(newItem));
             }
+        }
+
+        [RelayCommand]
+        private void CloseDialog()
+        {
+            ActiveDialogViewModel = null;
         }
     }
 }

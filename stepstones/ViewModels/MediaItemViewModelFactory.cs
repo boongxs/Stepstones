@@ -11,18 +11,21 @@ namespace stepstones.ViewModels
         private readonly IFileService _fileService;
         private readonly IDatabaseService _databaseService;
         private readonly IMessenger _messenger;
+        private readonly IImageDimensionService _imageDimensionService;
 
         public MediaItemViewModelFactory(IClipboardService clipboardService,
                                          IMessageBoxService messageBoxService,
                                          IFileService fileService,
                                          IDatabaseService databaseService,
-                                         IMessenger messsenger)
+                                         IMessenger messsenger,
+                                         IImageDimensionService imageDimensionService)
         {
             _clipboardService = clipboardService;
             _messageBoxService = messageBoxService;
             _fileService = fileService;
             _databaseService = databaseService;
             _messenger = messsenger;
+            _imageDimensionService = imageDimensionService;
         }
 
         public MediaItemViewModel Create(MediaItem mediaItem)
@@ -32,7 +35,8 @@ namespace stepstones.ViewModels
                                           _messageBoxService,
                                           _fileService,
                                           _databaseService,
-                                          _messenger);
+                                          _messenger,
+                                          _imageDimensionService);
         }
     }
 }

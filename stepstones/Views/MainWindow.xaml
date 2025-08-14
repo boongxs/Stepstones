@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:stepstones"
         xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
+        xmlns:views="clr-namespace:stepstones.Views"
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
         Title="Stepstones"
@@ -14,7 +15,7 @@
         MinHeight="600"
         WindowState="Maximized"
         Background="#282828">
-    <Grid>
+    <Grid x:Name="MainGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -22,6 +23,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- Title Label -->
         <Label Grid.Row="0"
                Content="Stepstones"
                HorizontalAlignment="Center"
@@ -30,6 +32,7 @@
                Foreground="#f0f0f0">
         </Label>
 
+        <!-- Filtering TextBox -->
         <TextBox Grid.Row="1"
                  HorizontalAlignment="Center"
                  VerticalAlignment="Center"
@@ -45,6 +48,7 @@
                  Padding="10,0,0,0">
         </TextBox>
 
+        <!-- General Buttons -->
         <StackPanel Grid.Row="2"
                     Orientation="Horizontal"
                     Margin="0,0,0,10">
@@ -69,6 +73,7 @@
             </Button>
         </StackPanel>
 
+        <!-- ItemsControl to display the media items -->
         <ScrollViewer Grid.Row="3"
                       Margin="20,0,20,20"
                       VerticalScrollBarVisibility="Auto">
@@ -175,5 +180,9 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
+
+        <views:DialogHost Grid.Row="0"
+                          Grid.RowSpan="4">
+        </views:DialogHost>
     </Grid>
 </Window>
