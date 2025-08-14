@@ -33,6 +33,7 @@ namespace stepstones
                     services.AddTransient<IFileService, FileService>();
                     services.AddSingleton<IDatabaseService, DatabaseService>();
                     services.AddTransient<ISynchronizationService, SynchronizationService>();
+                    services.AddSingleton<IThumbnailService, ThumbnailService>();
 
                     services.AddTransient<MainViewModel>();
                     services.AddTransient<MainWindow>();

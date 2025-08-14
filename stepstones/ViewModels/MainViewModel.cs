@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using stepstones.Models;
 using stepstones.Services;
+using System.ComponentModel.DataAnnotations;
 
 namespace stepstones.ViewModels
 {
@@ -18,6 +19,7 @@ namespace stepstones.ViewModels
         private readonly IFileService _fileService;
         private readonly IDatabaseService _databaseService;
         private readonly ISynchronizationService _synchronizationService;
+        private readonly IThumbnailService _thumbnailService;
 
         public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
 
@@ -34,7 +36,8 @@ namespace stepstones.ViewModels
                              IMessageBoxService messageBoxService,
                              IFileService fileService,
                              IDatabaseService databaseService,
-                             ISynchronizationService synchronizationService)
+                             ISynchronizationService synchronizationService,
+                             IThumbnailService thumbnailService)
         {
             _logger = logger;
             _settingsService = settingsService;
@@ -44,6 +47,7 @@ namespace stepstones.ViewModels
             _fileService = fileService;
             _databaseService = databaseService;
             _synchronizationService = synchronizationService;
+            _thumbnailService = thumbnailService;
 
             logger.LogInformation("MainViewModel has been created.");
 
@@ -136,11 +140,14 @@ namespace stepstones.ViewModels
 
             foreach (var sourcePath in fileList)
             {
+                var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(sourcePath);
+
                 var newItem = new MediaItem
                 {
                     FileName = Path.GetFileName(sourcePath),
                     FilePath = Path.Combine(mediaFolderPath, Path.GetFileName(sourcePath)),
-                    FileType = Path.GetExtension(sourcePath).ToLowerInvariant()
+                    FileType = Path.GetExtension(sourcePath).ToLowerInvariant(),
+                    ThumbnailPath = thumbnailPath
                 };
 
                 await _databaseService.AddMediaItemAsync(newItem);

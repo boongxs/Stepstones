@@ -7,9 +7,11 @@
         xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
-        Title="Stepstones" 
-        Height="650" 
+        Title="Stepstones"
         Width="1000"
+        Height="650"
+        MinWidth="700"
+        MinHeight="600"
         WindowState="Maximized"
         Background="#282828">
     <Grid>
@@ -82,12 +84,15 @@
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding FileName}"
-                                   Foreground="White"
-                                   Margin="5"
-                                   Background="Blue"
-                                   Height="200">
-                        </TextBlock>
+                        <Grid Margin="5"
+                              Background="#404040">
+                            <Border Background="#404040"/>
+
+                            <Image Source="{Binding ThumbnailPath}"
+                                   Height="250"
+                                   Stretch="UniformToFill">
+                            </Image>
+                        </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

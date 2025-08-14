@@ -9,14 +9,17 @@ namespace stepstones.Services
         private readonly ILogger<SynchronizationService> _logger;
         private readonly IDatabaseService _databaseService;
         private readonly IFileService _fileService;
+        private readonly IThumbnailService _thumbnailService;
 
         public SynchronizationService(ILogger<SynchronizationService> logger,
                                       IDatabaseService databaseService,
-                                      IFileService fileService)
+                                      IFileService fileService,
+                                      IThumbnailService thumbnailService)
         {
             _logger = logger;
             _databaseService = databaseService;
             _fileService = fileService;
+            _thumbnailService = thumbnailService;
         }
 
         public async Task SynchronizeDataAsync(string folderPath)
@@ -38,11 +41,14 @@ namespace stepstones.Services
                 _logger.LogInformation("Found {Count} orphan files to import into the database.", orphans.Count);
                 foreach (var orphanPath in orphans)
                 {
+                    var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(orphanPath);
+
                     var newItem = new MediaItem
                     {
                         FileName = Path.GetFileName(orphanPath),
                         FilePath = orphanPath,
-                        FileType = Path.GetExtension(orphanPath).ToLowerInvariant()
+                        FileType = Path.GetExtension(orphanPath).ToLowerInvariant(),
+                        ThumbnailPath = thumbnailPath
                     };
                     await _databaseService.AddMediaItemAsync(newItem);
                 }
