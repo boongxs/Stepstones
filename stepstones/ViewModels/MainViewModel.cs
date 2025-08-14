@@ -44,6 +44,11 @@ namespace stepstones.ViewModels
 
         private TaskCompletionSource<EditTagsResult>? _editTagsCompletionSource;
 
+        private CancellationTokenSource? _filterCts;
+
+        [ObservableProperty]
+        private string? _filterText;
+
         public MainViewModel(ILogger<MainViewModel> logger,
                              ISettingsService settingsService,
                              IFolderDialogService folderDialogService,
@@ -113,7 +118,7 @@ namespace stepstones.ViewModels
             }
 
             _logger.LogInformation("Loading media items from database for folder '{Path}'", mediaFolderPath);
-            var items = await _databaseService.GetAllItemsForFolderAsync(mediaFolderPath);
+            var items = await _databaseService.GetAllItemsForFolderAsync(mediaFolderPath, FilterText);
 
             MediaItems.Clear();
 
@@ -221,6 +226,28 @@ namespace stepstones.ViewModels
             var dialogViewModel = new EditTagsViewModel(currentTags);
             ActiveDialogViewModel = dialogViewModel;
             return _editTagsCompletionSource.Task;
+        }
+
+        partial void OnFilterTextChanged(string? value)
+        {
+            _filterCts?.Cancel();
+            _filterCts = new CancellationTokenSource();
+            _ = TriggerFilterAsync(_filterCts.Token);
+        }
+
+        private async Task TriggerFilterAsync(CancellationToken token)
+        {
+            try
+            {
+                await Task.Delay(300, token);
+
+                _logger.LogInformation("Filter text changed, reloading media items.");
+                await LoadMediaItemsAsync();
+            }
+            catch (TaskCanceledException)
+            {
+                // expected catch, when user is typing quickly
+            }
         }
     }
 }

@@ -34,6 +34,7 @@
 
         <!-- Filtering TextBox -->
         <TextBox Grid.Row="1"
+                 Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                  HorizontalAlignment="Center"
                  VerticalAlignment="Center"
                  Width="600"

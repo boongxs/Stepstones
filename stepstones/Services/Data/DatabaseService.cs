@@ -2,6 +2,7 @@
 using SQLite;
 using System.IO;
 using stepstones.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace stepstones.Services.Data
 {
@@ -65,7 +66,7 @@ namespace stepstones.Services.Data
             }
         }
 
-        public async Task<List<MediaItem>> GetAllItemsForFolderAsync(string folderPath)
+        public async Task<List<MediaItem>> GetAllItemsForFolderAsync(string folderPath, string? filterText = null)
         {
             await InitAsync();
             if (_database is null)
@@ -75,9 +76,19 @@ namespace stepstones.Services.Data
 
             _logger.LogInformation("Fetching media items for folder '{Path}'", folderPath);
 
-            return await _database.Table<MediaItem>()
-                .Where(i => i.FilePath.StartsWith(folderPath))
-                .ToListAsync();
+            var query = _database.Table<MediaItem>().Where(i => i.FilePath.StartsWith(folderPath));
+
+            if (!string.IsNullOrWhiteSpace(filterText))
+            {
+                var searchTerms = filterText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var term in searchTerms)
+                {
+                    query = query.Where(i => i.Tags.Contains(term));
+                }
+            }
+
+            return await query.ToListAsync();
         }
 
         public async Task DeleteMediaItemAsync(MediaItem item)
