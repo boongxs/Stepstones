@@ -19,7 +19,13 @@ namespace stepstones.ViewModels
         private readonly IDatabaseService _databaseService;
         private readonly ISynchronizationService _synchronizationService;
 
-        public ObservableCollection<MediaItem> MediaItems { get; } = new();
+        public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
+
+        [ObservableProperty]
+        private double _thumbnailWidth = 270;
+
+        [ObservableProperty]
+        private int _gridColumns = 4;
 
         public MainViewModel(ILogger<MainViewModel> logger,
                              ISettingsService settingsService,
@@ -39,9 +45,9 @@ namespace stepstones.ViewModels
             _databaseService = databaseService;
             _synchronizationService = synchronizationService;
 
-            _ = InitializeAsync();
-
             logger.LogInformation("MainViewModel has been created.");
+
+            _ = InitializeAsync();
         }
 
         private async Task InitializeAsync()
@@ -76,7 +82,7 @@ namespace stepstones.ViewModels
             MediaItems.Clear();
             foreach (var item in items)
             {
-                MediaItems.Add(item);
+                MediaItems.Add(new MediaItemViewModel(item));
             }
 
             _logger.LogInformation("Loaded {Count} media items.", MediaItems.Count);
@@ -137,7 +143,7 @@ namespace stepstones.ViewModels
                 };
 
                 await _databaseService.AddMediaItemAsync(newItem);
-                MediaItems.Add(newItem);
+                MediaItems.Add(new MediaItemViewModel(newItem));
             }
         }
     }

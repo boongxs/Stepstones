@@ -8,8 +8,8 @@
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
         Title="Stepstones" 
-        Height="450" 
-        Width="800"
+        Height="650" 
+        Width="1000"
         WindowState="Maximized"
         Background="#282828">
     <Grid>
@@ -67,24 +67,30 @@
             </Button>
         </StackPanel>
 
-        <ItemsControl Grid.Row="3"
-                      ItemsSource="{Binding MediaItems}"
-                      Margin="20,0,20,20">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
+        <ScrollViewer Grid.Row="3"
+                      Margin="20,0,20,20"
+                      VerticalScrollBarVisibility="Auto">
+            <ItemsControl x:Name="MediaItemsControl"
+                          ItemsSource="{Binding MediaItems}"
+                          SizeChanged="MediaItemsControl_SizeChanged"
+                          VerticalAlignment="Top">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="{Binding GridColumns}"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
 
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding FileName}"
-                               Foreground="White"
-                               Margin="5"
-                               Background="Blue">
-                    </TextBlock>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding FileName}"
+                                   Foreground="White"
+                                   Margin="5"
+                                   Background="Blue"
+                                   Height="200">
+                        </TextBlock>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
     </Grid>
 </Window>
