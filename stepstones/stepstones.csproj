@@ -9,6 +9,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Icons\copy-hover.svg" />
+    <None Remove="Resources\Icons\copy.svg" />
+    <None Remove="Resources\Icons\delete-hover.svg" />
+    <None Remove="Resources\Icons\delete.svg" />
+    <None Remove="Resources\Icons\edit-hover.svg" />
+    <None Remove="Resources\Icons\edit.svg" />
+    <None Remove="Resources\Icons\enlarge-hover.svg" />
+    <None Remove="Resources\Icons\enlarge.svg" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="FFMpegCore" Version="5.2.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
@@ -17,8 +28,20 @@
     <PackageReference Include="Serilog.Extensions.Hosting" Version="9.0.0" />
     <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="SharpVectors" Version="1.8.5" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
     <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\Icons\copy-hover.svg" />
+    <Resource Include="Resources\Icons\copy.svg" />
+    <Resource Include="Resources\Icons\delete-hover.svg" />
+    <Resource Include="Resources\Icons\delete.svg" />
+    <Resource Include="Resources\Icons\edit-hover.svg" />
+    <Resource Include="Resources\Icons\edit.svg" />
+    <Resource Include="Resources\Icons\enlarge-hover.svg" />
+    <Resource Include="Resources\Icons\enlarge.svg" />
   </ItemGroup>
 
   <ItemGroup>

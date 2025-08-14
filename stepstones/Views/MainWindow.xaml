@@ -84,14 +84,86 @@
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Grid Margin="5"
+                        <Grid x:Name="ItemContainer"
+                              Margin="5"
+                              Height="250"
                               Background="#404040">
+                            <!-- Layer 1: Placeholder border -->
                             <Border Background="#404040"/>
 
+                            <!-- Layer 2: Thumbnail -->
                             <Image Source="{Binding ThumbnailPath}"
-                                   Height="250"
                                    Stretch="UniformToFill">
                             </Image>
+                            
+                            <!-- Layer 3: Darkening overlay -->
+                            <Border Background="#80000000">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, ElementName=ItemContainer}"
+                                                         Value="True">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                            </Border>
+                            
+                            <!-- Layer 4: Command buttons overlay -->
+                            <Grid>
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, ElementName=ItemContainer}"
+                                                         Value="True">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Button Grid.Row="0"
+                                        Grid.Column="0"
+                                        Style="{StaticResource QuadrantIconButtonStyle}"
+                                        Tag="/Resources/Icons/copy.svg"
+                                        Content="/Resources/Icons/copy-hover.svg">
+                                </Button>
+
+                                <Button Grid.Row="0"
+                                        Grid.Column="1"
+                                        Style="{StaticResource QuadrantIconButtonStyle}"
+                                        Tag="/Resources/Icons/edit.svg"
+                                        Content="/Resources/Icons/edit-hover.svg">
+                                </Button>
+
+                                <Button Grid.Row="1"
+                                        Grid.Column="0"
+                                        Style="{StaticResource QuadrantIconButtonStyle}"
+                                        Tag="/Resources/Icons/enlarge.svg"
+                                        Content="/Resources/Icons/enlarge-hover.svg">
+                                </Button>
+
+                                <Button Grid.Row="1"
+                                        Grid.Column="1"
+                                        Style="{StaticResource QuadrantIconButtonStyle}"
+                                        Tag="/Resources/Icons/delete.svg"
+                                        Content="/Resources/Icons/delete-hover.svg">
+                                </Button>
+                            </Grid>
                         </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
