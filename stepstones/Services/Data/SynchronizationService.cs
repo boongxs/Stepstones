@@ -29,8 +29,7 @@ namespace stepstones.Services.Data
         public async Task SynchronizeDataAsync(string folderPath)
         {
             var filesInFolder = _fileService.GetAllFiles(folderPath).ToList();
-            var itemsInDatabase = await _databaseService.GetAllItemsForFolderAsync(folderPath);
-            var filePathsInDatabase = itemsInDatabase.Select(i => i.FilePath).ToList();
+            var filePathsInDatabase = await _databaseService.GetFilePathsForFolderAsync(folderPath);
 
             var ghosts = filePathsInDatabase.Except(filesInFolder).ToList();
             if (ghosts.Any())

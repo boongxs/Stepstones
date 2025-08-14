@@ -72,6 +72,28 @@
                     BorderThickness="0"
                     Margin="5">
             </Button>
+
+            <Button Content="&lt;"
+                    Command="{Binding GoToPreviousPageCommand}"
+                    Width="40"
+                    Height="40"
+                    Margin="20,5,5,5"
+                    VerticalAlignment="Center">
+            </Button>
+
+            <TextBlock Text="{Binding PageInfo}"
+                       Foreground="White"
+                       FontSize="16"
+                       VerticalAlignment="Center">
+            </TextBlock>
+
+            <Button Content="&gt;"
+                    Command="{Binding GoToNextPageCommand}"
+                    Width="40"
+                    Height="40"
+                    Margin="5"
+                    VerticalAlignment="Center">
+            </Button>
         </StackPanel>
 
         <!-- ItemsControl to display the media items -->

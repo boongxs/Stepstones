@@ -66,7 +66,7 @@ namespace stepstones.Services.Data
             }
         }
 
-        public async Task<List<MediaItem>> GetAllItemsForFolderAsync(string folderPath, string? filterText = null)
+        public async Task<List<MediaItem>> GetAllItemsForFolderAsync(string folderPath, int pageNumber, int pageSize, string? filterText = null)
         {
             await InitAsync();
             if (_database is null)
@@ -74,7 +74,7 @@ namespace stepstones.Services.Data
                 return new List<MediaItem>();
             }
 
-            _logger.LogInformation("Fetching media items for folder '{Path}'", folderPath);
+            _logger.LogInformation("Fetching page {PageNumber} for folder '{Path}'", pageNumber, folderPath);
 
             var query = _database.Table<MediaItem>().Where(i => i.FilePath.StartsWith(folderPath));
 
@@ -88,7 +88,7 @@ namespace stepstones.Services.Data
                 }
             }
 
-            return await query.ToListAsync();
+            return await query.Skip((pageNumber = 1) * pageSize).Take(pageSize).ToListAsync();
         }
 
         public async Task DeleteMediaItemAsync(MediaItem item)
@@ -145,6 +145,39 @@ namespace stepstones.Services.Data
             {
                 _logger.LogError(ex, "Failed to update the database record for '{FileName}'", item.FileName);
             }
+        }
+
+        public async Task<int> GetItemCountForFolderAsync(string folderPath, string? filterText = null)
+        {
+            await InitAsync();
+            if (_database is null)
+            {
+                return 0;
+            }
+
+            var query = _database.Table<MediaItem>().Where(i => i.FilePath.StartsWith(folderPath));
+
+            if (!string.IsNullOrWhiteSpace(filterText))
+            {
+                var searchTerms = filterText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var term in searchTerms)
+                {
+                    query = query.Where(i => i.Tags.Contains(term));
+                }
+            }
+
+            return await query.CountAsync();
+        }
+
+        public async Task<List<string>> GetFilePathsForFolderAsync(string folderPath)
+        {
+            await InitAsync();
+            if (_database is null)
+            {
+                return new List<string>();
+            }
+
+            return await _database.QueryScalarsAsync<string>("SELECT FilePath FROM MediaItems WHERE FilePath LIKE ?", folderPath + "%");
         }
     }
 }

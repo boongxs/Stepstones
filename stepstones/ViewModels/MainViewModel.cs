@@ -49,6 +49,17 @@ namespace stepstones.ViewModels
         [ObservableProperty]
         private string? _filterText;
 
+        [ObservableProperty]
+        private int _pageSize = 24;
+
+        [ObservableProperty]
+        private int _currentPage = 1;
+
+        [ObservableProperty]
+        private int _totalPages;
+
+        public string PageInfo => $"Page {CurrentPage} of {TotalPages}";
+
         public MainViewModel(ILogger<MainViewModel> logger,
                              ISettingsService settingsService,
                              IFolderDialogService folderDialogService,
@@ -117,8 +128,16 @@ namespace stepstones.ViewModels
                 return;
             }
 
-            _logger.LogInformation("Loading media items from database for folder '{Path}'", mediaFolderPath);
-            var items = await _databaseService.GetAllItemsForFolderAsync(mediaFolderPath, FilterText);
+            _logger.LogInformation("Loading page {Page} for folder '{Path}'", CurrentPage, mediaFolderPath);
+
+            var totalItems = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText);
+            TotalPages = (int)Math.Ceiling((double)totalItems / PageSize);
+            if (TotalPages == 0)
+            {
+                TotalPages = 1;
+            }
+
+            var items = await _databaseService.GetAllItemsForFolderAsync(mediaFolderPath, CurrentPage, PageSize, FilterText);
 
             MediaItems.Clear();
 
@@ -152,6 +171,8 @@ namespace stepstones.ViewModels
             {
                 _logger.LogInformation("User selected folder: {Path}", selectedPath);
                 _settingsService.SaveMediaFolderPath(selectedPath);
+
+                CurrentPage = 1;
 
                 await _synchronizationService.SynchronizeDataAsync(selectedPath);
                 await LoadMediaItemsAsync();
@@ -230,6 +251,8 @@ namespace stepstones.ViewModels
 
         partial void OnFilterTextChanged(string? value)
         {
+            CurrentPage = 1;
+
             _filterCts?.Cancel();
             _filterCts = new CancellationTokenSource();
             _ = TriggerFilterAsync(_filterCts.Token);
@@ -248,6 +271,44 @@ namespace stepstones.ViewModels
             {
                 // expected catch, when user is typing quickly
             }
+        }
+
+        partial void OnCurrentPageChanged(int value)
+        {
+            OnPropertyChanged(nameof(PageInfo));
+            GoToNextPageCommand.NotifyCanExecuteChanged();
+            GoToPreviousPageCommand.NotifyCanExecuteChanged();
+        }
+
+        partial void OnTotalPagesChanged(int value)
+        {
+            OnPropertyChanged(nameof(PageInfo));
+            GoToNextPageCommand.NotifyCanExecuteChanged();
+            GoToPreviousPageCommand.NotifyCanExecuteChanged();
+        }
+
+        [RelayCommand(CanExecute = nameof(CanGoToNextPage))]
+        private async Task GoToNextPage()
+        {
+            CurrentPage++;
+            await LoadMediaItemsAsync();
+        }
+
+        private bool CanGoToNextPage()
+        {
+            return CurrentPage < TotalPages;
+        }
+
+        [RelayCommand(CanExecute = nameof(CanGoToPreviousPage))]
+        private async Task GoToPreviousPage()
+        {
+            CurrentPage--;
+            await LoadMediaItemsAsync();
+        }
+
+        private bool CanGoToPreviousPage()
+        {
+            return CurrentPage > 1;
         }
     }
 }
