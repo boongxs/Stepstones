@@ -100,12 +100,14 @@
                             <Border Background="#80000000">
                                 <Border.Style>
                                     <Style TargetType="Border">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                        <Setter Property="IsHitTestVisible" Value="False"/>
 
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsMouseOver, ElementName=ItemContainer}"
                                                          Value="True">
-                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Setter Property="Opacity" Value="1"/>
+                                                <Setter Property="IsHitTestVisible" Value="True"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -116,12 +118,14 @@
                             <Grid>
                                 <Grid.Style>
                                     <Style TargetType="Grid">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                        <Setter Property="IsHitTestVisible" Value="False"/>
 
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsMouseOver, ElementName=ItemContainer}"
                                                          Value="True">
-                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Setter Property="Opacity" Value="1"/>
+                                                <Setter Property="IsHitTestVisible" Value="True"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
