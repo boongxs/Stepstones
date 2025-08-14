@@ -113,12 +113,20 @@ namespace stepstones.ViewModels
             var items = await _databaseService.GetAllItemsForFolderAsync(mediaFolderPath);
 
             MediaItems.Clear();
+
+            var newViewModels = new List<MediaItemViewModel>();
             foreach (var item in items)
             {
-                MediaItems.Add(_mediaItemViewModelFactory.Create(item));
+                var vm = _mediaItemViewModelFactory.Create(item);
+                newViewModels.Add(vm);
+                MediaItems.Add(vm);
             }
 
-            _logger.LogInformation("Loaded {Count} media items.", MediaItems.Count);
+            _logger.LogInformation("Loaded {Count} media items.", newViewModels.Count);
+
+            var thumbnailLoadTasks = newViewModels.Select(vm => vm.LoadThumbnailAsync()).ToList();
+            await Task.WhenAll(thumbnailLoadTasks);
+            _logger.LogInformation("Background thumbnail loading complete.");
         }
 
         [RelayCommand]

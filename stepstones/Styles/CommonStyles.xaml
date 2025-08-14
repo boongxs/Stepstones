@@ -1,24 +1,23 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:svgc="http://sharpvectors.codeplex.com/svgc/">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Style x:Key="QuadrantIconButtonStyle"
            TargetType="Button">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Grid Background="Transparent">
-                        <svgc:SvgViewbox x:Name="DefaultIcon"
-                                         Source="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
-                                         Width="60"
-                                         Height="60">
-                        </svgc:SvgViewbox>
+                        <Image x:Name="DefaultIcon"
+                               Source="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                               Width="70"
+                               Height="70">
+                        </Image>
 
-                        <svgc:SvgViewbox x:Name="HoverIcon"
-                                         Source="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"
-                                         Width="60"
-                                         Height="60"
-                                         Visibility="Hidden">
-                        </svgc:SvgViewbox>
+                        <Image x:Name="HoverIcon"
+                               Source="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"
+                               Width="70"
+                               Height="70"
+                               Visibility="Hidden">
+                        </Image>
                     </Grid>
 
                     <ControlTemplate.Triggers>

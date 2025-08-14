@@ -21,7 +21,8 @@ namespace stepstones.ViewModels
         private readonly IMessenger _messenger;
         private readonly IImageDimensionService _imageDimensionService;
 
-        public BitmapImage? ThumbnailImage { get; private set; }
+        [ObservableProperty]
+        private BitmapImage? _thumbnailImage;
 
         public MediaItemViewModel(MediaItem mediaItem,
                                   IClipboardService clipboardService,
@@ -38,8 +39,6 @@ namespace stepstones.ViewModels
             _databaseService = databaseService;
             _messenger = messenger;
             _imageDimensionService = imageDimensionService;
-
-            LoadThumbnail();
         }
 
         public string FileName => _mediaItem.FileName;
@@ -47,7 +46,7 @@ namespace stepstones.ViewModels
         public MediaType FileType => _mediaItem.FileType;
         public string? ThumbnailPath => _mediaItem.ThumbnailPath;
 
-        private void LoadThumbnail()
+        public async Task LoadThumbnailAsync()
         {
             if (string.IsNullOrWhiteSpace(ThumbnailPath) || !File.Exists(ThumbnailPath))
             {
@@ -56,12 +55,16 @@ namespace stepstones.ViewModels
 
             try
             {
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.UriSource = new Uri(ThumbnailPath);
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.EndInit();
-                bitmap.Freeze();
+                var bitmap = await Task.Run(() =>
+                {
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.UriSource = new Uri(ThumbnailPath);
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.EndInit();
+                    bmp.Freeze();
+                    return bmp;
+                });
 
                 ThumbnailImage = bitmap;
             }
