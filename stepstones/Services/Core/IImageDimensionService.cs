@@ -1,6 +1,6 @@
 ﻿using stepstones.Models;
 
-namespace stepstones.Services
+namespace stepstones.Services.Core
 {
     public interface IImageDimensionService
     {

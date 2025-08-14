@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.IO;
 using stepstones.Models;
+using stepstones.Services.Core;
 
-namespace stepstones.Services
+namespace stepstones.Services.Data
 {
     public class SynchronizationService : ISynchronizationService
     {

@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using stepstones.Models;
 
-namespace stepstones.Services
+namespace stepstones.Services.Core
 {
     public class ThumbnailService : IThumbnailService
     {

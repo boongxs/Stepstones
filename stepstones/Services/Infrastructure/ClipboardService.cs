@@ -4,7 +4,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Windows;
 
-namespace stepstones.Services
+namespace stepstones.Services.Infrastructure
 {
     public class ClipboardService : IClipboardService
     {

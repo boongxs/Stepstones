@@ -1,4 +1,4 @@
-﻿namespace stepstones.Services
+﻿namespace stepstones.Services.Interaction
 {
     public interface IFileDialogService
     {

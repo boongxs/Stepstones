@@ -5,8 +5,11 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using System.IO;
 using System.Windows;
-using stepstones.Services;
 using stepstones.ViewModels;
+using stepstones.Services.Core;
+using stepstones.Services.Data;
+using stepstones.Services.Infrastructure;
+using stepstones.Services.Interaction;
 
 namespace stepstones
 {
@@ -39,14 +42,16 @@ namespace stepstones
                     services.AddTransient<IClipboardService, ClipboardService>();
                     services.AddTransient<IFileTypeIdentifierService, FileTypeIdentifierService>();
                     services.AddTransient<IImageDimensionService, ImageDimensionService>();
-                    services.AddSingleton<IDialogCoordinatorService, DialogCoordinatorService>();
 
                     services.AddSingleton<IMediaItemViewModelFactory, MediaItemViewModelFactory>();
 
                     services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 
-                    services.AddTransient<MainViewModel>();
+                    services.AddSingleton<MainViewModel>();
                     services.AddTransient<MainWindow>();
+
+                    services.AddSingleton<IDialogPresenter>(s => s.GetRequiredService<MainViewModel>());
+                    services.AddTransient<Lazy<IDialogPresenter>>(s => new Lazy<IDialogPresenter>(() => s.GetRequiredService<IDialogPresenter>()));
                 })
                 .Build();
         }

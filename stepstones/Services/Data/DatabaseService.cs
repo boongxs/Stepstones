@@ -3,7 +3,7 @@ using SQLite;
 using System.IO;
 using stepstones.Models;
 
-namespace stepstones.Services
+namespace stepstones.Services.Data
 {
     public class DatabaseService : IDatabaseService
     {

@@ -7,8 +7,11 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using stepstones.Models;
-using stepstones.Services;
 using stepstones.Messages;
+using stepstones.Services.Core;
+using stepstones.Services.Data;
+using stepstones.Services.Infrastructure;
+using stepstones.Services.Interaction;
 
 namespace stepstones.ViewModels
 {
@@ -21,7 +24,7 @@ namespace stepstones.ViewModels
         private readonly IDatabaseService _databaseService;
         private readonly IMessenger _messenger;
         private readonly IImageDimensionService _imageDimensionService;
-        private readonly IDialogCoordinatorService _dialogCoordinatorService;
+        private readonly IDialogPresenter _dialogPresenter;
 
         [ObservableProperty]
         private BitmapImage? _thumbnailImage;
@@ -33,7 +36,7 @@ namespace stepstones.ViewModels
                                   IDatabaseService databaseService,
                                   IMessenger messenger,
                                   IImageDimensionService imageDimensionService,
-                                  IDialogCoordinatorService dialogCoordinatorService)
+                                  IDialogPresenter dialogPresenter)
         {
             _mediaItem = mediaItem;
             _clipboardService = clipboardService;
@@ -42,7 +45,7 @@ namespace stepstones.ViewModels
             _databaseService = databaseService;
             _messenger = messenger;
             _imageDimensionService = imageDimensionService;
-            _dialogCoordinatorService = dialogCoordinatorService;
+            _dialogPresenter = dialogPresenter;
         }
 
         public string FileName => _mediaItem.FileName;
@@ -88,7 +91,7 @@ namespace stepstones.ViewModels
         private async Task Tags()
         {
             var originalTags = _mediaItem.Tags;
-            var result = await _dialogCoordinatorService.ShowEditTagsDialogAsync(_mediaItem.Tags);
+            var result = await _dialogPresenter.ShowEditTagsDialogAsync(originalTags);
 
             if (result.WasSaved)
             {

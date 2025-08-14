@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using stepstones.Models;
 
-namespace stepstones.Services
+namespace stepstones.Services.Core
 {
     public class ImageDimensionService : IImageDimensionService
     {

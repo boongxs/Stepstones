@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using stepstones.Models;
 
-namespace stepstones.Services
+namespace stepstones.Services.Core
 {
     public class FileTypeIdentifierService : IFileTypeIdentifierService
     {

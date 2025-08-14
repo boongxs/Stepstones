@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace stepstones.Services
+namespace stepstones.Services.Interaction
 {
     public class MessageBoxService : IMessageBoxService
     {

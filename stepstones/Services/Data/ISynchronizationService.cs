@@ -1,4 +1,4 @@
-﻿namespace stepstones.Services
+﻿namespace stepstones.Services.Data
 {
     public interface ISynchronizationService
     {

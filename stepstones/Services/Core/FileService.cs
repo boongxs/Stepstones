@@ -2,7 +2,7 @@
 using System.IO;
 using stepstones.Models;
 
-namespace stepstones.Services
+namespace stepstones.Services.Core
 {
     public class FileService : IFileService
     {

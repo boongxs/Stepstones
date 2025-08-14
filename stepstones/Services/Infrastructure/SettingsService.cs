@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.IO;
 
-namespace stepstones.Services
+namespace stepstones.Services.Infrastructure
 {
     public class SettingsService : ISettingsService
     {

@@ -1,6 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using stepstones.Models;
-using stepstones.Services;
+using stepstones.Services.Core;
+using stepstones.Services.Data;
+using stepstones.Services.Infrastructure;
+using stepstones.Services.Interaction;
 
 namespace stepstones.ViewModels
 {
@@ -12,7 +15,7 @@ namespace stepstones.ViewModels
         private readonly IDatabaseService _databaseService;
         private readonly IMessenger _messenger;
         private readonly IImageDimensionService _imageDimensionService;
-        private readonly IDialogCoordinatorService _dialogCoordinatorService;
+        private readonly Lazy<IDialogPresenter> _lazyDialogPresenter;
 
         public MediaItemViewModelFactory(IClipboardService clipboardService,
                                          IMessageBoxService messageBoxService,
@@ -20,7 +23,7 @@ namespace stepstones.ViewModels
                                          IDatabaseService databaseService,
                                          IMessenger messsenger,
                                          IImageDimensionService imageDimensionService,
-                                         IDialogCoordinatorService dialogCoordinatorService)
+                                         Lazy<IDialogPresenter> lazyDialogPresenter)
         {
             _clipboardService = clipboardService;
             _messageBoxService = messageBoxService;
@@ -28,7 +31,7 @@ namespace stepstones.ViewModels
             _databaseService = databaseService;
             _messenger = messsenger;
             _imageDimensionService = imageDimensionService;
-            _dialogCoordinatorService = dialogCoordinatorService;
+            _lazyDialogPresenter = lazyDialogPresenter;
         }
 
         public MediaItemViewModel Create(MediaItem mediaItem)
@@ -40,7 +43,7 @@ namespace stepstones.ViewModels
                                           _databaseService,
                                           _messenger,
                                           _imageDimensionService,
-                                          _dialogCoordinatorService);
+                                          _lazyDialogPresenter.Value);
         }
     }
 }

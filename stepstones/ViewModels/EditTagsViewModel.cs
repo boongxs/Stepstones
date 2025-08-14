@@ -7,16 +7,9 @@ namespace stepstones.ViewModels
         [ObservableProperty]
         private string? _tagsText;
 
-        public string? Result { get; private set; }
-
         public EditTagsViewModel(string? currentTags)
         {
             _tagsText = currentTags;
-        }
-
-        public void Save()
-        {
-            Result = TagsText;
         }
     }
 }

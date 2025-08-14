@@ -1,6 +1,6 @@
 ﻿using Ookii.Dialogs.Wpf;
 
-namespace stepstones.Services
+namespace stepstones.Services.Interaction
 {
     public class FolderDialogService : IFolderDialogService
     {

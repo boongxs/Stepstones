@@ -4,15 +4,16 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using stepstones.Messages;
 using stepstones.Models;
-using stepstones.Services;
+using stepstones.Services.Core;
+using stepstones.Services.Data;
+using stepstones.Services.Infrastructure;
+using stepstones.Services.Interaction;
 
 namespace stepstones.ViewModels
 {
-    public partial class MainViewModel : ObservableObject
+    public partial class MainViewModel : ObservableObject, IDialogPresenter
     {
         private readonly ILogger<MainViewModel> _logger;
         private readonly ISettingsService _settingsService;
@@ -41,7 +42,7 @@ namespace stepstones.ViewModels
 
         public bool IsOverlayVisible => _activeDialogViewModel != null;
 
-        private RequestEditTagsMessage? _pendingEditTagsRequest;
+        private TaskCompletionSource<EditTagsResult>? _editTagsCompletionSource;
 
         public MainViewModel(ILogger<MainViewModel> logger,
                              ISettingsService settingsService,
@@ -78,13 +79,6 @@ namespace stepstones.ViewModels
             _messenger.Register<ShowDialogMessage>(this, (recipient, message) =>
             {
                 ActiveDialogViewModel = message.ViewModel;
-            });
-
-            _messenger.Register<RequestEditTagsMessage>(this, (recipient, message) =>
-            {
-                _pendingEditTagsRequest = message;
-                var dialogViewModel = new EditTagsViewModel(message.InitialTags);
-                ActiveDialogViewModel = dialogViewModel;
             });
 
             logger.LogInformation("MainViewModel has been created.");
@@ -211,22 +205,22 @@ namespace stepstones.ViewModels
         [RelayCommand]
         private void CloseDialog(string? result)
         {
-            object? dialogResult = null;
-
             if (ActiveDialogViewModel is EditTagsViewModel editTagsVM)
             {
                 var wasSaved = result == "Save";
-                if (wasSaved)
-                {
-                    editTagsVM.Save();
-                }
-
-                dialogResult = new EditTagsResult { WasSaved = wasSaved, NewTags = editTagsVM.Result };
+                var dialogResult = new EditTagsResult { WasSaved = wasSaved, NewTags = editTagsVM.TagsText };
+                _editTagsCompletionSource?.SetResult(dialogResult);
             }
 
             ActiveDialogViewModel = null;
+        }
 
-            _messenger.Send(new DialogClosedMessage(dialogResult));
+        public Task<EditTagsResult> ShowEditTagsDialogAsync(string? currentTags)
+        {
+            _editTagsCompletionSource = new TaskCompletionSource<EditTagsResult>();
+            var dialogViewModel = new EditTagsViewModel(currentTags);
+            ActiveDialogViewModel = dialogViewModel;
+            return _editTagsCompletionSource.Task;
         }
     }
 }

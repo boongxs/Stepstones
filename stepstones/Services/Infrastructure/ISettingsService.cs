@@ -1,4 +1,4 @@
-﻿namespace stepstones.Services
+﻿namespace stepstones.Services.Infrastructure
 {
     public interface ISettingsService
     {
