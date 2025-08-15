@@ -203,6 +203,8 @@ namespace stepstones.ViewModels
 
             await _fileService.CopyFilesAsync(fileList, mediaFolderPath);
 
+            var newViewModels = new List<MediaItemViewModel>();
+
             foreach (var sourcePath in fileList)
             {
                 var mediaType = await _fileTypeIdentifierService.IdentifyAsync(sourcePath);
@@ -224,8 +226,13 @@ namespace stepstones.ViewModels
 
                 await _databaseService.AddMediaItemAsync(newItem);
 
-                MediaItems.Add(_mediaItemViewModelFactory.Create(newItem));
+                var vm = _mediaItemViewModelFactory.Create(newItem);
+                newViewModels.Add(vm);
+                MediaItems.Add(vm);
             }
+
+            var thumbnailLoadTasks = newViewModels.Select(vm => vm.LoadThumbnailAsync()).ToList();
+            await Task.WhenAll(thumbnailLoadTasks);
         }
 
         [RelayCommand]
