@@ -1,5 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Messaging.Messages;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System.Windows;
@@ -23,8 +22,12 @@ namespace stepstones
             var logPath = Path.Combine(appDataPath, "stepstones", "logs", "stepstones-.txt");
 
             Log.Logger = new LoggerConfiguration()
+                .Enrich.FromLogContext()
                 .WriteTo.Debug()
-                .WriteTo.File(logPath, rollingInterval: RollingInterval.Day)
+                .WriteTo.File(logPath, 
+                              rollingInterval: RollingInterval.Day,
+                              outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] ({SourceContext}) {Message:lj}{NewLine}{Exception}"
+                )
                 .CreateLogger();
 
             _host = Host.CreateDefaultBuilder()

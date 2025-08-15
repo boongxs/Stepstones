@@ -97,7 +97,7 @@ namespace stepstones.ViewModels
                 ActiveDialogViewModel = message.ViewModel;
             });
 
-            logger.LogInformation("[MainViewModel] MainViewModel has been created.");
+            logger.LogInformation("MainViewModel has been created.");
 
             _ = InitializeAsync();
         }
@@ -108,32 +108,67 @@ namespace stepstones.ViewModels
             var savedPath = _settingsService.LoadMediaFolderPath();
             if (string.IsNullOrWhiteSpace(savedPath))
             {
-                _logger.LogInformation("[MainViewModel] Application startup: No previously saved media folder path found.");
+                _logger.LogInformation("Application startup: No previously saved media folder path found.");
             }
             else
             {
-                _logger.LogInformation("[MainViewModel] Application startup: Located saved media folder path: {Path}", savedPath);
+                _logger.LogInformation("Application startup: Located saved media folder path: {Path}", savedPath);
+                await _synchronizationService.SynchronizeDataAsync(savedPath);
+                await LoadMediaItemsAsync();
+            }
+        }
+
+        private async Task LoadMediaItemsAsync()
+        {
+            var mediaFolderPath = _settingsService.LoadMediaFolderPath();
+            if (string.IsNullOrWhiteSpace(mediaFolderPath))
+            {
+                _logger.LogInformation("Load media items skipped: Media folder not set.");
+                MediaItems.Clear();
+                return;
             }
 
-            await _synchronizationService.SynchronizeDataAsync(savedPath);
+            _logger.LogInformation("Loading page {Page} for folder '{Path}'", CurrentPage, mediaFolderPath);
 
-            await LoadMediaItemsAsync();
+            var totalItems = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText);
+            TotalPages = (int)Math.Ceiling((double)totalItems / PageSize);
+            if (TotalPages == 0)
+            {
+                TotalPages = 1;
+            }
+
+            var items = await _databaseService.GetAllItemsForFolderAsync(mediaFolderPath, CurrentPage, PageSize, FilterText);
+
+            MediaItems.Clear();
+            var newViewModels = new List<MediaItemViewModel>();
+            foreach (var item in items)
+            {
+                var vm = _mediaItemViewModelFactory.Create(item);
+                newViewModels.Add(vm);
+                MediaItems.Add(vm);
+            }
+
+            _logger.LogInformation("Loaded {Count} media items.", newViewModels.Count);
+
+            var thumbnailLoadTasks = newViewModels.Select(vm => vm.LoadThumbnailAsync()).ToList();
+            await Task.WhenAll(thumbnailLoadTasks);
+            _logger.LogInformation("Background thumbnail loading complete.");
         }
 
         [RelayCommand]
         private async Task SelectFolder()
         {
-            _logger.LogInformation("[MainViewModel] 'Select Folder' button clicked, opening folder dialog.");
+            _logger.LogInformation("'Select Folder' button clicked, opening folder dialog.");
 
             var selectedPath = _folderDialogService.ShowDialog();
 
             if (string.IsNullOrWhiteSpace(selectedPath))
             {
-                _logger.LogWarning("[MainViewModel] Folder selection was cancelled by the user.");
+                _logger.LogWarning("Folder selection was cancelled by the user.");
             }
             else
             {
-                _logger.LogInformation("[MainViewModel] User selected folder: {Path}", selectedPath);
+                _logger.LogInformation("User selected folder: {Path}", selectedPath);
                 _settingsService.SaveMediaFolderPath(selectedPath);
 
                 CurrentPage = 1;
@@ -146,31 +181,28 @@ namespace stepstones.ViewModels
         [RelayCommand]
         private async Task UploadFiles()
         {
-            _logger.LogInformation("[MainViewModel] 'Upload' button clicked.");
+            _logger.LogInformation("'Upload' button clicked.");
 
-            // check if media folder path has been set
             var mediaFolderPath = _settingsService.LoadMediaFolderPath();
             if (string.IsNullOrWhiteSpace(mediaFolderPath))
             {
-                _logger.LogWarning("[MainViewModel] Upload aborted: Media folder path has not been set.");
+                _logger.LogWarning("Upload aborted: Media folder path has not been set.");
                 _messageBoxService.Show("No media folder path has been set, please set it first before attempting to upload file(s).");
                 return;
             }
 
-            // open file dialog to get the files from the user and save the selected files
             var selectedFiles = _fileDialogService.ShowDialog();
             if (selectedFiles == null || !selectedFiles.Any())
             {
-                _logger.LogInformation("[MainViewModel] File selection was cancelled or no files were selected.");
+                _logger.LogInformation("File selection was cancelled or no files were selected.");
                 return;
             }
 
             var fileList = selectedFiles.ToList();
-            _logger.LogInformation("[MainViewModel] {FileCount} file(s) have been selected for upload.", fileList.Count);
+            _logger.LogInformation("{FileCount} file(s) have been selected for upload.", fileList.Count);
 
             await _fileService.CopyFilesAsync(fileList, mediaFolderPath);
 
-            // create database entry for each newly copied file.
             foreach (var sourcePath in fileList)
             {
                 var mediaType = await _fileTypeIdentifierService.IdentifyAsync(sourcePath);
@@ -194,53 +226,6 @@ namespace stepstones.ViewModels
 
                 MediaItems.Add(_mediaItemViewModelFactory.Create(newItem));
             }
-        }
-
-        private async Task LoadMediaItemsAsync()
-        {
-            // check if media folder is set
-            var mediaFolderPath = _settingsService.LoadMediaFolderPath();
-            if (string.IsNullOrWhiteSpace(mediaFolderPath))
-            {
-                _logger.LogInformation("[MainViewModel] Load media items skipped: Media folder not set.");
-                MediaItems.Clear();
-                return;
-            }
-
-            // load the media items from database
-            _logger.LogInformation("Loading page {Page} for folder '{Path}'", CurrentPage, mediaFolderPath);
-
-            var totalItems = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText);
-            TotalPages = (int)Math.Ceiling((double)totalItems / PageSize);
-            if (TotalPages == 0)
-            {
-                TotalPages = 1;
-            }
-
-            var items = await _databaseService.GetAllItemsForFolderAsync(mediaFolderPath, CurrentPage, PageSize, FilterText);
-
-            // send the loaded items into observable collection to be displayed
-            MediaItems.Clear();
-
-            // first load the placeholders and overlays
-            var newViewModels = new List<MediaItemViewModel>();
-            foreach (var item in items)
-            {
-                var vm = _mediaItemViewModelFactory.Create(item);
-                newViewModels.Add(vm);
-                MediaItems.Add(vm);
-            }
-
-            _logger.LogInformation("[MainViewModel] Loaded {Count} media items.", newViewModels.Count);
-
-            // then load the thumbnails
-            var thumbnailLoadTasks = newViewModels.Select(vm => vm.LoadThumbnailAsync()).ToList();
-            await Task.WhenAll(thumbnailLoadTasks);
-            _logger.LogInformation("Background thumbnail loading complete.");
-
-            // NOTE: possibly refactor as the performance gain due to
-            // paging won't be as noticeable with this "delayed" loading
-            // of thumbnails
         }
 
         [RelayCommand]

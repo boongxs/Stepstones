@@ -35,7 +35,7 @@ namespace stepstones.Services.Core
                 // in perfect flow should never true but in case a crash happens during thumbnail service execution in previous sessions
                 if (File.Exists(cachePath))
                 {
-                    _logger.LogInformation("Thumbnail found in cache for {SourceFile}", sourceFilePath);
+                    _logger.LogInformation("Thumbnail found in cache for '{SourceFile}'", sourceFilePath);
                     return cachePath;
                 }
 
@@ -73,7 +73,7 @@ namespace stepstones.Services.Core
                 {
                     ResizeAndCropImage(sourceImage);
                     await sourceImage.SaveAsJpegAsync(cachePath);
-                    _logger.LogInformation("Successfully created and cached thumbnail for {SourceFile}", sourceFilePath);
+                    _logger.LogInformation("Successfully created and cached thumbnail for '{SourceFile}'", sourceFilePath);
                 }
 
                 return cachePath;

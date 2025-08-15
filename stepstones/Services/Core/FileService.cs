@@ -25,11 +25,11 @@ namespace stepstones.Services.Core
                         var destinationPath = Path.Combine(destinationFolderPath, fileName);
 
                         File.Copy(sourcePath, destinationPath, true);
-                        _logger.LogInformation("[FileService] Successfully copied '{SourceFile}' to '{DestinationFile}'", sourcePath, destinationPath);
+                        _logger.LogInformation("Successfully copied '{SourceFile}' to '{DestinationFile}'", sourcePath, destinationPath);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "[FileService] Failed to copy file: {SourceFile}", sourcePath);
+                        _logger.LogError(ex, "Failed to copy '{SourceFile}'", sourcePath);
                     }
                 }
             });

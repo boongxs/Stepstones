@@ -25,17 +25,17 @@ namespace stepstones.Services.Infrastructure
                     var path = File.ReadAllText(_settingsFilePath);
                     if (!string.IsNullOrWhiteSpace(path))
                     {
-                        _logger.LogInformation("[SettingsService] Media folder path loaded from settings file: {Path}", path);
+                        _logger.LogInformation("Media folder path loaded from settings file: '{Path}'", path);
                         return path;
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[SettingsService] Failed to load media folder path from settings file.");
+                _logger.LogError(ex, "Failed to load media folder path from settings file.");
             }
 
-            _logger.LogInformation("[SettingsService] No saved media folder path found.");
+            _logger.LogInformation("No saved media folder path found.");
             return null;
         }
 
@@ -45,11 +45,11 @@ namespace stepstones.Services.Infrastructure
             {
                 Directory.CreateDirectory(_appDataFolder);
                 File.WriteAllText(_settingsFilePath, path);
-                _logger.LogInformation("[SettingsService] Successfully saved media folder path: {Path}", path);
+                _logger.LogInformation("Successfully saved media folder path: {Path}", path);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[SettingsService] Failed to save media folder path to settings file.");
+                _logger.LogError(ex, "Failed to save media folder path to settings file.");
             }
         }
     }

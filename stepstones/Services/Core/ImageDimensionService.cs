@@ -2,9 +2,6 @@
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using stepstones.Models;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace stepstones.Services.Core
 {

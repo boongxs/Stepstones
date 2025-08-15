@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Specialized;
 using System.IO;
 using System.Windows;
@@ -34,7 +33,7 @@ namespace stepstones.Services.Infrastructure
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to copy file to clipboard: {Path}", filePath);
+                _logger.LogError(ex, "Failed to copy '{Path}' to clipboard.", filePath);
             }
         }
     }

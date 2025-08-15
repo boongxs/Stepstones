@@ -35,7 +35,7 @@ namespace stepstones.Services.Data
             var ghosts = filePathsInDatabase.Except(filesInFolder).ToList();
             if (ghosts.Any())
             {
-                _logger.LogInformation("[SynchronizationService] Found {Count} ghost records to delete from the database.", ghosts.Count);
+                _logger.LogInformation("Found {Count} ghost records to delete from the database.", ghosts.Count);
                 await _databaseService.DeleteItemsByPathsAsync(ghosts);
             }
 
@@ -43,7 +43,7 @@ namespace stepstones.Services.Data
             var orphans = filesInFolder.Except(filePathsInDatabase).ToList();
             if (orphans.Any())
             {
-                _logger.LogInformation("[SynchronizationService] Found {Count} orphan files to import into the database.", orphans.Count);
+                _logger.LogInformation("Found {Count} orphan files to import into the database.", orphans.Count);
                 foreach (var orphanPath in orphans)
                 {
                     var mediaType = await _fileTypeIdentifierService.IdentifyAsync(orphanPath);

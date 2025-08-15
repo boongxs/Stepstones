@@ -30,11 +30,11 @@ namespace stepstones.Services.Data
 
                 _database = new SQLiteAsyncConnection(databasePath);
                 await _database.CreateTableAsync<MediaItem>();
-                _logger.LogInformation("[DatabaseService] Database initialized at '{Path}'", databasePath);
+                _logger.LogInformation("Database initialized at '{Path}'", databasePath);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[DatabaseService] Failed to initialize database.");
+                _logger.LogError(ex, "Failed to initialize database.");
             }
         }
 
@@ -43,7 +43,7 @@ namespace stepstones.Services.Data
             await InitAsync();
             if (_database is null)
             {
-                _logger.LogError("[DatabaseService] Database is not initialize, cannot add media item.");
+                _logger.LogError("Database is not initialized, cannot add media item.");
                 return;
             }
 
@@ -53,17 +53,17 @@ namespace stepstones.Services.Data
                 var existingItem = await _database.Table<MediaItem>().Where(i => i.FilePath == item.FilePath).FirstOrDefaultAsync();
                 if (existingItem != null)
                 {
-                    _logger.LogWarning("[DatabaseService] Media item with path '{Path}' already exists in the database. Skipping.", item.FilePath);
+                    _logger.LogWarning("Media item with path '{Path}' already exists in the database. Skipping.", item.FilePath);
                     return;
                 }
 
                 // add the media item into the database
                 await _database.InsertAsync(item);
-                _logger.LogInformation("[DatabaseService] Successfully added '{FileName}' to the database.", item.FileName);
+                _logger.LogInformation("Successfully added '{FileName}' to the database.", item.FileName);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[DatabaseService] Failed to add media item '{FileName}' to database.", item.FileName);
+                _logger.LogError(ex, "Failed to add media item '{FileName}' to database.", item.FileName);
             }
         }
 
@@ -125,7 +125,7 @@ namespace stepstones.Services.Data
                 foreach (var path in paths)
                 {
                     tran.Execute("DELETE FROM MediaItems WHERE FilePath = ?", path);
-                    _logger.LogInformation("[DatabaseService] Deleted ghost record from database for path '{Path}'", path);
+                    _logger.LogInformation("Deleted ghost record from database for path '{Path}'", path);
                 }
             });
         }
@@ -141,11 +141,11 @@ namespace stepstones.Services.Data
             try
             {
                 await _database.UpdateAsync(item);
-                _logger.LogInformation("Successfully updated database record for: {FileName}", item.FileName);
+                _logger.LogInformation("Successfully updated database record for '{FileName}'", item.FileName);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to update the database record for: {FileName}", item.FileName);
+                _logger.LogError(ex, "Failed to update the database record for '{FileName}'", item.FileName);
             }
         }
 
