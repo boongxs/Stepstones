@@ -50,7 +50,19 @@ namespace stepstones.Services.Core
 
                     case MediaType.Video:
                         tempImagePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.png");
-                        var success = await FFMpeg.SnapshotAsync(sourceFilePath, tempImagePath, new System.Drawing.Size(1920, 1080), TimeSpan.FromSeconds(1));
+
+                        var mediaInfo = await FFProbe.AnalyseAsync(sourceFilePath);
+                        var duration = mediaInfo.Duration;
+
+                        var snapshotTime = TimeSpan.FromSeconds(duration.TotalSeconds / 10);
+
+                        var success = await FFMpeg.SnapshotAsync(
+                            sourceFilePath,
+                            tempImagePath,
+                            new System.Drawing.Size(1920, 1080),
+                            snapshotTime
+                        );
+
                         if (success)
                         {
                             sourceImage = await Image.LoadAsync(tempImagePath);
