@@ -1,7 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Windows;
-using System.Windows.Controls;
+﻿using System.Windows;
 using stepstones.ViewModels;
 
 namespace stepstones
@@ -12,6 +9,14 @@ namespace stepstones
         {
             InitializeComponent();
             this.DataContext = viewModel;
+
+            viewModel.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName == nameof(viewModel.CurrentPage))
+                {
+                    MainScrollViewer.ScrollToTop();
+                }
+            };
         }
 
         private void MediaItemsControl_SizeChanged(object sender, SizeChangedEventArgs e)

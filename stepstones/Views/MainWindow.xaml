@@ -99,7 +99,8 @@
         </StackPanel>
 
         <!-- ItemsControl to display the media items -->
-        <ScrollViewer Grid.Row="3"
+        <ScrollViewer x:Name="MainScrollViewer"
+                      Grid.Row="3"
                       Margin="20,0,20,20"
                       VerticalScrollBarVisibility="Auto">
             <ItemsControl x:Name="MediaItemsControl"
