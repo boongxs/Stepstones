@@ -40,7 +40,8 @@
             <MediaElement x:Name="VideoPlayer"
                               LoadedBehavior="Manual"
                               UnloadedBehavior="Close"
-                              MouseLeftButtonDown="VideoPlayer_MouseLeftButtonDown">
+                              MouseLeftButtonDown="VideoPlayer_MouseLeftButtonDown"
+                              MediaFailed="VideoPlayer_MediaFailed">
                 <MediaElement.Style>
                     <Style TargetType="MediaElement">
                         <Setter Property="Opacity" Value="0"/>

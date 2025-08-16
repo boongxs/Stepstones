@@ -1,16 +1,18 @@
-﻿using stepstones.ViewModels;
+﻿using Microsoft.Extensions.Logging;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 
 namespace stepstones.Views
 {
     public partial class EnlargeMediaView : UserControl
     {
+        private readonly ILogger<EnlargeMediaView> _logger;
         private bool _isPlaying = false;
 
-        public EnlargeMediaView()
+        public EnlargeMediaView(ILogger<EnlargeMediaView> logger)
         {
+            _logger = logger;
+
             InitializeComponent();
             this.Loaded += EnlargeMediaViewModel_Loaded;
         }
@@ -43,6 +45,11 @@ namespace stepstones.Views
         private void OnMediaViewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             e.Handled = true;
+        }
+
+        private void VideoPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+            _logger.LogError(e.ErrorException, "MediaElement failed to play video.");
         }
     }
 }
