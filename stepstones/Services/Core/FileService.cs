@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using stepstones.Models;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace stepstones.Services.Core
 {
@@ -13,19 +15,30 @@ namespace stepstones.Services.Core
             _logger = logger;
         }
 
-        public async Task CopyFilesAsync(IEnumerable<string> sourceFilePaths, string destinationFolderPath)
+        public async Task<Dictionary<string, string>> CopyFilesAsync(IEnumerable<string> sourceFilePaths, string destinationFolderPath)
         {
+            var pathMappings = new Dictionary<string, string>();
+
             await Task.Run(() =>
             {
                 foreach (var sourcePath in sourceFilePaths)
                 {
                     try
                     {
-                        var fileName = Path.GetFileName(sourcePath);
-                        var destinationPath = Path.Combine(destinationFolderPath, fileName);
+                        var uniqueFileName = GenerateUniqueFileName(sourcePath);
+                        var destinationPath = Path.Combine(destinationFolderPath, uniqueFileName);
 
-                        File.Copy(sourcePath, destinationPath, true);
-                        _logger.LogInformation("Successfully copied '{SourceFile}' to '{DestinationFile}'", sourcePath, destinationPath);
+                        if (!File.Exists(destinationPath))
+                        {
+                            File.Copy(sourcePath, destinationPath);
+                            _logger.LogInformation("Successfully copied '{SourceFile}' to '{DestinationFile}'", sourcePath, destinationPath);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("File '{SourceFile}' already exists as '{DestinationFile}'. Skipping.", sourcePath, destinationPath);
+                        }
+
+                        pathMappings[sourcePath] = destinationPath;
                     }
                     catch (Exception ex)
                     {
@@ -33,6 +46,8 @@ namespace stepstones.Services.Core
                     }
                 }
             });
+
+            return pathMappings;
         }
 
         public IEnumerable<string> GetAllFiles(string folderPath)
@@ -80,6 +95,16 @@ namespace stepstones.Services.Core
             {
                 _logger.LogError(ex, "Failed to delete thumbnail file '{Path}'", item.ThumbnailPath);
             }
+        }
+
+        private string GenerateUniqueFileName(string sourceFilePath)
+        {
+            using var md5 = MD5.Create();
+            using var stream = File.OpenRead(sourceFilePath);
+            var hashBytes = md5.ComputeHash(stream);
+            var hashString = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+            var extension = Path.GetExtension(sourceFilePath);
+            return $"{hashString}{extension}";
         }
     }
 }

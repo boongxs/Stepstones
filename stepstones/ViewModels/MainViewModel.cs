@@ -201,23 +201,28 @@ namespace stepstones.ViewModels
             var fileList = selectedFiles.ToList();
             _logger.LogInformation("{FileCount} file(s) have been selected for upload.", fileList.Count);
 
-            await _fileService.CopyFilesAsync(fileList, mediaFolderPath);
+            var pathMappings = await _fileService.CopyFilesAsync(fileList, mediaFolderPath);
 
             foreach (var sourcePath in fileList)
             {
-                var mediaType = await _fileTypeIdentifierService.IdentifyAsync(sourcePath);
-                if (mediaType == MediaType.Unknown)
+                if (!pathMappings.TryGetValue(sourcePath, out var newFilePath))
                 {
-                    _logger.LogInformation("Skipping unsupported file {File}", sourcePath);
                     continue;
                 }
 
-                var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(sourcePath, mediaType);
+                var mediaType = await _fileTypeIdentifierService.IdentifyAsync(newFilePath);
+                if (mediaType == MediaType.Unknown)
+                {
+                    _logger.LogInformation("Skipping unsupported file {File}", newFilePath);
+                    continue;
+                }
+
+                var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(newFilePath, mediaType);
 
                 var newItem = new MediaItem
                 {
                     FileName = Path.GetFileName(sourcePath),
-                    FilePath = Path.Combine(mediaFolderPath, Path.GetFileName(sourcePath)),
+                    FilePath = Path.Combine(mediaFolderPath, Path.GetFileName(newFilePath)),
                     FileType = mediaType,
                     ThumbnailPath = thumbnailPath
                 };
