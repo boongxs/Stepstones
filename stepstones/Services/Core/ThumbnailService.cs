@@ -43,6 +43,7 @@ namespace stepstones.Services.Core
 
                 switch (mediaType)
                 {
+                    case MediaType.Gif:
                     case MediaType.Image:
                         sourceImage = await Image.LoadAsync(sourceFilePath);
                         _logger.LogInformation("'{SourceFile}' identified as an image.", sourceFilePath);

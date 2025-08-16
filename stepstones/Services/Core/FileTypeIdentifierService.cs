@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using stepstones.Models;
+using System.IO;
 
 namespace stepstones.Services.Core
 {
@@ -16,6 +17,12 @@ namespace stepstones.Services.Core
 
         public async Task<MediaType> IdentifyAsync(string filePath)
         {
+            if (Path.GetExtension(filePath).Equals(".gif", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogInformation("Identified '{File}' as GIF.", filePath);
+                return MediaType.Gif;
+            }
+
             try
             {
                 var imageInfo = await Image.IdentifyAsync(filePath);

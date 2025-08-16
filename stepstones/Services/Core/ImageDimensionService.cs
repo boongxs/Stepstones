@@ -20,6 +20,7 @@ namespace stepstones.Services.Core
             {
                 switch (mediaType)
                 {
+                    case MediaType.Gif:
                     case MediaType.Image:
                         var imageInfo = await Image.IdentifyAsync(filePath);
                         if (imageInfo != null)

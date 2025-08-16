@@ -40,8 +40,7 @@
             <MediaElement x:Name="VideoPlayer"
                               LoadedBehavior="Manual"
                               UnloadedBehavior="Close"
-                              MouseLeftButtonDown="VideoPlayer_MouseLeftButtonDown"
-                              MediaFailed="VideoPlayer_MediaFailed">
+                              MouseLeftButtonDown="VideoPlayer_MouseLeftButtonDown">
                 <MediaElement.Style>
                     <Style TargetType="MediaElement">
                         <Setter Property="Opacity" Value="0"/>
@@ -50,6 +49,25 @@
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding IsVideo}"
                                              Value="True">
+                                <Setter Property="Opacity" Value="1"/>
+                                <Setter Property="Source" Value="{Binding FilePath}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </MediaElement.Style>
+            </MediaElement>
+
+            <MediaElement x:Name="GifPlayer"
+                          LoadedBehavior="Manual"
+                          UnloadedBehavior="Close"
+                          MediaEnded="GifPlayer_MediaEnded">
+                <MediaElement.Style>
+                    <Style TargetType="MediaElement">
+                        <Setter Property="Opacity" Value="0"/>
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsGif}"
+                                         Value="True">
                                 <Setter Property="Opacity" Value="1"/>
                                 <Setter Property="Source" Value="{Binding FilePath}"/>
                             </DataTrigger>

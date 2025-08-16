@@ -4,6 +4,7 @@
     {
         Unknown,
         Image,
-        Video
+        Video,
+        Gif
     }
 }
