@@ -285,6 +285,8 @@ namespace stepstones.ViewModels
             OnPropertyChanged(nameof(PageInfo));
             GoToNextPageCommand.NotifyCanExecuteChanged();
             GoToPreviousPageCommand.NotifyCanExecuteChanged();
+            GoToFirstPageCommand.NotifyCanExecuteChanged();
+            GoToLastPageCommand.NotifyCanExecuteChanged();
         }
 
         partial void OnTotalPagesChanged(int value)
@@ -292,6 +294,8 @@ namespace stepstones.ViewModels
             OnPropertyChanged(nameof(PageInfo));
             GoToNextPageCommand.NotifyCanExecuteChanged();
             GoToPreviousPageCommand.NotifyCanExecuteChanged();
+            GoToFirstPageCommand.NotifyCanExecuteChanged();
+            GoToLastPageCommand.NotifyCanExecuteChanged();
         }
 
         [RelayCommand(CanExecute = nameof(CanGoToNextPage))]
@@ -316,6 +320,30 @@ namespace stepstones.ViewModels
         private bool CanGoToPreviousPage()
         {
             return CurrentPage > 1;
+        }
+
+        [RelayCommand(CanExecute = nameof(CanGoToFirstPage))]
+        private async Task GoToFirstPage()
+        {
+            CurrentPage = 1;
+            await LoadMediaItemsAsync();
+        }
+
+        private bool CanGoToFirstPage()
+        {
+            return CurrentPage > 1;
+        }
+
+        [RelayCommand(CanExecute = nameof(CanGoToLastPage))]
+        private async Task GoToLastPage()
+        {
+            CurrentPage = TotalPages;
+            await LoadMediaItemsAsync();
+        }
+
+        private bool CanGoToLastPage()
+        {
+            return CurrentPage < TotalPages;
         }
     }
 }

@@ -57,30 +57,24 @@
                     Margin="0,0,0,10">
             <Button Content="Sel"
                     Command="{Binding SelectFolderCommand}"
-                    Width="50"
-                    Height="50"
-                    Background="#404040"
-                    Foreground="#f0f0f0"
-                    BorderThickness="0"
-                    Margin="5">
+                    Style="{StaticResource StackPanelButtonStyle}">
             </Button>
 
             <Button Content="Upl"
                     Command="{Binding UploadFilesCommand}"
-                    Width="50"
-                    Height="50"
-                    Background="#404040"
-                    Foreground="#f0f0f0"
-                    BorderThickness="0"
-                    Margin="5">
+                    Style="{StaticResource StackPanelButtonStyle}">
             </Button>
 
+            <Button Content="&lt;&lt;"
+                    Command="{Binding GoToFirstPageCommand}"
+                    Style="{StaticResource StackPanelButtonStyle}"
+                    Margin="20, 5, 5, 5">
+            </Button>
+            
             <Button Content="&lt;"
                     Command="{Binding GoToPreviousPageCommand}"
-                    Width="40"
-                    Height="40"
-                    Margin="20,5,5,5"
-                    VerticalAlignment="Center">
+                    Style="{StaticResource StackPanelButtonStyle}"
+                    Margin="5,5,10,5">
             </Button>
 
             <TextBlock Text="{Binding PageInfo}"
@@ -91,10 +85,13 @@
 
             <Button Content="&gt;"
                     Command="{Binding GoToNextPageCommand}"
-                    Width="40"
-                    Height="40"
-                    Margin="5"
-                    VerticalAlignment="Center">
+                    Style="{StaticResource StackPanelButtonStyle}"
+                    Margin="10,5,5,5">
+            </Button>
+
+            <Button Content="&gt;&gt;"
+                    Command="{Binding GoToLastPageCommand}"
+                    Style="{StaticResource StackPanelButtonStyle}">
             </Button>
         </StackPanel>
 

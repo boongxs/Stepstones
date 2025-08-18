@@ -31,4 +31,45 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <Style x:Key="StackPanelButtonStyle"
+           TargetType="Button">
+        <Setter Property="Background" Value="#404040"/>
+        <Setter Property="Foreground" Value="#f0f0f0"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Width" Value="50"/>
+        <Setter Property="Height" Value="50"/>
+        <Setter Property="Margin" Value="5"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="3">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center">
+                        </ContentPresenter>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver"
+                     Value="True">
+                <Setter Property="Background" Value="#505050"/>
+            </Trigger>
+
+            <Trigger Property="IsPressed"
+                     Value="True">
+                <Setter Property="Background" Value="#303030"/>
+            </Trigger>
+
+            <Trigger Property="IsEnabled"
+                     Value="False">
+                <Setter Property="Background" Value="#303030"/>
+                <Setter Property="Foreground" Value="#666666"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
 </ResourceDictionary>
