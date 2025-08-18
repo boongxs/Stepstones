@@ -25,7 +25,7 @@ namespace stepstones.Services.Core
                 {
                     try
                     {
-                        var uniqueFileName = GenerateUniqueFileName(sourcePath);
+                        var uniqueFileName = FileNameGenerator.GenerateUniqueFileName(sourcePath);
                         var destinationPath = Path.Combine(destinationFolderPath, uniqueFileName);
 
                         if (!File.Exists(destinationPath))
@@ -95,16 +95,6 @@ namespace stepstones.Services.Core
             {
                 _logger.LogError(ex, "Failed to delete thumbnail file '{Path}'", item.ThumbnailPath);
             }
-        }
-
-        private string GenerateUniqueFileName(string sourceFilePath)
-        {
-            using var md5 = MD5.Create();
-            using var stream = File.OpenRead(sourceFilePath);
-            var hashBytes = md5.ComputeHash(stream);
-            var hashString = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
-            var extension = Path.GetExtension(sourceFilePath);
-            return $"{hashString}{extension}";
         }
     }
 }

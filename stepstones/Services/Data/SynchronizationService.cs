@@ -46,18 +46,32 @@ namespace stepstones.Services.Data
                 _logger.LogInformation("Found {Count} orphan files to import into the database.", orphans.Count);
                 foreach (var orphanPath in orphans)
                 {
-                    var mediaType = await _fileTypeIdentifierService.IdentifyAsync(orphanPath);
+                    var uniqueFileName = FileNameGenerator.GenerateUniqueFileName(orphanPath);
+                    var newPath = Path.Combine(Path.GetDirectoryName(orphanPath), uniqueFileName);
+
+                    try
+                    {
+                        File.Move(orphanPath, newPath);
+                        _logger.LogInformation("Renamed orphan file from '{OldPath}' to '{NewPath}'", orphanPath, newPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to rename orphan file '{Path}'. Skipping.", orphanPath);
+                        continue;
+                    }
+
+                    var mediaType = await _fileTypeIdentifierService.IdentifyAsync(newPath);
                     if (mediaType == MediaType.Unknown)
                     {
                         continue;
                     }
 
-                    var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(orphanPath, mediaType);
+                    var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(newPath, mediaType);
 
                     var newItem = new MediaItem
                     {
                         FileName = Path.GetFileName(orphanPath),
-                        FilePath = orphanPath,
+                        FilePath = newPath,
                         FileType = mediaType,
                         ThumbnailPath = thumbnailPath
                     };
