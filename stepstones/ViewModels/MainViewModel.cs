@@ -4,6 +4,11 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 using stepstones.Models;
 using stepstones.Messages;
 using stepstones.Services.Interaction;
@@ -28,7 +33,7 @@ namespace stepstones.ViewModels
         private readonly IMessenger _messenger;
         private readonly IFileTypeIdentifierService _fileTypeIdentifierService;
 
-        public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
+        public ObservableCollection<object> MediaItems { get; } = new();
 
         [ObservableProperty]
         private double _thumbnailWidth = 270;
@@ -113,8 +118,7 @@ namespace stepstones.ViewModels
             else
             {
                 _logger.LogInformation("Application startup: Located saved media folder path: {Path}", savedPath);
-                await _synchronizationService.SynchronizeDataAsync(savedPath);
-                await LoadMediaItemsAsync();
+                await SynchronizeAndLoadAsync(savedPath);
             }
         }
 
@@ -159,7 +163,6 @@ namespace stepstones.ViewModels
         private async Task SelectFolder()
         {
             _logger.LogInformation("'Select Folder' button clicked, opening folder dialog.");
-
             var selectedPath = _folderDialogService.ShowDialog();
 
             if (string.IsNullOrWhiteSpace(selectedPath))
@@ -168,14 +171,59 @@ namespace stepstones.ViewModels
             }
             else
             {
-                _logger.LogInformation("User selected folder: {Path}", selectedPath);
+                _logger.LogInformation("User selected folder '{Path}'", selectedPath);
                 _settingsService.SaveMediaFolderPath(selectedPath);
-
                 CurrentPage = 1;
-
-                await _synchronizationService.SynchronizeDataAsync(selectedPath);
-                await LoadMediaItemsAsync();
+                await SynchronizeAndLoadAsync(selectedPath);
             }
+        }
+
+        private async Task SynchronizeAndLoadAsync(string folderPath)
+        {
+            var orphans = await GetOrphanPathsAsync(folderPath);
+
+            if (!orphans.Any())
+            {
+                await LoadMediaItemsAsync();
+                return;
+            }
+
+            // add placeholders immediately
+            MediaItems.Clear();
+            foreach (var orphan in orphans)
+            {
+                MediaItems.Add(new PlaceholderViewModel());
+            }
+
+            await _synchronizationService.SynchronizeDataAsync(folderPath, (processedItem) =>
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    var vm = _mediaItemViewModelFactory.Create(processedItem);
+                    var placeholder = MediaItems.OfType<PlaceholderViewModel>().FirstOrDefault();
+                    if (placeholder != null)
+                    {
+                        var placeholderIndex = MediaItems.IndexOf(placeholder);
+                        MediaItems[placeholderIndex] = vm;
+                        _ = vm.LoadThumbnailAsync();
+                    }
+                });
+            });
+
+            // to ensure pagination is correct
+            await LoadMediaItemsAsync();
+        }
+
+        private async Task<List<string>> GetOrphanPathsAsync(string folderPath)
+        {
+            _logger.LogInformation("Checking for orphan files in '{Path}'", folderPath);
+
+            var filesInFolder = _fileService.GetAllFiles(folderPath).ToList();
+            var filePathsInDatabase = await _databaseService.GetFilePathsForFolderAsync(folderPath);
+            var orphans = filesInFolder.Except(filePathsInDatabase).ToList();
+
+            _logger.LogInformation("Found {Count} orphan files to process.", orphans.Count);
+            return orphans;
         }
 
         [RelayCommand]
@@ -201,36 +249,62 @@ namespace stepstones.ViewModels
             var fileList = selectedFiles.ToList();
             _logger.LogInformation("{FileCount} file(s) have been selected for upload.", fileList.Count);
 
-            var pathMappings = await _fileService.CopyFilesAsync(fileList, mediaFolderPath);
-
-            foreach (var sourcePath in fileList)
+            for (int i = 0; i < fileList.Count; i++)
             {
-                if (!pathMappings.TryGetValue(sourcePath, out var newFilePath))
-                {
-                    continue;
-                }
-
-                var mediaType = await _fileTypeIdentifierService.IdentifyAsync(newFilePath);
-                if (mediaType == MediaType.Unknown)
-                {
-                    _logger.LogInformation("Skipping unsupported file {File}", newFilePath);
-                    continue;
-                }
-
-                var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(newFilePath, mediaType);
-
-                var newItem = new MediaItem
-                {
-                    FileName = Path.GetFileName(sourcePath),
-                    FilePath = Path.Combine(mediaFolderPath, Path.GetFileName(newFilePath)),
-                    FileType = mediaType,
-                    ThumbnailPath = thumbnailPath
-                };
-
-                await _databaseService.AddMediaItemAsync(newItem);
+                MediaItems.Add(new PlaceholderViewModel());
             }
 
-            _logger.LogInformation("Upload complete. Refreshing media items view.");
+            await Task.Run(async () =>
+            {
+                foreach (var sourcePath in fileList)
+                {
+                    try
+                    {
+                        var pathMappings = await _fileService.CopyFilesAsync(new[] { sourcePath }, mediaFolderPath);
+                        if (!pathMappings.TryGetValue(sourcePath, out var newFilePath))
+                        {
+                            continue;
+                        }
+
+                        var mediaType = await _fileTypeIdentifierService.IdentifyAsync(newFilePath);
+                        if (mediaType == MediaType.Unknown)
+                        {
+                            _logger.LogInformation("Skipping unsupported file {File}", newFilePath);
+                            continue;
+                        }
+
+                        var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(newFilePath, mediaType);
+
+                        var newItem = new MediaItem
+                        {
+                            FileName = Path.GetFileName(sourcePath),
+                            FilePath = newFilePath,
+                            FileType = mediaType,
+                            ThumbnailPath = thumbnailPath
+                        };
+
+                        await _databaseService.AddMediaItemAsync(newItem);
+
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            var vm = _mediaItemViewModelFactory.Create(newItem);
+                            var placeholder = MediaItems.OfType<PlaceholderViewModel>().FirstOrDefault();
+                            if (placeholder != null)
+                            {
+                                var placeholderIndex = MediaItems.IndexOf(placeholder);
+                                MediaItems[placeholderIndex] = vm;
+                                _ = vm.LoadThumbnailAsync();
+                            }
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to process uploaded file '{Path}'", sourcePath);
+                    }
+                }
+            });
+
+            _logger.LogInformation("Upload processing complete. Refreshing UI.");
             await LoadMediaItemsAsync();
         }
 

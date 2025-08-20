@@ -26,7 +26,7 @@ namespace stepstones.Services.Data
             _fileTypeIdentifierService = fileTypeIdentifierService;
         }
 
-        public async Task SynchronizeDataAsync(string folderPath)
+        public async Task SynchronizeDataAsync(string folderPath, Action<MediaItem> onItemProcessed)
         {
             var filesInFolder = _fileService.GetAllFiles(folderPath).ToList();
             var filePathsInDatabase = await _databaseService.GetFilePathsForFolderAsync(folderPath);
@@ -46,36 +46,39 @@ namespace stepstones.Services.Data
                 _logger.LogInformation("Found {Count} orphan files to import into the database.", orphans.Count);
                 foreach (var orphanPath in orphans)
                 {
-                    var uniqueFileName = FileNameGenerator.GenerateUniqueFileName(orphanPath);
-                    var newPath = Path.Combine(Path.GetDirectoryName(orphanPath), uniqueFileName);
-
                     try
                     {
+                        var uniqueFileName = FileNameGenerator.GenerateUniqueFileName(orphanPath);
+                        var newPath = Path.Combine(Path.GetDirectoryName(orphanPath), uniqueFileName);
+
                         File.Move(orphanPath, newPath);
                         _logger.LogInformation("Renamed orphan file from '{OldPath}' to '{NewPath}'", orphanPath, newPath);
+
+                        var mediaType = await _fileTypeIdentifierService.IdentifyAsync(newPath);
+                        if (mediaType == MediaType.Unknown)
+                        {
+                            // If we can't identify the type, it's a failure for this file.
+                            // Throwing an exception will be caught by our catch block.
+                            throw new InvalidOperationException($"Could not identify media type for '{newPath}'");
+                        }
+
+                        var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(newPath, mediaType);
+
+                        var newItem = new MediaItem
+                        {
+                            FileName = Path.GetFileName(orphanPath),
+                            FilePath = newPath,
+                            FileType = mediaType,
+                            ThumbnailPath = thumbnailPath
+                        };
+                        await _databaseService.AddMediaItemAsync(newItem);
+
+                        onItemProcessed(newItem);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Failed to rename orphan file '{Path}'. Skipping.", orphanPath);
-                        continue;
+                        _logger.LogError(ex, "Failed to process orphan file '{Path}'.", orphanPath);
                     }
-
-                    var mediaType = await _fileTypeIdentifierService.IdentifyAsync(newPath);
-                    if (mediaType == MediaType.Unknown)
-                    {
-                        continue;
-                    }
-
-                    var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(newPath, mediaType);
-
-                    var newItem = new MediaItem
-                    {
-                        FileName = Path.GetFileName(orphanPath),
-                        FilePath = newPath,
-                        FileType = mediaType,
-                        ThumbnailPath = thumbnailPath
-                    };
-                    await _databaseService.AddMediaItemAsync(newItem);
                 }
             }
         }
