@@ -113,11 +113,24 @@ namespace stepstones.ViewModels
                 return;
             }
 
+            BitmapImage? loadedImage = null;
+
+            if (this.FileType == MediaType.Image)
+            {
+                loadedImage = new BitmapImage();
+                loadedImage.BeginInit();
+                loadedImage.UriSource = new Uri(this.FilePath);
+                loadedImage.CacheOption = BitmapCacheOption.OnLoad;
+                loadedImage.EndInit();
+                loadedImage.Freeze();
+            }
+
             var dialogViewModel = new EnlargeMediaViewModel(
                 this.FilePath,
                 this.FileType,
                 dimensions.Width,
-                dimensions.Height);
+                dimensions.Height,
+                loadedImage);
 
             _messenger.Send(new ShowDialogMessage(dialogViewModel));
         }

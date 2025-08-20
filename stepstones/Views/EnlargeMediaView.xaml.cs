@@ -11,6 +11,7 @@ namespace stepstones.Views
         {
             InitializeComponent();
             this.Loaded += EnlargeMediaViewModel_Loaded;
+            this.Unloaded += EnlargeMediaViewModel_Unloaded;
         }
 
         private void EnlargeMediaViewModel_Loaded(object sender, RoutedEventArgs e)
@@ -25,6 +26,17 @@ namespace stepstones.Views
             {
                 GifPlayer.Play();
             }
+        }
+
+        private void EnlargeMediaViewModel_Unloaded(object sender, RoutedEventArgs e)
+        {
+            VideoPlayer.Stop();
+            VideoPlayer.Source = null;
+
+            GifPlayer.Stop();
+            GifPlayer.Source = null;
+
+            ImageViewer.Source = null;
         }
 
         private void VideoPlayer_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)

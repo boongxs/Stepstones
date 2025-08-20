@@ -20,7 +20,7 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0">
-            <Image>
+            <Image x:Name="ImageViewer">
                 <Image.Style>
                     <Style TargetType="Image">
                         <Setter Property="Opacity" Value="0"/>
@@ -30,7 +30,7 @@
                             <DataTrigger Binding="{Binding IsImage}"
                                              Value="True">
                                 <Setter Property="Opacity" Value="1"/>
-                                <Setter Property="Source" Value="{Binding FilePath}"/>
+                                <Setter Property="Source" Value="{Binding ImageSource}"/>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
