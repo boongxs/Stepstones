@@ -60,7 +60,7 @@ namespace stepstones.Services.Core
                         var success = await FFMpeg.SnapshotAsync(
                             sourceFilePath,
                             tempImagePath,
-                            new System.Drawing.Size(1920, 1080),
+                            null,
                             snapshotTime
                         );
 
