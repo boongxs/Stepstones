@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
              xmlns:local="clr-namespace:stepstones.Views"
+             xmlns:vlc="clr-namespace:Vlc.DotNet.Wpf;assembly=Vlc.DotNet.Wpf"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewmodels:EnlargeMediaViewModel}"
              d:DesignHeight="600" 
@@ -37,44 +38,9 @@
                 </Image.Style>
             </Image>
 
-            <MediaElement x:Name="VideoPlayer"
-                              LoadedBehavior="Manual"
-                              UnloadedBehavior="Close"
-                              MouseLeftButtonDown="VideoPlayer_MouseLeftButtonDown">
-                <MediaElement.Style>
-                    <Style TargetType="MediaElement">
-                        <Setter Property="Opacity" Value="0"/>
-                        <Setter Property="Source" Value="{x:Null}"/>
-
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsVideo}"
-                                             Value="True">
-                                <Setter Property="Opacity" Value="1"/>
-                                <Setter Property="Source" Value="{Binding FilePath}"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </MediaElement.Style>
-            </MediaElement>
-
-            <MediaElement x:Name="GifPlayer"
-                          LoadedBehavior="Manual"
-                          UnloadedBehavior="Close"
-                          MediaEnded="GifPlayer_MediaEnded">
-                <MediaElement.Style>
-                    <Style TargetType="MediaElement">
-                        <Setter Property="Opacity" Value="0"/>
-
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsGif}"
-                                         Value="True">
-                                <Setter Property="Opacity" Value="1"/>
-                                <Setter Property="Source" Value="{Binding FilePath}"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </MediaElement.Style>
-            </MediaElement>
+            <vlc:VlcControl x:Name="MediaPlayer"
+                            Opacity="0">
+            </vlc:VlcControl>
         </Grid>
     </Grid>
 </UserControl>

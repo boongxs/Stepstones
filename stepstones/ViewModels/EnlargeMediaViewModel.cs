@@ -16,6 +16,8 @@ namespace stepstones.ViewModels
         public bool IsVideo { get; }
         public bool IsGif { get; }
 
+        public bool IsPlayableMedia => IsVideo || IsGif;
+
         public EnlargeMediaViewModel(string filePath, MediaType fileType, int width, int height, BitmapImage? imageSource = null)
         {
             FilePath = filePath;

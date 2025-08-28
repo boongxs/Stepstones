@@ -9,16 +9,31 @@ using stepstones.Services.Interaction;
 using stepstones.Services.Data;
 using stepstones.Services.Core;
 using stepstones.Services.Infrastructure;
+using Vlc.DotNet.Wpf;
 
 namespace stepstones
 {
     public partial class App : Application
     {
         private readonly IHost _host;
+        private static VlcControl? PreloadVlcPlayer;
 
         public App()
         {
-            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            InitializeComponent();
+
+            var currentAssembly = System.Reflection.Assembly.GetEntryAssembly();
+            var currentDirectory = new FileInfo(currentAssembly.Location).DirectoryName;
+            if (currentDirectory != null)
+            {
+                var vlcLibDirectory = new DirectoryInfo(Path.Combine(currentDirectory, "libvlc", IntPtr.Size == 4 ? "win-x86" : "win-x64"));
+
+                PreloadVlcPlayer = new VlcControl();
+                PreloadVlcPlayer.SourceProvider.CreatePlayer(vlcLibDirectory, "--no-video");
+                PreloadVlcPlayer.Dispose();
+            }
+
+                var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             var logPath = Path.Combine(appDataPath, "stepstones", "logs", "stepstones-.txt");
 
             Log.Logger = new LoggerConfiguration()
