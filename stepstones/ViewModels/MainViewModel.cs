@@ -93,7 +93,7 @@ namespace stepstones.ViewModels
 
             _messenger.Register<MediaItemDeletedMessage>(this, (recipient, message) =>
             {
-                MediaItems.Remove(message.Value);
+                _ = LoadMediaItemsAsync();
                 _logger.LogInformation("Removed deleted item from UI: '{FileName}'", message.Value.FileName);
             });
 
