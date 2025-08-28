@@ -249,9 +249,15 @@ namespace stepstones.ViewModels
             var fileList = selectedFiles.ToList();
             _logger.LogInformation("{FileCount} file(s) have been selected for upload.", fileList.Count);
 
-            for (int i = 0; i < fileList.Count; i++)
+            var availableSlots = PageSize - MediaItems.Count;
+            var placeholdersToAdd = Math.Min(fileList.Count, availableSlots);
+
+            if (placeholdersToAdd > 0)
             {
-                MediaItems.Add(new PlaceholderViewModel());
+                for (int i = 0; i < placeholdersToAdd; i++)
+                {
+                    MediaItems.Add(new PlaceholderViewModel());
+                }
             }
 
             await Task.Run(async () =>
@@ -287,10 +293,10 @@ namespace stepstones.ViewModels
 
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            var vm = _mediaItemViewModelFactory.Create(newItem);
                             var placeholder = MediaItems.OfType<PlaceholderViewModel>().FirstOrDefault();
                             if (placeholder != null)
                             {
+                                var vm = _mediaItemViewModelFactory.Create(newItem);
                                 var placeholderIndex = MediaItems.IndexOf(placeholder);
                                 MediaItems[placeholderIndex] = vm;
                                 _ = vm.LoadThumbnailAsync();
