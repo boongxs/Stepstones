@@ -204,13 +204,22 @@ namespace stepstones.ViewModels
                 return;
             }
 
-            // add placeholders immediately
-            MediaItems.Clear();
-            foreach (var orphan in orphans)
+            // load existing, already-processed items
+            await LoadMediaItemsAsync();
+
+            // calculate empty slots on page for placeholders
+            var availableSlots = PageSize - MediaItems.Count;
+            var placeholdersToAdd = Math.Min(orphans.Count, availableSlots);
+
+            if (placeholdersToAdd > 0)
             {
-                MediaItems.Add(new PlaceholderViewModel());
+                for (int i = 0; i < placeholdersToAdd; i++)
+                {
+                    MediaItems.Add(new PlaceholderViewModel());
+                }
             }
 
+            // start processing orphans
             await _synchronizationService.SynchronizeDataAsync(folderPath, (processedItem) =>
             {
                 Application.Current.Dispatcher.Invoke(() =>
