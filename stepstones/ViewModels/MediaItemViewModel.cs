@@ -85,7 +85,16 @@ namespace stepstones.ViewModels
         [RelayCommand]
         private void Copy()
         {
-            _clipboardService.CopyFileToClipboard(FilePath);
+            try
+            {
+                _clipboardService.CopyFileToClipboard(FilePath);
+                _messenger.Send(new ShowToastMessage("File copied to clipboard.", ToastNotificationType.Success));
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An error occurred while copying '{File}' to the clipboard.", FileName);
+                _messenger.Send(new ShowToastMessage("Failed to copy file.", ToastNotificationType.Error));
+            }
         }
 
         [RelayCommand]
@@ -100,8 +109,18 @@ namespace stepstones.ViewModels
 
                 if (originalTags != newTags)
                 {
-                    _mediaItem.Tags = newTags;
-                    await _databaseService.UpdateMediaItemAsync(_mediaItem);
+                    try
+                    {
+                        _mediaItem.Tags = newTags;
+                        await _databaseService.UpdateMediaItemAsync(_mediaItem);
+                        _messenger.Send(new ShowToastMessage("Tags updated successfully.", ToastNotificationType.Success));
+                    }
+                    catch (Exception ex)
+                    {
+                        _mediaItem.Tags = originalTags;
+                        Log.Error(ex, "Failed to update tags for '{FileName}'.", FileName);
+                        _messenger.Send(new ShowToastMessage("Failed to save tags.", ToastNotificationType.Error));
+                    }
                 }
             }
         }

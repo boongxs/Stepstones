@@ -147,6 +147,7 @@ namespace stepstones.Services.Data
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to update the database record for '{FileName}'", item.FileName);
+                throw;
             }
         }
 

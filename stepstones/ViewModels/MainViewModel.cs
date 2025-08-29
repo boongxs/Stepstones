@@ -11,6 +11,7 @@ using stepstones.Services.Interaction;
 using stepstones.Services.Data;
 using stepstones.Services.Core;
 using stepstones.Services.Infrastructure;
+using stepstones.Enums;
 
 namespace stepstones.ViewModels
 {
@@ -177,10 +178,19 @@ namespace stepstones.ViewModels
             }
             else
             {
-                _logger.LogInformation("User selected folder '{Path}'", selectedPath);
-                _settingsService.SaveMediaFolderPath(selectedPath);
-                CurrentPage = 1;
-                await SynchronizeAndLoadAsync(selectedPath);
+                try
+                {
+                    _logger.LogInformation("User selected folder '{Path}'", selectedPath);
+                    _settingsService.SaveMediaFolderPath(selectedPath);
+                    CurrentPage = 1;
+                    await SynchronizeAndLoadAsync(selectedPath);
+                    _messenger.Send(new ShowToastMessage($"Folder '{Path.GetFileName(selectedPath)}' loaded.", ToastNotificationType.Success));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to load the selected folder.");
+                    _messenger.Send(new ShowToastMessage("Failed to load folder.", ToastNotificationType.Error));
+                }
             }
         }
 
