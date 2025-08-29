@@ -1,4 +1,6 @@
 ﻿using System.Windows;
+using stepstones.ViewModels;
+using stepstones.Views;
 
 namespace stepstones.Services.Interaction
 {
@@ -6,16 +8,26 @@ namespace stepstones.Services.Interaction
     {
         public void Show(string message)
         {
-            MessageBox.Show(message,
-                            "Stepstones",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
+            ShowDialog("Stepstones", message, false);
         }
 
         public bool ShowConfirmation(string title, string message)
         {
-            var result = MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Question);
-            return result == MessageBoxResult.Yes;
+            return ShowDialog(title, message, true);
+        }
+
+        private bool ShowDialog(string title, string message, bool isConfirmation)
+        {
+            var viewModel = new MessageBoxViewModel(title, message, isConfirmation);
+            var messageBoxView = new MessageBoxView
+            {
+                DataContext = viewModel,
+                Owner = Application.Current.MainWindow
+            };
+
+            messageBoxView.ShowDialog();
+
+            return viewModel.DialogResult ?? false;
         }
     }
 }
