@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:stepstones" 
         xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
         xmlns:views="clr-namespace:stepstones.Views"
+        xmlns:converters="clr-namespace:stepstones.Converters"
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
         Title="MainWindow" 
@@ -16,7 +17,10 @@
         MinWidth="700"
         MinHeight="600"
         Icon="/Resources/Icons/stepstones.ico">
-
+    <Window.Resources>
+        <converters:NotNullToVisibilityConverter x:Key="NotNullToVisibilityConverter"/>
+    </Window.Resources>
+    
     <Grid x:Name="MainGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -56,6 +60,7 @@
                     Orientation="Horizontal"
                     HorizontalAlignment="Center"
                     Margin="0,0,0,10">
+            <!-- Function buttons -->
             <Button Command="{Binding SelectFolderCommand}"
                     Style="{StaticResource StackPanelButtonStyle}">
                 <Image Source="/Resources/Icons/select_folder.png"
@@ -72,6 +77,7 @@
                 </Image>
             </Button>
 
+            <!-- Pagination controls -->
             <Button Content="&lt;&lt;"
                     Command="{Binding GoToFirstPageCommand}"
                     Style="{StaticResource StackPanelButtonStyle}"
@@ -237,5 +243,13 @@
         <views:DialogHost Grid.Row="0"
                           Grid.RowSpan="4">
         </views:DialogHost>
+
+        <!-- Toast notification control -->
+        <ContentControl Grid.Row="0"
+                        Grid.RowSpan="4"
+                        Content="{Binding ActiveToast}"
+                        IsHitTestVisible="False"
+                        Visibility="{Binding ActiveToast, Converter={StaticResource NotNullToVisibilityConverter}}">
+        </ContentControl>
     </Grid>
 </Window>

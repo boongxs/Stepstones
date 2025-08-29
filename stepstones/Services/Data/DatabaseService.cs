@@ -108,6 +108,7 @@ namespace stepstones.Services.Data
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to delete database record for '{FileName}'", item.FileName);
+                throw; //rethrow to notify of failure
             }
         }
 

@@ -4,10 +4,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using stepstones.Models;
 using stepstones.Messages;
@@ -65,6 +61,9 @@ namespace stepstones.ViewModels
 
         public string PageInfo => $"Page {CurrentPage} of {TotalPages}";
 
+        [ObservableProperty]
+        private ToastViewModel? _activeToast;
+
         public MainViewModel(ILogger<MainViewModel> logger,
                              ISettingsService settingsService,
                              IFolderDialogService folderDialogService,
@@ -100,6 +99,13 @@ namespace stepstones.ViewModels
             _messenger.Register<ShowDialogMessage>(this, (recipient, message) =>
             {
                 ActiveDialogViewModel = message.ViewModel;
+            });
+
+            _messenger.Register<ShowToastMessage>(this, async (recipient, message) =>
+            {
+                ActiveToast = new ToastViewModel(message.Message, message.Type);
+                await Task.Delay(3000);
+                ActiveToast = null;
             });
 
             logger.LogInformation("MainViewModel has been created.");

@@ -1,14 +1,16 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using stepstones.Messages;
-using stepstones.Models;
 using System.Windows.Media.Imaging;
 using System.IO;
+using Serilog;
 using stepstones.Services.Interaction;
 using stepstones.Services.Data;
 using stepstones.Services.Core;
 using stepstones.Services.Infrastructure;
+using stepstones.Enums;
+using stepstones.Messages;
+using stepstones.Models;
 
 namespace stepstones.ViewModels
 {
@@ -142,13 +144,23 @@ namespace stepstones.ViewModels
 
             if (confirmed)
             {
-                ThumbnailImage = null;
-                OnPropertyChanged(nameof(ThumbnailImage));
+                try
+                {
+                    ThumbnailImage = null;
+                    OnPropertyChanged(nameof(ThumbnailImage));
 
-                _fileService.DeleteMediaFile(_mediaItem);
-                await _databaseService.DeleteMediaItemAsync(_mediaItem);
+                    _fileService.DeleteMediaFile(_mediaItem);
+                    await _databaseService.DeleteMediaItemAsync(_mediaItem);
 
-                _messenger.Send(new MediaItemDeletedMessage(this));
+                    _messenger.Send(new MediaItemDeletedMessage(this));
+                    _messenger.Send(new ShowToastMessage($"'{_mediaItem.FileName}' was deleted.", ToastNotificationType.Success));
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "An error occurred during the deletion of '{FileName}'.", _mediaItem.FileName);
+                    _messenger.Send(new ShowToastMessage($"Failed to delete '{_mediaItem.FileName}'.", ToastNotificationType.Error));
+                    await LoadThumbnailAsync();
+                }
             }
             else
             {

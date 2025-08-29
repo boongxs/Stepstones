@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using stepstones.Models;
 using System.IO;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace stepstones.Services.Core
 {
@@ -80,6 +78,7 @@ namespace stepstones.Services.Core
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to delete media file '{Path}'", item.FilePath);
+                throw; //rethrow to notify of failure
             }
 
             // delete media file's thumbnail
@@ -94,6 +93,7 @@ namespace stepstones.Services.Core
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to delete thumbnail file '{Path}'", item.ThumbnailPath);
+                throw; //rethrow to notify of failure
             }
         }
     }
