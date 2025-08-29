@@ -245,11 +245,17 @@
         </views:DialogHost>
 
         <!-- Toast notification control -->
-        <ContentControl Grid.Row="0"
-                        Grid.RowSpan="4"
-                        Content="{Binding ActiveToast}"
-                        IsHitTestVisible="False"
-                        Visibility="{Binding ActiveToast, Converter={StaticResource NotNullToVisibilityConverter}}">
-        </ContentControl>
+        <ItemsControl Grid.Row="0"
+                      Grid.RowSpan="4"
+                      ItemsSource="{Binding Toasts}"
+                      IsHitTestVisible="False"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Top">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
     </Grid>
 </Window>

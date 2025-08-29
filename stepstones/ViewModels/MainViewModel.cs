@@ -62,8 +62,7 @@ namespace stepstones.ViewModels
 
         public string PageInfo => $"Page {CurrentPage} of {TotalPages}";
 
-        [ObservableProperty]
-        private ToastViewModel? _activeToast;
+        public ObservableCollection<ToastViewModel> Toasts { get; } = new ObservableCollection<ToastViewModel>();
 
         public MainViewModel(ILogger<MainViewModel> logger,
                              ISettingsService settingsService,
@@ -104,9 +103,12 @@ namespace stepstones.ViewModels
 
             _messenger.Register<ShowToastMessage>(this, async (recipient, message) =>
             {
-                ActiveToast = new ToastViewModel(message.Message, message.Type);
-                await Task.Delay(3000);
-                ActiveToast = null;
+                var newToast = new ToastViewModel(message.Message, message.Type);
+                Toasts.Add(newToast);
+                Task.Delay(3100).ContinueWith(_ =>
+                {
+                    Application.Current.Dispatcher.Invoke(() => Toasts.Remove(newToast));
+                });
             });
 
             logger.LogInformation("MainViewModel has been created.");
