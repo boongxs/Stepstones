@@ -6,97 +6,105 @@
         xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=viewmodels:MessageBoxViewModel}"
-        Title="{Binding Title}" 
-        Background="#282828"
-        Foreground="#f0f0f0"
         SizeToContent="WidthAndHeight"
         WindowStartupLocation="CenterOwner"
-        WindowStyle="ToolWindow"
         MinWidth="350"
         MaxWidth="500"
-        Opacity="0">
-    <Window.Triggers>
-        <EventTrigger RoutedEvent="Loaded">
-            <BeginStoryboard>
-                <Storyboard>
-                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                     To="1"
-                                     Duration="0:0:0">
-                    </DoubleAnimation>
-                </Storyboard>
-            </BeginStoryboard>
-        </EventTrigger>
-    </Window.Triggers>
-
+        AllowsTransparency="True"
+        WindowStyle="None"
+        Background="Transparent">
     <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <Border Background="#282828"
+                BorderBrush="#505050"
+                BorderThickness="1"
+                CornerRadius="5">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0"
-                   Text="{Binding Message}"
-                   TextWrapping="Wrap"
-                   FontSize="16"
-                   Margin="0,0,0,20">
-        </TextBlock>
+                <Border Grid.Row="0"
+                        Background="#333333"
+                        CornerRadius="5,5,0,0"
+                        MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                    <Grid Height="30">
+                        <TextBlock Text="{Binding Title}"
+                                   Foreground="#f0f0f0"
+                                   Margin="10,0"
+                                   VerticalAlignment="Center"
+                                   FontWeight="Bold">
+                        </TextBlock>
 
-        <StackPanel Grid.Row="1"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Right">
-            <StackPanel Orientation="Horizontal">
-                <StackPanel.Style>
-                    <Style TargetType="StackPanel">
-                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Button Content="✕"
+                                Click="CloseButton_Click"
+                                HorizontalAlignment="Right"
+                                Width="30"
+                                Height="30"
+                                Background="Transparent"
+                                Foreground="Gray"
+                                BorderThickness="0">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}">
+                                                    <ContentPresenter HorizontalAlignment="Center"
+                                                                      VerticalAlignment="Center">
+                                                    </ContentPresenter>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
 
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsConfirmation}"
-                                         Value="True">
-                                <Setter Property="Visibility" Value="Visible"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </StackPanel.Style>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="Red"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </Grid>
+                </Border>
 
-                <Button Content="Yes"
-                        Command="{Binding YesCommand}"
-                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
-                        Style="{StaticResource StackPanelButtonStyle}"
-                        Width="80"
-                        Height="40">
-                </Button>
+                <TextBlock Grid.Row="1"
+                           Text="{Binding Message}"
+                           TextWrapping="Wrap"
+                           Margin="20"
+                           FontSize="16"
+                           Foreground="#f0f0f0">
+                </TextBlock>
 
-                <Button Content="No"
-                        Command="{Binding NoCommand}"
-                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
-                        Style="{StaticResource StackPanelButtonStyle}"
-                        Width="80"
-                        Height="40">
-                </Button>
-            </StackPanel>
+                <StackPanel Grid.Row="2"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="10">
+                    <Button Content="Yes"
+                            Command="{Binding YesCommand}"
+                            Style="{StaticResource StackPanelButtonStyle}"
+                            Visibility="{Binding IsYesNoVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            Margin="5">
+                    </Button>
 
-            <StackPanel Orientation="Horizontal">
-                <StackPanel.Style>
-                    <Style TargetType="StackPanel">
-                        <Setter Property="Visibility" Value="Visible"/>
+                    <Button Content="No"
+                            Command="{Binding NoCommand}"
+                            Style="{StaticResource StackPanelButtonStyle}"
+                            Visibility="{Binding IsYesNoVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            Margin="5">
+                    </Button>
 
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsConfirmation}"
-                                         Value="True">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </StackPanel.Style>
-
-                <Button Content="OK"
-                        Command="{Binding OkCommand}"
-                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
-                        Style="{StaticResource StackPanelButtonStyle}"
-                        Width="80"
-                        Height="40">
-                </Button>
-            </StackPanel>
-        </StackPanel>
+                    <Button Content="OK"
+                            Command="{Binding OkCommand}"
+                            Style="{StaticResource StackPanelButtonStyle}"
+                            Visibility="{Binding IsOkVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            Margin="5">
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </Window>

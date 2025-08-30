@@ -262,7 +262,7 @@ namespace stepstones.ViewModels
             if (string.IsNullOrWhiteSpace(mediaFolderPath))
             {
                 _logger.LogWarning("Upload aborted: Media folder path has not been set.");
-                _messageBoxService.Show("No media folder path has been set, please set it first before attempting to upload file(s).");
+                _messageBoxService.Show("No media folder set", "No media folder path has been set, please set it first before attempting to upload file(s).");
                 return;
             }
 

@@ -6,28 +6,29 @@ namespace stepstones.Services.Interaction
 {
     public class MessageBoxService : IMessageBoxService
     {
-        public void Show(string message)
+        public void Show(string title, string message)
         {
-            ShowDialog("Stepstones", message, false);
+            ShowDialog(title, message, MessageBoxType.Ok);
         }
 
         public bool ShowConfirmation(string title, string message)
         {
-            return ShowDialog(title, message, true);
+            return ShowDialog(title, message, MessageBoxType.YesNo);
         }
 
-        private bool ShowDialog(string title, string message, bool isConfirmation)
+        private bool ShowDialog(string title, string message, MessageBoxType type)
         {
-            var viewModel = new MessageBoxViewModel(title, message, isConfirmation);
             var messageBoxView = new MessageBoxView
             {
-                DataContext = viewModel,
                 Owner = Application.Current.MainWindow
             };
 
+            var viewModel = new MessageBoxViewModel(title, message, type, messageBoxView);
+
+            messageBoxView.DataContext = viewModel;
             messageBoxView.ShowDialog();
 
-            return viewModel.DialogResult ?? false;
+            return viewModel.Result ?? false;
         }
     }
 }

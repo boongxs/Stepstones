@@ -2,7 +2,7 @@
 {
     public interface IMessageBoxService
     {
-        void Show(string message);
+        void Show(string title, string message);
         bool ShowConfirmation(string title, string message);
     }
 }
