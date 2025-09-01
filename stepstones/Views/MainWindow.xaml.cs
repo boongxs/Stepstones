@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Input;
 using stepstones.ViewModels;
 
 namespace stepstones
@@ -30,7 +31,7 @@ namespace stepstones
             }
 
             double desiredThumbnailWidth = 270;
-            double horizontalItemMargin = 10;
+            double horizontalItemMargin = 14;
 
             int newColumns = (int)Math.Max(1, Math.Floor(availableWidth / (desiredThumbnailWidth + horizontalItemMargin)));
 
@@ -38,6 +39,13 @@ namespace stepstones
             {
                 viewModel.GridColumns = newColumns;
             }
+        }
+
+        private void MainGrid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            MainGrid.Focusable = true;
+            MainGrid.Focus();
+            MainGrid.Focusable = false;
         }
     }
 }

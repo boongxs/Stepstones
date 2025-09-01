@@ -19,9 +19,73 @@
         Icon="/Resources/Icons/stepstones.ico">
     <Window.Resources>
         <converters:NotNullToVisibilityConverter x:Key="NotNullToVisibilityConverter"/>
+
+        <Style x:Key="FilterTextBoxStyle"
+               TargetType="TextBox">
+            <Setter Property="Background" Value="#303030"/>
+            <Setter Property="Foreground" Value="#f0f0f0"/>
+            <Setter Property="CaretBrush" Value="#f0f0f0"/>
+            <Setter Property="BorderThickness" Value="3"/>
+            <Setter Property="BorderBrush" Value="#303030"/>
+            <Setter Property="FontSize" Value="32"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="10,0,0,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="TextBoxBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Style.Triggers>
+                <Trigger Property="IsKeyboardFocusWithin"
+                         Value="True">
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="#354946"
+                                                Duration="0:0:0.2">
+                                </ColorAnimation>
+
+                                <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                                To="#487a71"
+                                                Duration="0:0:0.2">
+                                </ColorAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="#303030"
+                                                Duration="0:0:0.2">
+                                </ColorAnimation>
+
+                                <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                                To="#303030"
+                                                Duration="0:0:0.2">
+                                </ColorAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
     
-    <Grid x:Name="MainGrid">
+    <Grid x:Name="MainGrid"
+          MouseLeftButtonDown="MainGrid_MouseLeftButtonDown"
+          Background="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -45,14 +109,8 @@
                  VerticalAlignment="Center"
                  Width="600"
                  Height="72"
-                 Background="#303030"
-                 Foreground="#f0f0f0"
-                 CaretBrush="#f0f0f0"
-                 BorderThickness="0"
-                 FontSize="32"
-                 VerticalContentAlignment="Center"
                  Margin="0,20,0,20"
-                 Padding="10,0,0,0">
+                 Style="{StaticResource FilterTextBoxStyle}">
         </TextBox>
 
         <!-- General buttons -->
@@ -120,7 +178,7 @@
         <ScrollViewer x:Name="MainScrollViewer"
                       Grid.Row="3"
                       Margin="20,0,20,20"
-                      VerticalScrollBarVisibility="Auto">
+                      Style="{StaticResource CustomScrollViewerStyle}">
             <ItemsControl x:Name="MediaItemsControl"
                           ItemsSource="{Binding MediaItems}"
                           SizeChanged="MediaItemsControl_SizeChanged"
@@ -133,107 +191,152 @@
 
                 <ItemsControl.Resources>
                     <DataTemplate DataType="{x:Type viewmodels:MediaItemViewModel}">
-                        <Grid x:Name="ItemContainer"
-                              Margin="5"
-                              Height="250"
-                              Background="#404040">
-                            <!-- Layer 1: Placeholder border -->
-                            <Border Background="#404040"/>
-
-                            <!-- Layer 2: Thumbnail -->
-                            <Image Source="{Binding ThumbnailImage}"
-                                   Stretch="UniformToFill">
-                            </Image>
-
-                            <!-- Layer 3: Darkening overlay -->
-                            <Border Background="#80000000">
-                                <Border.Style>
-                                    <Style TargetType="Border">
-                                        <Setter Property="Opacity" Value="0"/>
-                                        <Setter Property="IsHitTestVisible" Value="False"/>
-
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsMouseOver, ElementName=ItemContainer}"
-                                                         Value="True">
-                                                <Setter Property="Opacity" Value="1"/>
-                                                <Setter Property="IsHitTestVisible" Value="True"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Border.Style>
-                            </Border>
-
-                            <!-- Layer 4: Command buttons overlay -->
+                        <Border x:Name="ItemContainer"
+                                Margin="7"
+                                Height="250"
+                                CornerRadius="10"
+                                ClipToBounds="True">
+                            <Border.Background>
+                                <ImageBrush ImageSource="{Binding ThumbnailImage}"
+                                            Stretch="UniformToFill"/>
+                            </Border.Background>
+                            
                             <Grid>
-                                <Grid.Style>
-                                    <Style TargetType="Grid">
-                                        <Setter Property="Opacity" Value="0"/>
-                                        <Setter Property="IsHitTestVisible" Value="False"/>
+                                <!-- Darkening overlay -->
+                                <Border Background="#80000000"
+                                        CornerRadius="10">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Opacity" Value="0"/>
+                                            <Setter Property="IsHitTestVisible" Value="False"/>
 
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsMouseOver, ElementName=ItemContainer}"
-                                                         Value="True">
-                                                <Setter Property="Opacity" Value="1"/>
-                                                <Setter Property="IsHitTestVisible" Value="True"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Grid.Style>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=ItemContainer}"
+                                                             Value="True">
+                                                    <DataTrigger.EnterActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                                 To="1"
+                                                                                 Duration="0:0:0.06">
+                                                                </DoubleAnimation>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </DataTrigger.EnterActions>
 
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
+                                                    <DataTrigger.ExitActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                                 To="0"
+                                                                                 Duration="0:0:0.06">
+                                                                </DoubleAnimation>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </DataTrigger.ExitActions>
 
-                                <Button Grid.Row="0"
-                                        Grid.Column="0"
-                                        Style="{StaticResource QuadrantIconButtonStyle}"
-                                        Command="{Binding CopyCommand}"
-                                        Tag="/Resources/Icons/copy.png"
-                                        Content="/Resources/Icons/copy-hover.png">
-                                </Button>
+                                                    <Setter Property="IsHitTestVisible" Value="True"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                </Border>
 
-                                <Button Grid.Row="0"
-                                        Grid.Column="1"
-                                        Style="{StaticResource QuadrantIconButtonStyle}"
-                                        Command="{Binding TagsCommand}"
-                                        Tag="/Resources/Icons/edit.png"
-                                        Content="/Resources/Icons/edit-hover.png">
-                                </Button>
+                                <!-- Command buttons overlay -->
+                                <Grid>
+                                    <Grid.Style>
+                                        <Style TargetType="Grid">
+                                            <Setter Property="Opacity" Value="0"/>
+                                            <Setter Property="IsHitTestVisible" Value="False"/>
 
-                                <Button Grid.Row="1"
-                                        Grid.Column="0"
-                                        Style="{StaticResource QuadrantIconButtonStyle}"
-                                        Command="{Binding EnlargeCommand}"
-                                        Tag="/Resources/Icons/enlarge.png"
-                                        Content="/Resources/Icons/enlarge-hover.png">
-                                </Button>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=ItemContainer}"
+                                                             Value="True">
+                                                    <DataTrigger.EnterActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                                 To="1"
+                                                                                 Duration="0:0:0.06">
+                                                                </DoubleAnimation>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </DataTrigger.EnterActions>
 
-                                <Button Grid.Row="1"
-                                        Grid.Column="1"
-                                        Style="{StaticResource QuadrantIconButtonStyle}"
-                                        Command="{Binding DeleteCommand}"
-                                        Tag="/Resources/Icons/delete.png"
-                                        Content="/Resources/Icons/delete-hover.png">
-                                </Button>
+                                                    <DataTrigger.ExitActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                                 To="0"
+                                                                                 Duration="0:0:0.06">
+                                                                </DoubleAnimation>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </DataTrigger.ExitActions>
+
+                                                    <Setter Property="IsHitTestVisible" Value="True"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Grid.Style>
+
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Button Grid.Row="0"
+                                            Grid.Column="0"
+                                            Style="{StaticResource QuadrantIconButtonStyle}"
+                                            Command="{Binding CopyCommand}"
+                                            Tag="/Resources/Icons/copy.png"
+                                            Content="/Resources/Icons/copy-hover.png">
+                                    </Button>
+
+                                    <Button Grid.Row="0"
+                                            Grid.Column="1"
+                                            Style="{StaticResource QuadrantIconButtonStyle}"
+                                            Command="{Binding TagsCommand}"
+                                            Tag="/Resources/Icons/edit.png"
+                                            Content="/Resources/Icons/edit-hover.png">
+                                    </Button>
+
+                                    <Button Grid.Row="1"
+                                            Grid.Column="0"
+                                            Style="{StaticResource QuadrantIconButtonStyle}"
+                                            Command="{Binding EnlargeCommand}"
+                                            Tag="/Resources/Icons/enlarge.png"
+                                            Content="/Resources/Icons/enlarge-hover.png">
+                                    </Button>
+
+                                    <Button Grid.Row="1"
+                                            Grid.Column="1"
+                                            Style="{StaticResource QuadrantIconButtonStyle}"
+                                            Command="{Binding DeleteCommand}"
+                                            Tag="/Resources/Icons/delete.png"
+                                            Content="/Resources/Icons/delete-hover.png">
+                                    </Button>
+                                </Grid>
                             </Grid>
-                        </Grid>
+                        </Border>
                     </DataTemplate>
 
                     <DataTemplate DataType="{x:Type viewmodels:PlaceholderViewModel}">
-                        <Grid Margin="5"
-                              Height="250"
-                              Background="#404040">
+                        <Border Margin="5"
+                                Height="250"
+                                Background="#303030"
+                                CornerRadius="5">
                             <TextBlock Text="Loading..."
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
-                                       Foreground="White">
+                                       Foreground="#f0f0f0"
+                                       FontSize="16">
                             </TextBlock>
-                        </Grid>
+                        </Border>
                     </DataTemplate>
                 </ItemsControl.Resources>
             </ItemsControl>
