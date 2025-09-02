@@ -53,6 +53,8 @@ namespace stepstones.ViewModels
         public string FilePath => _mediaItem.FilePath;
         public MediaType FileType => _mediaItem.FileType;
         public string? ThumbnailPath => _mediaItem.ThumbnailPath;
+        public bool IsVideo => FileType == MediaType.Video;
+        public string FormattedDuration => _mediaItem.Duration.ToString(@"hh\:mm\:ss");
 
         public async Task LoadThumbnailAsync()
         {

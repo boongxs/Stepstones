@@ -1,5 +1,4 @@
 ﻿using SQLite;
-using stepstones.Models;
 
 namespace stepstones.Models
 {
@@ -17,6 +16,8 @@ namespace stepstones.Models
         public MediaType FileType { get; set; }
 
         public string? Tags { get; set; }
+
+        public TimeSpan Duration { get; set; }
 
         public string? ThumbnailPath { get; set; }
     }

@@ -62,6 +62,13 @@ namespace stepstones.Services.Data
                             throw new InvalidOperationException($"Could not identify media type for '{newPath}'");
                         }
 
+                        TimeSpan duration = TimeSpan.Zero;
+                        if (mediaType == MediaType.Video)
+                        {
+                            var mediaInfo = await FFMpegCore.FFProbe.AnalyseAsync(newPath);
+                            duration = mediaInfo.Duration;
+                        }
+
                         var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(newPath, mediaType);
 
                         var newItem = new MediaItem
@@ -69,7 +76,8 @@ namespace stepstones.Services.Data
                             FileName = Path.GetFileName(orphanPath),
                             FilePath = newPath,
                             FileType = mediaType,
-                            ThumbnailPath = thumbnailPath
+                            ThumbnailPath = thumbnailPath,
+                            Duration = duration
                         };
                         await _databaseService.AddMediaItemAsync(newItem);
 

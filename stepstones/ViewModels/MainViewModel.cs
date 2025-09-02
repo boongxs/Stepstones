@@ -306,6 +306,13 @@ namespace stepstones.ViewModels
                             continue;
                         }
 
+                        TimeSpan duration = TimeSpan.Zero;
+                        if (mediaType == MediaType.Video)
+                        {
+                            var mediaInfo = await FFMpegCore.FFProbe.AnalyseAsync(newFilePath);
+                            duration = mediaInfo.Duration;
+                        }
+
                         var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(newFilePath, mediaType);
 
                         var newItem = new MediaItem
@@ -313,7 +320,8 @@ namespace stepstones.ViewModels
                             FileName = Path.GetFileName(sourcePath),
                             FilePath = newFilePath,
                             FileType = mediaType,
-                            ThumbnailPath = thumbnailPath
+                            ThumbnailPath = thumbnailPath,
+                            Duration = duration
                         };
 
                         await _databaseService.AddMediaItemAsync(newItem);
