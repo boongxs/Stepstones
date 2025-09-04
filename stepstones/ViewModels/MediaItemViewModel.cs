@@ -136,26 +136,50 @@ namespace stepstones.ViewModels
                 return;
             }
 
-            BitmapImage? loadedImage = null;
+            object? dialogViewModel = null;
 
-            if (this.FileType == MediaType.Image)
+            switch (this.FileType)
             {
-                loadedImage = new BitmapImage();
-                loadedImage.BeginInit();
-                loadedImage.UriSource = new Uri(this.FilePath);
-                loadedImage.CacheOption = BitmapCacheOption.OnLoad;
-                loadedImage.EndInit();
-                loadedImage.Freeze();
+                case MediaType.Image:
+                    BitmapImage? loadedImage = new BitmapImage();
+                    loadedImage.BeginInit();
+                    loadedImage.UriSource = new Uri(this.FilePath);
+                    loadedImage.CacheOption = BitmapCacheOption.OnLoad;
+                    loadedImage.EndInit();
+                    loadedImage.Freeze();
+
+                    dialogViewModel = new EnlargeImageViewModel(
+                        this.FilePath,
+                        this.FileType,
+                        dimensions.Width,
+                        dimensions.Height,
+                        loadedImage);
+
+                    break;
+
+                case MediaType.Video:
+                    dialogViewModel = new EnlargeVideoViewModel(
+                        this.FilePath,
+                        this.FileType,
+                        dimensions.Width,
+                        dimensions.Height);
+
+                    break;
+
+                case MediaType.Gif:
+                    dialogViewModel = new EnlargeGifViewModel(
+                        this.FilePath,
+                        this.FileType,
+                        dimensions.Width,
+                        dimensions.Height);
+
+                    break;
             }
 
-            var dialogViewModel = new EnlargeMediaViewModel(
-                this.FilePath,
-                this.FileType,
-                dimensions.Width,
-                dimensions.Height,
-                loadedImage);
-
-            _messenger.Send(new ShowDialogMessage(dialogViewModel));
+            if (dialogViewModel != null)
+            {
+                _messenger.Send(new ShowDialogMessage(dialogViewModel));
+            }
         }
 
         [RelayCommand]

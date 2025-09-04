@@ -5,17 +5,25 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
              xmlns:views="clr-namespace:stepstones.Views"
-             xmlns:local="clr-namespace:stepstones.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" 
              d:DesignWidth="800"
              d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}">
     <UserControl.Resources>
-        <DataTemplate DataType="{x:Type viewmodels:EnlargeMediaViewModel}">
-            <views:EnlargeMediaView/>
-        </DataTemplate>
         <DataTemplate DataType="{x:Type viewmodels:EditTagsViewModel}">
             <views:EditTagsView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewmodels:EnlargeImageViewModel}">
+            <views:EnlargeImageView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewmodels:EnlargeVideoViewModel}">
+            <views:EnlargeVideoView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewmodels:EnlargeGifViewModel}">
+            <views:EnlargeGifView/>
         </DataTemplate>
     </UserControl.Resources>
 

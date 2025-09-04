@@ -4,7 +4,7 @@ using stepstones.Models;
 
 namespace stepstones.ViewModels
 {
-    public partial class EnlargeMediaViewModel : ObservableObject
+    public abstract partial class EnlargeMediaViewModelBase : ObservableObject
     {
         public BitmapImage? ImageSource { get; }
         public string FilePath { get; }
@@ -18,7 +18,7 @@ namespace stepstones.ViewModels
 
         public bool IsPlayableMedia => IsVideo || IsGif;
 
-        public EnlargeMediaViewModel(string filePath, MediaType fileType, int width, int height, BitmapImage? imageSource = null)
+        public EnlargeMediaViewModelBase(string filePath, MediaType fileType, int width, int height, BitmapImage? imageSource = null)
         {
             FilePath = filePath;
             FileType = fileType;
