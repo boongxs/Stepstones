@@ -27,7 +27,18 @@ namespace stepstones.Views
             }
 
             var vlcLibDirectory = new DirectoryInfo(Path.Combine(currentDirectory, "libvlc", IntPtr.Size == 4 ? "win-x86" : "win-x64"));
-            MediaPlayer.SourceProvider.CreatePlayer(vlcLibDirectory);
+
+            var appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "stepstones", "vlc-cache");
+            Directory.CreateDirectory(appDataFolder);
+
+            var options = new string[]
+            {
+                $"--config={appDataFolder}\\vlcrc",
+                "--no-video-title-show",
+                "--no-sub-autodetect-file"
+            };
+
+            MediaPlayer.SourceProvider.CreatePlayer(vlcLibDirectory, options);
         }
 
         private void EnlargeVideoView_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
