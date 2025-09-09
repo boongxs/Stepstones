@@ -8,10 +8,65 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewmodels:EnlargeVideoViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Storyboard x:Key="FadeInAnimation">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                             From="0"
+                             To="0.9"
+                             Duration="0:0:0.1">
+            </DoubleAnimation>
+        </Storyboard>
+
+        <Storyboard x:Key="FadeOutAnimation">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                             To="0"
+                             Duration="0:0:0.1">
+            </DoubleAnimation>
+        </Storyboard>
+    </UserControl.Resources>
+    
     <Grid MaxWidth="{Binding OriginalWidth}"
           MaxHeight="{Binding OriginalHeight}"
           Background="Transparent"
           Margin="20">
         <vlc:VlcControl x:Name="MediaPlayer"/>
+
+        <Grid IsHitTestVisible="False"
+              Opacity="0.8">
+            <Path x:Name="PlayIcon"
+                  Data="M8,5.14V19.14L19,12.14L8,5.14Z"
+                  Fill="White"
+                  Stretch="Uniform"
+                  Width="60"
+                  Height="60"
+                  Opacity="0">
+            </Path>
+
+            <Path x:Name="PauseIcon"
+                  Data="M14,19H18V5H14M6,19H10V5H6V19Z"
+                  Fill="White"
+                  Stretch="Uniform"
+                  Width="60"
+                  Height="60"
+                  Opacity="0">
+            </Path>
+        </Grid>
+
+        <Border x:Name="EndOverlay"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Stretch"
+                Height="50"
+                Background="#C0F44336"
+                Opacity="0"
+                IsHitTestVisible="False">
+            <Path Data="M18,18H22V6H18V18M2,6V18L13,12L2,6Z"
+                  Fill="White"
+                  Stretch="Uniform"
+                  Width="24"
+                  Height="24"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center">
+            </Path>
+        </Border>
     </Grid>
 </UserControl>
