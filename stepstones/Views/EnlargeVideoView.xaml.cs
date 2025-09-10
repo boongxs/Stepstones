@@ -12,6 +12,8 @@ namespace stepstones.Views
     {
         private readonly DispatcherTimer _indicatorTimer;
         private bool _videoHasEnded = false;
+        private const int MinimumDisplaySize = 400;
+        public int MinSize => MinimumDisplaySize;
 
         public EnlargeVideoView()
         {

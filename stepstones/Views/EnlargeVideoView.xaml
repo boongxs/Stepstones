@@ -27,6 +27,8 @@
     
     <Grid MaxWidth="{Binding OriginalWidth}"
           MaxHeight="{Binding OriginalHeight}"
+          MinWidth="{Binding MinSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
+          MinHeight="{Binding MinSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
           Background="Transparent"
           Margin="20">
         <vlc:VlcControl x:Name="MediaPlayer"/>
