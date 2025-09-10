@@ -29,6 +29,7 @@ namespace stepstones.ViewModels
         private readonly IMediaItemViewModelFactory _mediaItemViewModelFactory;
         private readonly IMessenger _messenger;
         private readonly IFileTypeIdentifierService _fileTypeIdentifierService;
+        private readonly IDataMigrationService _dataMigrationService;
 
         public ObservableCollection<object> MediaItems { get; } = new();
 
@@ -75,7 +76,8 @@ namespace stepstones.ViewModels
                              IThumbnailService thumbnailService,
                              IMediaItemViewModelFactory mediaItemViewModelFactory,
                              IMessenger messenger,
-                             IFileTypeIdentifierService fileTypeIdentifierService)
+                             IFileTypeIdentifierService fileTypeIdentifierService,
+                             IDataMigrationService dataMigrationService)
         {
             _logger = logger;
             _settingsService = settingsService;
@@ -89,6 +91,7 @@ namespace stepstones.ViewModels
             _mediaItemViewModelFactory = mediaItemViewModelFactory;
             _messenger = messenger;
             _fileTypeIdentifierService = fileTypeIdentifierService;
+            _dataMigrationService = dataMigrationService;
 
             _messenger.Register<MediaItemDeletedMessage>(this, (recipient, message) =>
             {
@@ -150,7 +153,7 @@ namespace stepstones.ViewModels
                 TotalPages = 1;
             }
 
-            var items = await _databaseService.GetAllItemsForFolderAsync(mediaFolderPath, CurrentPage, PageSize, FilterText);
+            var items = await _databaseService.GetAllItemsForFolderAsyncPaging(mediaFolderPath, CurrentPage, PageSize, FilterText);
 
             MediaItems.Clear();
             var newViewModels = new List<MediaItemViewModel>();
@@ -202,7 +205,15 @@ namespace stepstones.ViewModels
 
             if (!orphans.Any())
             {
-                await LoadMediaItemsAsync();
+                Action migrationCompletedCallback = () =>
+                {
+                    Application.Current.Dispatcher.Invoke(async () =>
+                    {
+                        await LoadMediaItemsAsync();
+                    });
+                };
+
+                _dataMigrationService.RunMigration(folderPath, migrationCompletedCallback);
                 return;
             }
 
@@ -237,8 +248,15 @@ namespace stepstones.ViewModels
                 });
             });
 
-            // to ensure pagination is correct
-            await LoadMediaItemsAsync();
+            Action finalMigrationCompletedCallback = () =>
+            {
+                Application.Current.Dispatcher.Invoke(async () =>
+                {
+                    await LoadMediaItemsAsync();
+                });
+            };
+
+            _dataMigrationService.RunMigration(folderPath, finalMigrationCompletedCallback);
         }
 
         private async Task<List<string>> GetOrphanPathsAsync(string folderPath)

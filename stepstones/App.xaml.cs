@@ -60,6 +60,7 @@ namespace stepstones
                     services.AddTransient<IClipboardService, ClipboardService>();
                     services.AddTransient<IFileTypeIdentifierService, FileTypeIdentifierService>();
                     services.AddTransient<IImageDimensionService, ImageDimensionService>();
+                    services.AddSingleton<IDataMigrationService, DataMigrationService>();
 
                     services.AddSingleton<IMediaItemViewModelFactory, MediaItemViewModelFactory>();
 

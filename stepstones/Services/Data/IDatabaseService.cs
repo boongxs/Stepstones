@@ -6,7 +6,8 @@ namespace stepstones.Services.Data
     {
         Task AddMediaItemAsync(MediaItem item);
         Task DeleteItemsByPathsAsync(IEnumerable<string> paths);
-        Task<List<MediaItem>> GetAllItemsForFolderAsync(string folderPath, int pageNumber, int pageSize, string? filterText = null);
+        Task<List<MediaItem>> GetAllItemsForFolderAsync(string folderPath);
+        Task<List<MediaItem>> GetAllItemsForFolderAsyncPaging(string folderPath, int pageNumber, int pageSize, string? filterText = null);
         Task DeleteMediaItemAsync(MediaItem item);
         Task UpdateMediaItemAsync(MediaItem item);
         Task<int> GetItemCountForFolderAsync(string folderPath, string? filterText = null);

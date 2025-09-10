@@ -67,7 +67,22 @@ namespace stepstones.Services.Data
             }
         }
 
-        public async Task<List<MediaItem>> GetAllItemsForFolderAsync(string folderPath, int pageNumber, int pageSize, string? filterText = null)
+        public async Task<List<MediaItem>> GetAllItemsForFolderAsync(string folderPath)
+        {
+            await InitAsync();
+            if (_database is null)
+            {
+                return new List<MediaItem>();
+            }
+
+            var folderPathWithSeparator = folderPath.EndsWith(Path.DirectorySeparatorChar) ? folderPath : folderPath + Path.DirectorySeparatorChar;
+
+            return await _database.Table<MediaItem>()
+                .Where(i => i.FilePath.StartsWith(folderPathWithSeparator))
+                .ToListAsync();
+        }
+
+        public async Task<List<MediaItem>> GetAllItemsForFolderAsyncPaging(string folderPath, int pageNumber, int pageSize, string? filterText = null)
         {
             await InitAsync();
             if (_database is null)
