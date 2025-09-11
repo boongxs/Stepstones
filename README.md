@@ -1,10 +1,10 @@
 # Stepstones Media Organizer
 Stepstones is a local-first, Windows-only, media organizer built with WPF and .NET 9. It provides a way for users to manage and
-browse their local collections of images and videos. The application is designed following strict MVVM principles, featuring a decoupled,
-service-based architecture that is both scalable and maintainable. As this was my first project of this scale and in this framework, expect bugs,
+browse their local collections of images and videos. As this was my first project of this scale and in this framework, expect bugs,
 performance issues, and *strange* 🧙‍♂️ practices.<br>
 Heavily inspired by Hladikes' [Pastery](https://github.com/Hladikes/pastery) project<br><br>
-![stepstones](https://github.com/user-attachments/assets/9dc052ec-4174-495e-b600-d4d2f3bf289a)
+![step](https://github.com/user-attachments/assets/3f7366c6-08a8-4c5a-b66c-7fcda3bb3d17)
+
 
 ## ✨ Features
 
@@ -26,7 +26,10 @@ A ready to use version of the application can be downloaded from the [Releases](
 Simply download the `.zip` file from the latest version, extract it, and run `stepstones.exe`.
 
 ## ✍️ Future Plans
-- A more user-friendly UI, such as animations for better UX
 - Tagging system that is able to use boolean operators such as `-` to exclude media items that contain the tag that follows after it
 - Audio files and other file formats support
 - Ability to select more than one file for bulk deleting or extracting
+
+## 🚨 Known Issues
+- The scrollbar is always visible, even when not needed
+- UI freeze when loading into a media folder whose files don't have valid thumbnail path
