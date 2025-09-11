@@ -10,8 +10,12 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid MaxWidth="{Binding OriginalWidth}"
           MaxHeight="{Binding OriginalHeight}"
+          MinWidth="{Binding MinSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
+          MinHeight="{Binding MinSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
           Background="Transparent"
           Margin="20">
-        <Image gif:ImageBehavior.AnimatedSource="{Binding FilePath}"/>
+        <Image gif:ImageBehavior.AnimatedSource="{Binding FilePath}"
+               Stretch="Uniform">
+        </Image>
     </Grid>
 </UserControl>
