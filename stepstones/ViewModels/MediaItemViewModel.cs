@@ -103,11 +103,13 @@ namespace stepstones.ViewModels
         [RelayCommand]
         private async Task Tags()
         {
+            // get the selected item's Tags column value and pre-fill the dialog
             var originalTags = _mediaItem.Tags;
             var result = await _dialogPresenter.ShowEditTagsDialogAsync(originalTags);
 
             if (result.WasSaved)
             {
+                // get rid of leading/trailing spaces
                 var newTags = result.NewTags?.Trim();
 
                 if (originalTags != newTags)

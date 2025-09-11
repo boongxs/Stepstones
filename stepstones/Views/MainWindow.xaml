@@ -9,80 +9,11 @@
         xmlns:converters="clr-namespace:stepstones.Converters"
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
-        Title="MainWindow" 
-        Height="650" 
-        Width="1000"
+        Title="Stepstones" 
+        Height="650" MinHeight="600"
+        Width="1000" MinWidth="700"
         WindowState="Maximized"
-        Background="#282828"
-        MinWidth="700"
-        MinHeight="600"
-        Icon="/Resources/Icons/stepstones.ico">
-    <Window.Resources>
-        <converters:NotNullToVisibilityConverter x:Key="NotNullToVisibilityConverter"/>
-
-        <Style x:Key="FilterTextBoxStyle"
-               TargetType="TextBox">
-            <Setter Property="Background" Value="#303030"/>
-            <Setter Property="Foreground" Value="#f0f0f0"/>
-            <Setter Property="CaretBrush" Value="#f0f0f0"/>
-            <Setter Property="BorderThickness" Value="3"/>
-            <Setter Property="BorderBrush" Value="#303030"/>
-            <Setter Property="FontSize" Value="32"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="10,0,0,0"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border x:Name="TextBoxBorder"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="10">
-                            <ScrollViewer x:Name="PART_ContentHost"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-
-            <Style.Triggers>
-                <Trigger Property="IsKeyboardFocusWithin"
-                         Value="True">
-                    <Trigger.EnterActions>
-                        <BeginStoryboard>
-                            <Storyboard>
-                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                                To="#354946"
-                                                Duration="0:0:0.2">
-                                </ColorAnimation>
-
-                                <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
-                                                To="#487a71"
-                                                Duration="0:0:0.2">
-                                </ColorAnimation>
-                            </Storyboard>
-                        </BeginStoryboard>
-                    </Trigger.EnterActions>
-
-                    <Trigger.ExitActions>
-                        <BeginStoryboard>
-                            <Storyboard>
-                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                                To="#303030"
-                                                Duration="0:0:0.2">
-                                </ColorAnimation>
-
-                                <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
-                                                To="#303030"
-                                                Duration="0:0:0.2">
-                                </ColorAnimation>
-                            </Storyboard>
-                        </BeginStoryboard>
-                    </Trigger.ExitActions>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-    </Window.Resources>
-    
+        Background="#282828">
     <Grid x:Name="MainGrid"
           MouseLeftButtonDown="MainGrid_MouseLeftButtonDown"
           Background="Transparent">
@@ -118,7 +49,7 @@
                     Orientation="Horizontal"
                     HorizontalAlignment="Center"
                     Margin="0,0,0,10">
-            <!-- Function buttons -->
+            <!-- Select Folder button -->
             <Button Command="{Binding SelectFolderCommand}"
                     Style="{StaticResource StackPanelButtonStyle}">
                 <Image Source="/Resources/Icons/select_folder.png"
@@ -127,6 +58,7 @@
                 </Image>
             </Button>
 
+            <!-- Upload Files button -->
             <Button Command="{Binding UploadFilesCommand}"
                     Style="{StaticResource StackPanelButtonStyle}">
                 <Image Source="/Resources/Icons/upload.png"
@@ -139,7 +71,7 @@
             <Button Content="&lt;&lt;"
                     Command="{Binding GoToFirstPageCommand}"
                     Style="{StaticResource StackPanelButtonStyle}"
-                    Margin="20, 5, 5, 5"
+                    Margin="20,5,5,5"
                     FontSize="18"
                     FontWeight="UltraBold">
             </Button>

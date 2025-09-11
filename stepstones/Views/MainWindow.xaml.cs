@@ -11,6 +11,7 @@ namespace stepstones
             InitializeComponent();
             this.DataContext = viewModel;
 
+            // scroll to the top on page change
             viewModel.PropertyChanged += (sender, args) =>
             {
                 if (args.PropertyName == nameof(viewModel.CurrentPage))
@@ -20,6 +21,7 @@ namespace stepstones
             };
         }
 
+        // itemscontrol responsive grid layout depending on window dimensions
         private void MediaItemsControl_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             var viewModel = DataContext as MainViewModel;
@@ -41,6 +43,7 @@ namespace stepstones
             }
         }
 
+        // to allow user to make filter textbox "inactive" when clicked anywhere else
         private void MainGrid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             MainGrid.Focusable = true;

@@ -22,6 +22,7 @@ namespace stepstones
         {
             InitializeComponent();
 
+            // VLC setup
             var currentAssembly = System.Reflection.Assembly.GetEntryAssembly();
             var currentDirectory = new FileInfo(currentAssembly.Location).DirectoryName;
             if (currentDirectory != null)
@@ -33,7 +34,8 @@ namespace stepstones
                 PreloadVlcPlayer.Dispose();
             }
 
-                var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            // logger setup
+            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             var logPath = Path.Combine(appDataPath, "stepstones", "logs", "stepstones-.txt");
 
             Log.Logger = new LoggerConfiguration()
@@ -45,6 +47,7 @@ namespace stepstones
                 )
                 .CreateLogger();
 
+            // generic host setup
             _host = Host.CreateDefaultBuilder()
                 .UseSerilog()
                 .ConfigureServices((context, services) =>

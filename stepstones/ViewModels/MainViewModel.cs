@@ -34,9 +34,6 @@ namespace stepstones.ViewModels
         public ObservableCollection<object> MediaItems { get; } = new();
 
         [ObservableProperty]
-        private double _thumbnailWidth = 270;
-
-        [ObservableProperty]
         private int _gridColumns = 4;
 
         [ObservableProperty]
@@ -108,10 +105,8 @@ namespace stepstones.ViewModels
             {
                 var newToast = new ToastViewModel(message.Message, message.Type);
                 Toasts.Add(newToast);
-                Task.Delay(3100).ContinueWith(_ =>
-                {
-                    Application.Current.Dispatcher.Invoke(() => Toasts.Remove(newToast));
-                });
+                await Task.Delay(3100);
+                Toasts.Remove(newToast);
             });
 
             logger.LogInformation("MainViewModel has been created.");
@@ -132,6 +127,70 @@ namespace stepstones.ViewModels
                 _logger.LogInformation("Application startup: Located saved media folder path: {Path}", savedPath);
                 await SynchronizeAndLoadAsync(savedPath);
             }
+        }
+
+        private async Task SynchronizeAndLoadAsync(string folderPath)
+        {
+            var orphans = await GetOrphanPathsAsync(folderPath);
+
+            // if there aren't any orphans, ensure existing data is correct and done
+            if (!orphans.Any())
+            {
+                Action migrationCompletedCallback = () =>
+                {
+                    Application.Current.Dispatcher.Invoke(async () =>
+                    {
+                        await LoadMediaItemsAsync();
+                    });
+                };
+
+                _dataMigrationService.RunMigration(folderPath, migrationCompletedCallback);
+                return;
+            }
+
+            // load existing, already-processed items before beginning to import orphans
+            await LoadMediaItemsAsync();
+
+            // calculate empty slots on page for placeholders for to-be processed orphans
+            var availableSlots = PageSize - MediaItems.Count;
+            var placeholdersToAdd = Math.Min(orphans.Count, availableSlots);
+
+            if (placeholdersToAdd > 0)
+            {
+                for (int i = 0; i < placeholdersToAdd; i++)
+                {
+                    MediaItems.Add(new PlaceholderViewModel());
+                }
+            }
+
+            // start processing orphans
+            await _synchronizationService.SynchronizeDataAsync(folderPath, (processedItem) =>
+            {
+                // when sync service sends back signal that it has processed an orphan...
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    // replace placeholder with MediaItemViewModel
+                    var vm = _mediaItemViewModelFactory.Create(processedItem);
+                    var placeholder = MediaItems.OfType<PlaceholderViewModel>().FirstOrDefault();
+                    if (placeholder != null)
+                    {
+                        var placeholderIndex = MediaItems.IndexOf(placeholder);
+                        MediaItems[placeholderIndex] = vm;
+                        _ = vm.LoadThumbnailAsync();
+                    }
+                });
+            });
+
+            // final check for data integrity of all files in database
+            Action finalMigrationCompletedCallback = () =>
+            {
+                Application.Current.Dispatcher.Invoke(async () =>
+                {
+                    await LoadMediaItemsAsync();
+                });
+            };
+
+            _dataMigrationService.RunMigration(folderPath, finalMigrationCompletedCallback);
         }
 
         private async Task LoadMediaItemsAsync()
@@ -197,66 +256,6 @@ namespace stepstones.ViewModels
                     _messenger.Send(new ShowToastMessage("Failed to load folder.", ToastNotificationType.Error));
                 }
             }
-        }
-
-        private async Task SynchronizeAndLoadAsync(string folderPath)
-        {
-            var orphans = await GetOrphanPathsAsync(folderPath);
-
-            if (!orphans.Any())
-            {
-                Action migrationCompletedCallback = () =>
-                {
-                    Application.Current.Dispatcher.Invoke(async () =>
-                    {
-                        await LoadMediaItemsAsync();
-                    });
-                };
-
-                _dataMigrationService.RunMigration(folderPath, migrationCompletedCallback);
-                return;
-            }
-
-            // load existing, already-processed items
-            await LoadMediaItemsAsync();
-
-            // calculate empty slots on page for placeholders
-            var availableSlots = PageSize - MediaItems.Count;
-            var placeholdersToAdd = Math.Min(orphans.Count, availableSlots);
-
-            if (placeholdersToAdd > 0)
-            {
-                for (int i = 0; i < placeholdersToAdd; i++)
-                {
-                    MediaItems.Add(new PlaceholderViewModel());
-                }
-            }
-
-            // start processing orphans
-            await _synchronizationService.SynchronizeDataAsync(folderPath, (processedItem) =>
-            {
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    var vm = _mediaItemViewModelFactory.Create(processedItem);
-                    var placeholder = MediaItems.OfType<PlaceholderViewModel>().FirstOrDefault();
-                    if (placeholder != null)
-                    {
-                        var placeholderIndex = MediaItems.IndexOf(placeholder);
-                        MediaItems[placeholderIndex] = vm;
-                        _ = vm.LoadThumbnailAsync();
-                    }
-                });
-            });
-
-            Action finalMigrationCompletedCallback = () =>
-            {
-                Application.Current.Dispatcher.Invoke(async () =>
-                {
-                    await LoadMediaItemsAsync();
-                });
-            };
-
-            _dataMigrationService.RunMigration(folderPath, finalMigrationCompletedCallback);
         }
 
         private async Task<List<string>> GetOrphanPathsAsync(string folderPath)

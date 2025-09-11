@@ -127,7 +127,6 @@ namespace stepstones.Services.Data
             }
         }
 
-        // synchronization service - deleting ghost records
         public async Task DeleteItemsByPathsAsync(IEnumerable<string> paths)
         {
             await InitAsync();

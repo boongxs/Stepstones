@@ -48,6 +48,7 @@ namespace stepstones.Services.Data
                 {
                     try
                     {
+                        // rename to unique file name so that we won't have files overwriting each other
                         var uniqueFileName = FileNameGenerator.GenerateUniqueFileName(orphanPath);
                         var newPath = Path.Combine(Path.GetDirectoryName(orphanPath), uniqueFileName);
 
@@ -57,8 +58,6 @@ namespace stepstones.Services.Data
                         var mediaType = await _fileTypeIdentifierService.IdentifyAsync(newPath);
                         if (mediaType == MediaType.Unknown)
                         {
-                            // If we can't identify the type, it's a failure for this file.
-                            // Throwing an exception will be caught by our catch block.
                             throw new InvalidOperationException($"Could not identify media type for '{newPath}'");
                         }
 

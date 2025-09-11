@@ -22,10 +22,7 @@
     <None Remove="Resources\Icons\select_folder.png" />
     <None Remove="Resources\Icons\stepstones.ico" />
     <None Remove="Resources\Icons\upload.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="stepstones.ico" />
+    <None Remove="stepstones.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,8 +51,8 @@
     <Resource Include="Resources\Icons\enlarge-hover.png" />
     <Resource Include="Resources\Icons\enlarge.png" />
     <Resource Include="Resources\Icons\select_folder.png" />
-    <Resource Include="Resources\Icons\stepstones.ico" />
     <Resource Include="Resources\Icons\upload.png" />
+    <Resource Include="stepstones.ico" />
   </ItemGroup>
 
 </Project>
