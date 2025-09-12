@@ -1,16 +1,22 @@
 ﻿using Microsoft.Extensions.Logging;
-using stepstones.Models;
 using System.IO;
+using CommunityToolkit.Mvvm.Messaging;
+using stepstones.Models;
+using stepstones.Messages;
+using stepstones.Enums;
 
 namespace stepstones.Services.Core
 {
     public class FileService : IFileService
     {
         private readonly ILogger<FileService> _logger;
+        private readonly IMessenger _messenger;
 
-        public FileService(ILogger<FileService> logger)
+        public FileService(ILogger<FileService> logger,
+                           IMessenger messenger)
         {
             _logger = logger;
+            _messenger = messenger;
         }
 
         public async Task<Dictionary<string, string>> CopyFilesAsync(IEnumerable<string> sourceFilePaths, string destinationFolderPath)
@@ -34,6 +40,7 @@ namespace stepstones.Services.Core
                         else
                         {
                             _logger.LogInformation("File '{SourceFile}' already exists as '{DestinationFile}'. Skipping.", sourcePath, destinationPath);
+                            _messenger.Send(new ShowToastMessage($"'{Path.GetFileName(sourcePath)}' already in media folder. Skipped.", ToastNotificationType.Info));
                         }
 
                         pathMappings[sourcePath] = destinationPath;

@@ -103,10 +103,13 @@ namespace stepstones.ViewModels
 
             _messenger.Register<ShowToastMessage>(this, async (recipient, message) =>
             {
-                var newToast = new ToastViewModel(message.Message, message.Type);
-                Toasts.Add(newToast);
-                await Task.Delay(3100);
-                Toasts.Remove(newToast);
+                Application.Current.Dispatcher.InvokeAsync(async () =>
+                {
+                    var newToast = new ToastViewModel(message.Message, message.Type);
+                    Toasts.Add(newToast);
+                    await Task.Delay(3100);
+                    Toasts.Remove(newToast);
+                });
             });
 
             logger.LogInformation("MainViewModel has been created.");
@@ -193,6 +196,18 @@ namespace stepstones.ViewModels
             _dataMigrationService.RunMigration(folderPath, finalMigrationCompletedCallback);
         }
 
+        private async Task<List<string>> GetOrphanPathsAsync(string folderPath)
+        {
+            _logger.LogInformation("Checking for orphan files in '{Path}'", folderPath);
+
+            var filesInFolder = _fileService.GetAllFiles(folderPath).ToList();
+            var filePathsInDatabase = await _databaseService.GetFilePathsForFolderAsync(folderPath);
+            var orphans = filesInFolder.Except(filePathsInDatabase).ToList();
+
+            _logger.LogInformation("Found {Count} orphan files to process.", orphans.Count);
+            return orphans;
+        }
+
         private async Task LoadMediaItemsAsync()
         {
             var mediaFolderPath = _settingsService.LoadMediaFolderPath();
@@ -258,23 +273,12 @@ namespace stepstones.ViewModels
             }
         }
 
-        private async Task<List<string>> GetOrphanPathsAsync(string folderPath)
-        {
-            _logger.LogInformation("Checking for orphan files in '{Path}'", folderPath);
-
-            var filesInFolder = _fileService.GetAllFiles(folderPath).ToList();
-            var filePathsInDatabase = await _databaseService.GetFilePathsForFolderAsync(folderPath);
-            var orphans = filesInFolder.Except(filePathsInDatabase).ToList();
-
-            _logger.LogInformation("Found {Count} orphan files to process.", orphans.Count);
-            return orphans;
-        }
-
         [RelayCommand]
         private async Task UploadFiles()
         {
             _logger.LogInformation("'Upload' button clicked.");
 
+            // first check if we have a set media folder
             var mediaFolderPath = _settingsService.LoadMediaFolderPath();
             if (string.IsNullOrWhiteSpace(mediaFolderPath))
             {
@@ -283,6 +287,7 @@ namespace stepstones.ViewModels
                 return;
             }
 
+            // retrieve file(s) user wants to upload
             var selectedFiles = _fileDialogService.ShowDialog();
             if (selectedFiles == null || !selectedFiles.Any())
             {
@@ -293,6 +298,7 @@ namespace stepstones.ViewModels
             var fileList = selectedFiles.ToList();
             _logger.LogInformation("{FileCount} file(s) have been selected for upload.", fileList.Count);
 
+            // place temporary placeholder
             var availableSlots = PageSize - MediaItems.Count;
             var placeholdersToAdd = Math.Min(fileList.Count, availableSlots);
 
@@ -304,18 +310,21 @@ namespace stepstones.ViewModels
                 }
             }
 
+            // start processing the uploaded files
             await Task.Run(async () =>
             {
                 foreach (var sourcePath in fileList)
                 {
                     try
                     {
+                        // copy file to media folder
                         var pathMappings = await _fileService.CopyFilesAsync(new[] { sourcePath }, mediaFolderPath);
                         if (!pathMappings.TryGetValue(sourcePath, out var newFilePath))
                         {
                             continue;
                         }
 
+                        // get file's media type (image, video, gif)
                         var mediaType = await _fileTypeIdentifierService.IdentifyAsync(newFilePath);
                         if (mediaType == MediaType.Unknown)
                         {
@@ -323,6 +332,7 @@ namespace stepstones.ViewModels
                             continue;
                         }
 
+                        // if file is type video, get total duration
                         TimeSpan duration = TimeSpan.Zero;
                         if (mediaType == MediaType.Video)
                         {
@@ -330,8 +340,10 @@ namespace stepstones.ViewModels
                             duration = mediaInfo.Duration;
                         }
 
+                        // generate thumbnail for the file
                         var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(newFilePath, mediaType);
 
+                        // add file's information to the database
                         var newItem = new MediaItem
                         {
                             FileName = Path.GetFileName(sourcePath),
@@ -343,6 +355,7 @@ namespace stepstones.ViewModels
 
                         await _databaseService.AddMediaItemAsync(newItem);
 
+                        // replace a placeholder with processed file
                         Application.Current.Dispatcher.Invoke(() =>
                         {
                             var placeholder = MediaItems.OfType<PlaceholderViewModel>().FirstOrDefault();
