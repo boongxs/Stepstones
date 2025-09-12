@@ -92,22 +92,20 @@
                             Command="{Binding YesCommand}"
                             Style="{StaticResource StackPanelButtonStyle}"
                             Visibility="{Binding IsYesNoVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
-                            Margin="5">
+                            Margin="5" Height="40">
                     </Button>
 
                     <Button Content="No"
                             Command="{Binding NoCommand}"
                             Style="{StaticResource StackPanelButtonStyle}"
                             Visibility="{Binding IsYesNoVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
-                            Margin="5">
-                    </Button>
+                            Margin="5" Height="40"/>
 
                     <Button Content="OK"
                             Command="{Binding OkCommand}"
                             Style="{StaticResource StackPanelButtonStyle}"
                             Visibility="{Binding IsOkVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
-                            Margin="5">
-                    </Button>
+                            Margin="5" Height="40"/>
                 </StackPanel>
             </Grid>
         </Border>

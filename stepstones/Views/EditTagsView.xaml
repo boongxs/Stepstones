@@ -10,11 +10,10 @@
              d:DataContext="{d:DesignInstance Type=viewmodels:EditTagsViewModel}"
              d:DesignHeight="150" d:DesignWidth="400">
     <Border Background="#282828"
-            BorderBrush="#505050"
-            BorderThickness="1"
             Padding="15"
             Width="700"
-            Height="450">
+            Height="450"
+            CornerRadius="20">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -23,10 +22,11 @@
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0"
-                       Text="Edit Tags"
+                       Text="Tags"
                        FontSize="32"
+                       FontWeight="Bold"
                        Foreground="White"
-                       Margin="0,0,0,10">
+                       Margin="5,0,0,10">
             </TextBlock>
 
             <TextBox x:Name="TagsTextBox"
@@ -40,7 +40,8 @@
                      CaretBrush="#f0f0f0"
                      BorderThickness="0"
                      FontSize="24"
-                     Padding="5">
+                     Padding="5"
+                     Margin="5">
             </TextBox>
 
             <StackPanel Grid.Row="2"
@@ -51,7 +52,9 @@
                         Style="{StaticResource StackPanelButtonStyle}"
                         Content="Cancel"
                         Width="80"
+                        Height="40"
                         Margin="5"
+                        FontSize="16"
                         Command="{Binding DataContext.CloseDialogCommand, RelativeSource={RelativeSource AncestorType=views:DialogHost}}"
                         CommandParameter="Cancel">
                 </Button>
@@ -60,7 +63,9 @@
                         Style="{StaticResource StackPanelButtonStyle}"
                         Content="Save"
                         Width="80"
+                        Height="40"
                         Margin="5"
+                        FontSize="16"
                         Command="{Binding DataContext.CloseDialogCommand, RelativeSource={RelativeSource AncestorType=views:DialogHost}}"
                         CommandParameter="Save">
                 </Button>
