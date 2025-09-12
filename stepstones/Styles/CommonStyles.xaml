@@ -73,6 +73,7 @@
         </Style.Triggers>
     </Style>
 
+    <!-- Scrollbar -->
     <Style x:Key="ScrollBarThumbStyle"
            TargetType="{x:Type Thumb}">
         <Setter Property="SnapsToDevicePixels" Value="True"/>
@@ -99,7 +100,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ScrollBar}">
-                    <Grid>
+                    <Grid x:Name="PART_Grid">
                         <Border CornerRadius="4"
                                 Background="#3e3e3e">
                         </Border>
@@ -111,6 +112,13 @@
                             </Track.Thumb>
                         </Track>
                     </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Maximum"
+                                 Value="0">
+                            <Setter TargetName="PART_Grid" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -131,12 +139,12 @@
                         <ScrollContentPresenter Grid.Column="0"/>
 
                         <ScrollBar Name="PART_VerticalScrollBar"
+                                   Grid.Column="1"
+                                   Margin="5,0,0,0"
                                    Value="{TemplateBinding VerticalOffset}"
                                    Maximum="{TemplateBinding ScrollableHeight}"
                                    ViewportSize="{TemplateBinding ViewportHeight}"
                                    Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
-                                   Grid.Column="1"
-                                   Grid.Row="0"
                                    Style="{StaticResource CustomVerticalScrollBarStyle}">
                         </ScrollBar>
                     </Grid>

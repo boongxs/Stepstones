@@ -109,7 +109,7 @@
         <!-- ItemsControl to display the media items -->
         <ScrollViewer x:Name="MainScrollViewer"
                       Grid.Row="3"
-                      Margin="20,0,20,20"
+                      Margin="20,0,10,20"
                       Style="{StaticResource CustomScrollViewerStyle}">
             <ItemsControl x:Name="MediaItemsControl"
                           ItemsSource="{Binding MediaItems}"
