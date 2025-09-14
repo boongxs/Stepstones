@@ -134,25 +134,37 @@ namespace stepstones.ViewModels
 
         private async Task SynchronizeAndLoadAsync(string folderPath)
         {
+            // load existing, already-processed items before processing orphans
+            await LoadMediaItemsAsync();
+
             var orphans = await GetOrphanPathsAsync(folderPath);
 
-            // if there aren't any orphans, ensure existing data is correct and done
-            if (!orphans.Any())
+            // callback for each repaired item (media items get their data updated one by one instead all at once)
+            Action<MediaItem> onItemRepairedCallback = (repairedItem) =>
             {
-                Action migrationCompletedCallback = () =>
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    Application.Current.Dispatcher.Invoke(async () =>
-                    {
-                        await LoadMediaItemsAsync();
-                    });
-                };
+                    var oldViewModel = MediaItems.OfType<MediaItemViewModel>()
+                                                 .FirstOrDefault(vm => vm.FilePath == repairedItem.FilePath);
 
-                _dataMigrationService.RunMigration(folderPath, migrationCompletedCallback);
+                    if (oldViewModel != null)
+                    {
+                        var index = MediaItems.IndexOf(oldViewModel);
+                        var newViewModel = _mediaItemViewModelFactory.Create(repairedItem);
+                        MediaItems[index] = newViewModel;
+                        _ = newViewModel.LoadThumbnailAsync();
+                    }
+                });
+            };
+
+            // ensure data is valid before checking orphans is correct
+            _dataMigrationService.RunMigration(folderPath, onItemRepairedCallback);
+
+            // if there aren't any orphans, finish
+            if (orphans.Count == 0)
+            {
                 return;
             }
-
-            // load existing, already-processed items before beginning to import orphans
-            await LoadMediaItemsAsync();
 
             // calculate empty slots on page for placeholders for to-be processed orphans
             var availableSlots = PageSize - MediaItems.Count;
@@ -184,16 +196,8 @@ namespace stepstones.ViewModels
                 });
             });
 
-            // final check for data integrity of all files in database
-            Action finalMigrationCompletedCallback = () =>
-            {
-                Application.Current.Dispatcher.Invoke(async () =>
-                {
-                    await LoadMediaItemsAsync();
-                });
-            };
-
-            _dataMigrationService.RunMigration(folderPath, finalMigrationCompletedCallback);
+            // to ensure that pagination controls are correct
+            await LoadMediaItemsAsync();
         }
 
         private async Task<List<string>> GetOrphanPathsAsync(string folderPath)
@@ -376,7 +380,7 @@ namespace stepstones.ViewModels
             });
 
             _logger.LogInformation("Upload processing complete. Refreshing UI.");
-            await LoadMediaItemsAsync();
+            await LoadMediaItemsAsync(); // remove placeholders
         }
 
         [RelayCommand]

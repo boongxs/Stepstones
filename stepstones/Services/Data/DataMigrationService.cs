@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.IO;
 using stepstones.Models;
 using stepstones.Services.Core;
+using System.IO;
+using System.Windows.Forms;
 
 namespace stepstones.Services.Data
 {
@@ -20,7 +21,7 @@ namespace stepstones.Services.Data
             _thumbnailService = thumbnailService;
         }
 
-        public void RunMigration(string folderPath, Action? onCompleted = null)
+        public void RunMigration(string folderPath, Action<MediaItem> onItemRepaired)
         {
             Task.Run(async () =>
             {
@@ -30,8 +31,8 @@ namespace stepstones.Services.Data
 
                     var itemsInFolder = await _databaseService.GetAllItemsForFolderAsync(folderPath);
 
-                    await CheckDurationsAsync(itemsInFolder);
-                    await CheckThumbnailPathsAsync(itemsInFolder);
+                    await CheckDurationsAsync(itemsInFolder, onItemRepaired);
+                    await CheckThumbnailPathsAsync(itemsInFolder, onItemRepaired);
 
                     _logger.LogInformation("Background data migration check completed for '{Path}'.", folderPath);
                 }
@@ -39,14 +40,10 @@ namespace stepstones.Services.Data
                 {
                     _logger.LogError(ex, "Error occurred during the background data migration for folder '{Path}'.", folderPath);
                 }
-                finally
-                {
-                    onCompleted?.Invoke();
-                }
             });
         }
 
-        private async Task CheckDurationsAsync(List<MediaItem> items)
+        private async Task CheckDurationsAsync(List<MediaItem> items, Action<MediaItem> onItemRepaired)
         {
             var videos = items
                 .Where(item => item.FileType == MediaType.Video && item.Duration == TimeSpan.Zero)
@@ -68,6 +65,8 @@ namespace stepstones.Services.Data
 
                     await _databaseService.UpdateMediaItemAsync(video);
 
+                    onItemRepaired(video);
+
                     _logger.LogInformation("Successfully updated duration for '{FileName}'.", video.FileName);
                 }
                 catch (Exception ex)
@@ -77,7 +76,7 @@ namespace stepstones.Services.Data
             }
         }
 
-        private async Task CheckThumbnailPathsAsync(List<MediaItem> items)
+        private async Task CheckThumbnailPathsAsync(List<MediaItem> items, Action<MediaItem> onItemRepaired)
         {
             var itemsWithMissingThumbnails = items
                 .Where(item => string.IsNullOrWhiteSpace(item.ThumbnailPath) || !File.Exists(item.ThumbnailPath))
@@ -98,6 +97,10 @@ namespace stepstones.Services.Data
                     item.ThumbnailPath = newThumbnailPath;
 
                     await _databaseService.UpdateMediaItemAsync(item);
+
+                    onItemRepaired(item);
+
+                    _logger.LogInformation("Successfully updated thumbnail path for '{FileName}'.", item.FileName);
                 }
                 catch (Exception ex)
                 {

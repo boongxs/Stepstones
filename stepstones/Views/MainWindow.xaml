@@ -129,6 +129,17 @@
                                 CornerRadius="10"
                                 ClipToBounds="True">
                             <Grid>
+                                <!-- Fallback layer -->
+                                <Border CornerRadius="10"
+                                        Background="#404040">
+                                    <Image Source="/Resources/Icons/file.png"
+                                           Width="60"
+                                           Height="60"
+                                           Stretch="Uniform"
+                                           Opacity="0.5">
+                                    </Image>
+                                </Border>
+                                
                                 <!-- Thumbnail layer -->
                                 <Border CornerRadius="10">
                                     <Border.Background>

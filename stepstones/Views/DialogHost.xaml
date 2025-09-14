@@ -41,7 +41,7 @@
             </Style>
         </Grid.Style>
         
-        <Border Background="#aa000000">
+        <Border Background="#cc000000">
             <Border.InputBindings>
                 <MouseBinding Gesture="LeftClick"
                               Command="{Binding CloseDialogCommand}"
