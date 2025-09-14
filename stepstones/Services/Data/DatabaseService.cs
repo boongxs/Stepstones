@@ -92,7 +92,9 @@ namespace stepstones.Services.Data
 
             _logger.LogInformation("Fetching page {PageNumber} for folder '{Path}'", pageNumber, folderPath);
 
-            var query = _database.Table<MediaItem>().Where(i => i.FilePath.StartsWith(folderPath));
+            var folderPathWithSeparator = folderPath.EndsWith(Path.DirectorySeparatorChar) ? folderPath : folderPath + Path.DirectorySeparatorChar;
+
+            var query = _database.Table<MediaItem>().Where(i => i.FilePath.StartsWith(folderPathWithSeparator));
 
             if (!string.IsNullOrWhiteSpace(filterText))
             {
@@ -173,7 +175,9 @@ namespace stepstones.Services.Data
                 return 0;
             }
 
-            var query = _database.Table<MediaItem>().Where(i => i.FilePath.StartsWith(folderPath));
+            var folderPathWithSeparator = folderPath.EndsWith(Path.DirectorySeparatorChar) ? folderPath : folderPath + Path.DirectorySeparatorChar;
+
+            var query = _database.Table<MediaItem>().Where(i => i.FilePath.StartsWith(folderPathWithSeparator));
 
             if (!string.IsNullOrWhiteSpace(filterText))
             {
@@ -195,7 +199,9 @@ namespace stepstones.Services.Data
                 return new List<string>();
             }
 
-            return await _database.QueryScalarsAsync<string>("SELECT FilePath FROM MediaItems WHERE FilePath LIKE ?", folderPath + "%");
+            var folderPathWithSeparator = folderPath.EndsWith(Path.DirectorySeparatorChar) ? folderPath : folderPath + Path.DirectorySeparatorChar;
+
+            return await _database.QueryScalarsAsync<string>("SELECT FilePath FROM MediaItems WHERE FilePath LIKE ?", folderPathWithSeparator + "%");
         }
     }
 }
