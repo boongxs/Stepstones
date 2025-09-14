@@ -358,6 +358,27 @@
             </ItemsControl>
         </ScrollViewer>
 
+        <!-- Empty ItemsControl -->
+        <Grid Grid.Row="3"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Visibility="{Binding IsMediaViewEmpty, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel>
+                <TextBlock Text="{Binding EmptyViewTitle}"
+                           Foreground="White"
+                           FontSize="24"
+                           HorizontalAlignment="Center">
+                </TextBlock>
+
+                <TextBlock Text="{Binding EmptyViewSubtitle}"
+                           Foreground="Gray"
+                           FontSize="16"
+                           HorizontalAlignment="Center"
+                           Margin="0,10,0,0">
+                </TextBlock>
+            </StackPanel>
+        </Grid>
+
         <!-- Enlarge and EditTags button's Overlay -->
         <views:DialogHost Grid.Row="0"
                           Grid.RowSpan="4">

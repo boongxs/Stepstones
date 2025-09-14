@@ -56,11 +56,20 @@ namespace stepstones.ViewModels
         private int _currentPage = 1;
 
         [ObservableProperty]
-        private int _totalPages;
+        private int _totalPages = 1;
 
         public string PageInfo => $"Page {CurrentPage} of {TotalPages}";
 
         public ObservableCollection<ToastViewModel> Toasts { get; } = new ObservableCollection<ToastViewModel>();
+
+        [ObservableProperty]
+        private bool _isMediaViewEmpty;
+
+        [ObservableProperty]
+        private string _emptyViewTitle;
+
+        [ObservableProperty]
+        private string _emptyViewSubtitle;
 
         public MainViewModel(ILogger<MainViewModel> logger,
                              ISettingsService settingsService,
@@ -123,6 +132,10 @@ namespace stepstones.ViewModels
             var savedPath = _settingsService.LoadMediaFolderPath();
             if (string.IsNullOrWhiteSpace(savedPath))
             {
+                IsMediaViewEmpty = true;
+                EmptyViewTitle = "No media folder selected";
+                EmptyViewSubtitle = "Use the Folder button to select a media folder";
+
                 _logger.LogInformation("Application startup: No previously saved media folder path found.");
             }
             else
@@ -219,6 +232,7 @@ namespace stepstones.ViewModels
             {
                 _logger.LogInformation("Load media items skipped: Media folder not set.");
                 MediaItems.Clear();
+
                 return;
             }
 
@@ -240,6 +254,17 @@ namespace stepstones.ViewModels
                 var vm = _mediaItemViewModelFactory.Create(item);
                 newViewModels.Add(vm);
                 MediaItems.Add(vm);
+            }
+
+            if (MediaItems.Count == 0)
+            {
+                IsMediaViewEmpty = true;
+                EmptyViewTitle = "This media folder is empty";
+                EmptyViewSubtitle = "Use the Upload button to import some media files (e.g. pictures, videos, GIFs...)";
+            }
+            else
+            {
+                IsMediaViewEmpty = false;
             }
 
             _logger.LogInformation("Loaded {Count} media items.", newViewModels.Count);
