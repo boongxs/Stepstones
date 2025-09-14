@@ -12,5 +12,6 @@ namespace stepstones.Services.Data
         Task UpdateMediaItemAsync(MediaItem item);
         Task<int> GetItemCountForFolderAsync(string folderPath, string? filterText = null);
         Task<List<string>> GetFilePathsForFolderAsync(string folderPath);
+        Task UpdateItemPathAsync(string oldPath, string newPath);
     }
 }

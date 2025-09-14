@@ -30,6 +30,7 @@ namespace stepstones.ViewModels
         private readonly IMessenger _messenger;
         private readonly IFileTypeIdentifierService _fileTypeIdentifierService;
         private readonly IDataMigrationService _dataMigrationService;
+        private readonly IFolderWatcherService _folderWatcherService;
 
         public ObservableCollection<object> MediaItems { get; } = new();
 
@@ -83,7 +84,8 @@ namespace stepstones.ViewModels
                              IMediaItemViewModelFactory mediaItemViewModelFactory,
                              IMessenger messenger,
                              IFileTypeIdentifierService fileTypeIdentifierService,
-                             IDataMigrationService dataMigrationService)
+                             IDataMigrationService dataMigrationService,
+                             IFolderWatcherService folderWatcherService)
         {
             _logger = logger;
             _settingsService = settingsService;
@@ -98,6 +100,7 @@ namespace stepstones.ViewModels
             _messenger = messenger;
             _fileTypeIdentifierService = fileTypeIdentifierService;
             _dataMigrationService = dataMigrationService;
+            _folderWatcherService = folderWatcherService;
 
             _messenger.Register<MediaItemDeletedMessage>(this, (recipient, message) =>
             {
@@ -121,6 +124,11 @@ namespace stepstones.ViewModels
                 });
             });
 
+            _messenger.Register<FileSystemChangesDetectedMessage>(this, (recipient, message) =>
+            {
+                _ = HandleFileSystemChangesAsync(message);
+            });
+
             logger.LogInformation("MainViewModel has been created.");
 
             _ = InitializeAsync();
@@ -142,6 +150,7 @@ namespace stepstones.ViewModels
             {
                 _logger.LogInformation("Application startup: Located saved media folder path: {Path}", savedPath);
                 await SynchronizeAndLoadAsync(savedPath);
+                _folderWatcherService.StartWatching(savedPath);
             }
         }
 
@@ -293,6 +302,7 @@ namespace stepstones.ViewModels
                     CurrentPage = 1;
                     await SynchronizeAndLoadAsync(selectedPath);
                     _messenger.Send(new ShowToastMessage($"Folder '{Path.GetFileName(selectedPath)}' loaded.", ToastNotificationType.Success));
+                    _folderWatcherService.StartWatching(selectedPath);
                 }
                 catch (Exception ex)
                 {
@@ -518,6 +528,127 @@ namespace stepstones.ViewModels
         private bool CanGoToLastPage()
         {
             return CurrentPage < TotalPages;
+        }
+
+        private async Task HandleFileSystemChangesAsync(FileSystemChangesDetectedMessage message)
+        {
+            await HandleRenamedFilesAsync(message.RenamedFilePaths);
+            await HandleDeletedFilesAsync(message.DeletedFilePaths);
+            await AddNewMediaItemsAsync(message.NewFilePaths);
+
+            // refresh for pagination
+            await Application.Current.Dispatcher.InvokeAsync(LoadMediaItemsAsync);
+        }
+
+        private async Task AddNewMediaItemsAsync(List<string> filePaths)
+        {
+            if (!filePaths.Any())
+            {
+                return;
+            }
+
+            // add placeholders for the "to-be" processed files
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                var availableSlots = PageSize - MediaItems.Count;
+                var placeholdersToAdd = Math.Min(filePaths.Count, availableSlots);
+                if (placeholdersToAdd > 0)
+                {
+                    for (int i = 0; i < placeholdersToAdd; i++)
+                    {
+                        MediaItems.Add(new PlaceholderViewModel());
+                    }
+                }
+            });
+
+            // process files
+            foreach (var filePath in filePaths)
+            {
+                try
+                {
+                    var mediaType = await _fileTypeIdentifierService.IdentifyAsync(filePath);
+                    if (mediaType == MediaType.Unknown)
+                    {
+                        continue;
+                    }
+
+                    TimeSpan duration = TimeSpan.Zero;
+                    if (mediaType == MediaType.Video)
+                    {
+                        var mediaInfo = await FFMpegCore.FFProbe.AnalyseAsync(filePath);
+                        duration = mediaInfo.Duration;
+                    }
+
+                    var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(filePath, mediaType);
+
+                    var newItem = new MediaItem
+                    {
+                        FileName = Path.GetFileName(filePath),
+                        FilePath = filePath,
+                        FileType = mediaType,
+                        ThumbnailPath = thumbnailPath,
+                        Duration = duration
+                    };
+
+                    await _databaseService.AddMediaItemAsync(newItem);
+
+                    // replace placeholder with processed media item
+                    await Application.Current.Dispatcher.InvokeAsync(() =>
+                    {
+                        var placeholder = MediaItems.OfType<PlaceholderViewModel>().FirstOrDefault();
+                        if (placeholder != null)
+                        {
+                            var vm = _mediaItemViewModelFactory.Create(newItem);
+                            var placeholderIndex = MediaItems.IndexOf(placeholder);
+                            MediaItems[placeholderIndex] = vm;
+                            _ = vm.LoadThumbnailAsync();
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to process newly detected file '{Path}'", filePath);
+                }
+            }
+        }
+
+        private async Task HandleRenamedFilesAsync(Dictionary<string, string> renamedFiles)
+        {
+            if (!renamedFiles.Any())
+            {
+                return;
+            }
+
+            _logger.LogInformation("Processing {Count} renamed files...", renamedFiles.Count);
+            foreach (var renamedFile in renamedFiles)
+            {
+                try
+                {
+                    await _databaseService.UpdateItemPathAsync(renamedFile.Key, renamedFile.Value);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to process rename from '{OldPath}' to '{NewPath}'", renamedFile.Key, renamedFile.Value);
+                }
+            }
+        }
+
+        private async Task HandleDeletedFilesAsync(List<string> deletedFiles)
+        {
+            if (!deletedFiles.Any())
+            {
+                return;
+            }
+
+            _logger.LogInformation("Processing {Count} deleted files...", deletedFiles.Count);
+            try
+            {
+                await _databaseService.DeleteItemsByPathsAsync(deletedFiles);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to process batch deletion of files.");
+            }
         }
     }
 }

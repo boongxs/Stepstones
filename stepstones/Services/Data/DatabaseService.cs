@@ -203,5 +203,37 @@ namespace stepstones.Services.Data
 
             return await _database.QueryScalarsAsync<string>("SELECT FilePath FROM MediaItems WHERE FilePath LIKE ?", folderPathWithSeparator + "%");
         }
+
+        public async Task UpdateItemPathAsync(string oldPath, string newPath)
+        {
+            await InitAsync();
+            if (_database is null)
+            {
+                return;
+            }
+
+            try
+            {
+                var itemToUpdate = await _database.Table<MediaItem>()
+                                                  .Where(i => i.FilePath == oldPath).FirstOrDefaultAsync();
+
+                if (itemToUpdate != null)
+                {
+                    itemToUpdate.FilePath = newPath;
+                    itemToUpdate.FileName = Path.GetFileName(newPath);
+                    await _database.UpdateAsync(itemToUpdate);
+                    _logger.LogInformation("Successfully updated file path from '{OldPath}' to '{NewPath}'", oldPath, newPath);
+                }
+                else
+                {
+                    _logger.LogWarning("Could not find database record for renamed file with old path '{OldPath}' to update.", oldPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update file path in database for '{OldPath}'", oldPath);
+                throw;
+            }
+        }
     }
 }
