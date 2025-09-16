@@ -2,6 +2,7 @@
 using System.IO;
 using stepstones.Models;
 using stepstones.Services.Core;
+using stepstones.Services.Infrastructure;
 
 namespace stepstones.Services.Data
 {
@@ -12,18 +13,24 @@ namespace stepstones.Services.Data
         private readonly IFileService _fileService;
         private readonly IThumbnailService _thumbnailService;
         private readonly IFileTypeIdentifierService _fileTypeIdentifierService;
+        private readonly IFolderWatcherService _folderWatcherService;
+        private readonly IMediaItemProcessorService _mediaItemProcessorService;
 
         public SynchronizationService(ILogger<SynchronizationService> logger,  
                                       IDatabaseService databaseService, 
                                       IFileService fileService,
                                       IThumbnailService thumbnailService,
-                                      IFileTypeIdentifierService fileTypeIdentifierService)
+                                      IFileTypeIdentifierService fileTypeIdentifierService,
+                                      IFolderWatcherService folderWatcherService,
+                                      IMediaItemProcessorService mediaItemProcessorService)
         {
             _logger = logger;
             _databaseService = databaseService;
             _fileService = fileService;
             _thumbnailService = thumbnailService;
             _fileTypeIdentifierService = fileTypeIdentifierService;
+            _folderWatcherService = folderWatcherService;
+            _mediaItemProcessorService = mediaItemProcessorService;
         }
 
         public async Task SynchronizeDataAsync(string folderPath, Action<MediaItem> onItemProcessed)
@@ -44,48 +51,38 @@ namespace stepstones.Services.Data
             if (orphans.Any())
             {
                 _logger.LogInformation("Found {Count} orphan files to import into the database.", orphans.Count);
-                foreach (var orphanPath in orphans)
+
+                _folderWatcherService.StopWatching();
+
+                try
                 {
-                    try
+                    foreach (var orphanPath in orphans)
                     {
-                        // rename to unique file name so that we won't have files overwriting each other
-                        var uniqueFileName = FileNameGenerator.GenerateUniqueFileName(orphanPath);
-                        var newPath = Path.Combine(Path.GetDirectoryName(orphanPath), uniqueFileName);
-
-                        File.Move(orphanPath, newPath);
-                        _logger.LogInformation("Renamed orphan file from '{OldPath}' to '{NewPath}'", orphanPath, newPath);
-
-                        var mediaType = await _fileTypeIdentifierService.IdentifyAsync(newPath);
-                        if (mediaType == MediaType.Unknown)
+                        try
                         {
-                            throw new InvalidOperationException($"Could not identify media type for '{newPath}'");
+                            // rename to unique file name so that we won't have files overwriting each other
+                            var uniqueFileName = FileNameGenerator.GenerateUniqueFileName(orphanPath);
+                            var newPath = Path.Combine(Path.GetDirectoryName(orphanPath), uniqueFileName);
+
+                            File.Move(orphanPath, newPath);
+                            _logger.LogInformation("Renamed orphan file from '{OldPath}' to '{NewPath}'", orphanPath, newPath);
+
+                            var processedItem = await _mediaItemProcessorService.ProcessNewFileAsync(orphanPath, newPath);
+
+                            if (processedItem != null)
+                            {
+                                onItemProcessed(processedItem);
+                            }
                         }
-
-                        TimeSpan duration = TimeSpan.Zero;
-                        if (mediaType == MediaType.Video)
+                        catch (Exception ex)
                         {
-                            var mediaInfo = await FFMpegCore.FFProbe.AnalyseAsync(newPath);
-                            duration = mediaInfo.Duration;
+                            _logger.LogError(ex, "Failed to process orphan file '{Path}'.", orphanPath);
                         }
-
-                        var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(newPath, mediaType);
-
-                        var newItem = new MediaItem
-                        {
-                            FileName = Path.GetFileName(orphanPath),
-                            FilePath = newPath,
-                            FileType = mediaType,
-                            ThumbnailPath = thumbnailPath,
-                            Duration = duration
-                        };
-                        await _databaseService.AddMediaItemAsync(newItem);
-
-                        onItemProcessed(newItem);
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to process orphan file '{Path}'.", orphanPath);
-                    }
+                }
+                finally
+                {
+                    _folderWatcherService.StartWatching(folderPath);
                 }
             }
         }

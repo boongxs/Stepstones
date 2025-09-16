@@ -31,6 +31,7 @@ namespace stepstones.ViewModels
         private readonly IFileTypeIdentifierService _fileTypeIdentifierService;
         private readonly IDataMigrationService _dataMigrationService;
         private readonly IFolderWatcherService _folderWatcherService;
+        private readonly IMediaItemProcessorService _mediaItemProcessorService;
 
         public ObservableCollection<object> MediaItems { get; } = new();
 
@@ -85,7 +86,8 @@ namespace stepstones.ViewModels
                              IMessenger messenger,
                              IFileTypeIdentifierService fileTypeIdentifierService,
                              IDataMigrationService dataMigrationService,
-                             IFolderWatcherService folderWatcherService)
+                             IFolderWatcherService folderWatcherService,
+                             IMediaItemProcessorService mediaItemProcessorService)
         {
             _logger = logger;
             _settingsService = settingsService;
@@ -101,6 +103,7 @@ namespace stepstones.ViewModels
             _fileTypeIdentifierService = fileTypeIdentifierService;
             _dataMigrationService = dataMigrationService;
             _folderWatcherService = folderWatcherService;
+            _mediaItemProcessorService = mediaItemProcessorService;
 
             _messenger.Register<MediaItemDeletedMessage>(this, (recipient, message) =>
             {
@@ -188,17 +191,7 @@ namespace stepstones.ViewModels
                 return;
             }
 
-            // calculate empty slots on page for placeholders for to-be processed orphans
-            var availableSlots = PageSize - MediaItems.Count;
-            var placeholdersToAdd = Math.Min(orphans.Count, availableSlots);
-
-            if (placeholdersToAdd > 0)
-            {
-                for (int i = 0; i < placeholdersToAdd; i++)
-                {
-                    MediaItems.Add(new PlaceholderViewModel());
-                }
-            }
+            AddPlaceholdersToView(orphans.Count);
 
             // start processing orphans
             await _synchronizationService.SynchronizeDataAsync(folderPath, (processedItem) =>
@@ -206,15 +199,7 @@ namespace stepstones.ViewModels
                 // when sync service sends back signal that it has processed an orphan...
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    // replace placeholder with MediaItemViewModel
-                    var vm = _mediaItemViewModelFactory.Create(processedItem);
-                    var placeholder = MediaItems.OfType<PlaceholderViewModel>().FirstOrDefault();
-                    if (placeholder != null)
-                    {
-                        var placeholderIndex = MediaItems.IndexOf(placeholder);
-                        MediaItems[placeholderIndex] = vm;
-                        _ = vm.LoadThumbnailAsync();
-                    }
+                    ReplacePlaceholderWithViewModel(processedItem);
                 });
             });
 
@@ -337,85 +322,63 @@ namespace stepstones.ViewModels
             var fileList = selectedFiles.ToList();
             _logger.LogInformation("{FileCount} file(s) have been selected for upload.", fileList.Count);
 
-            // place temporary placeholder
-            var availableSlots = PageSize - MediaItems.Count;
-            var placeholdersToAdd = Math.Min(fileList.Count, availableSlots);
+            // temporarily stop watcher to prevent it from reacting to UploadFiles command copies
+            _folderWatcherService.StopWatching();
 
-            if (placeholdersToAdd > 0)
+            try
             {
-                for (int i = 0; i < placeholdersToAdd; i++)
-                {
-                    MediaItems.Add(new PlaceholderViewModel());
-                }
-            }
+                // place temporary placeholders for immediate feedback
+                AddPlaceholdersToView(fileList.Count);
 
-            // start processing the uploaded files
-            await Task.Run(async () =>
-            {
-                foreach (var sourcePath in fileList)
+                // start processing the uploaded files
+                await Task.Run(async () =>
                 {
-                    try
+                    // first copy and rename all files into media folder 
+                    var pathMappings = await _fileService.CopyFilesAsync(fileList, mediaFolderPath);
+
+                    foreach (var sourcePath in fileList)
                     {
-                        // copy file to media folder
-                        var pathMappings = await _fileService.CopyFilesAsync(new[] { sourcePath }, mediaFolderPath);
+                        // if a file is not in the map, it means an error occurred during copy
                         if (!pathMappings.TryGetValue(sourcePath, out var newFilePath))
                         {
                             continue;
                         }
 
-                        // get file's media type (image, video, gif)
-                        var mediaType = await _fileTypeIdentifierService.IdentifyAsync(newFilePath);
-                        if (mediaType == MediaType.Unknown)
+                        // if the new path is null, it was a duplicate
+                        if (newFilePath == null)
                         {
-                            _logger.LogInformation("Skipping unsupported file {File}", newFilePath);
                             continue;
                         }
 
-                        // if file is type video, get total duration
-                        TimeSpan duration = TimeSpan.Zero;
-                        if (mediaType == MediaType.Video)
+                        try
                         {
-                            var mediaInfo = await FFMpegCore.FFProbe.AnalyseAsync(newFilePath);
-                            duration = mediaInfo.Duration;
-                        }
+                            // process file into media item object
+                            var processedItem = await _mediaItemProcessorService.ProcessNewFileAsync(sourcePath, newFilePath);
 
-                        // generate thumbnail for the file
-                        var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(newFilePath, mediaType);
-
-                        // add file's information to the database
-                        var newItem = new MediaItem
-                        {
-                            FileName = Path.GetFileName(sourcePath),
-                            FilePath = newFilePath,
-                            FileType = mediaType,
-                            ThumbnailPath = thumbnailPath,
-                            Duration = duration
-                        };
-
-                        await _databaseService.AddMediaItemAsync(newItem);
-
-                        // replace a placeholder with processed file
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            var placeholder = MediaItems.OfType<PlaceholderViewModel>().FirstOrDefault();
-                            if (placeholder != null)
+                            if (processedItem != null)
                             {
-                                var vm = _mediaItemViewModelFactory.Create(newItem);
-                                var placeholderIndex = MediaItems.IndexOf(placeholder);
-                                MediaItems[placeholderIndex] = vm;
-                                _ = vm.LoadThumbnailAsync();
+                                // replace a placeholder with the processed file
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    ReplacePlaceholderWithViewModel(processedItem);
+                                });
                             }
-                        });
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to process uploaded file '{Path}'", sourcePath);
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to process uploaded file '{Path}'", sourcePath);
-                    }
-                }
-            });
+                });
+            }
+            finally
+            {
+                // restart watcher so that user's manually copied files are processed
+                _folderWatcherService.StartWatching(mediaFolderPath);
+            }
 
             _logger.LogInformation("Upload processing complete. Refreshing UI.");
-            await LoadMediaItemsAsync(); // remove placeholders
+            await LoadMediaItemsAsync();
         }
 
         [RelayCommand]
@@ -550,15 +513,7 @@ namespace stepstones.ViewModels
             // add placeholders for the "to-be" processed files
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                var availableSlots = PageSize - MediaItems.Count;
-                var placeholdersToAdd = Math.Min(filePaths.Count, availableSlots);
-                if (placeholdersToAdd > 0)
-                {
-                    for (int i = 0; i < placeholdersToAdd; i++)
-                    {
-                        MediaItems.Add(new PlaceholderViewModel());
-                    }
-                }
+                AddPlaceholdersToView(filePaths.Count);
             });
 
             // process files
@@ -566,44 +521,17 @@ namespace stepstones.ViewModels
             {
                 try
                 {
-                    var mediaType = await _fileTypeIdentifierService.IdentifyAsync(filePath);
-                    if (mediaType == MediaType.Unknown)
+                    // for a file watcher, the original and final path are the same
+                    var processedItem = await _mediaItemProcessorService.ProcessNewFileAsync(filePath, filePath);
+
+                    if (processedItem != null)
                     {
-                        continue;
-                    }
-
-                    TimeSpan duration = TimeSpan.Zero;
-                    if (mediaType == MediaType.Video)
-                    {
-                        var mediaInfo = await FFMpegCore.FFProbe.AnalyseAsync(filePath);
-                        duration = mediaInfo.Duration;
-                    }
-
-                    var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(filePath, mediaType);
-
-                    var newItem = new MediaItem
-                    {
-                        FileName = Path.GetFileName(filePath),
-                        FilePath = filePath,
-                        FileType = mediaType,
-                        ThumbnailPath = thumbnailPath,
-                        Duration = duration
-                    };
-
-                    await _databaseService.AddMediaItemAsync(newItem);
-
-                    // replace placeholder with processed media item
-                    await Application.Current.Dispatcher.InvokeAsync(() =>
-                    {
-                        var placeholder = MediaItems.OfType<PlaceholderViewModel>().FirstOrDefault();
-                        if (placeholder != null)
+                        // replace placeholder with processed media item
+                        await Application.Current.Dispatcher.InvokeAsync(() =>
                         {
-                            var vm = _mediaItemViewModelFactory.Create(newItem);
-                            var placeholderIndex = MediaItems.IndexOf(placeholder);
-                            MediaItems[placeholderIndex] = vm;
-                            _ = vm.LoadThumbnailAsync();
-                        }
-                    });
+                            ReplacePlaceholderWithViewModel(processedItem);
+                        });
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -648,6 +576,34 @@ namespace stepstones.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to process batch deletion of files.");
+            }
+        }
+
+        private void AddPlaceholdersToView(int itemCount)
+        {
+            var availableSlots = PageSize - MediaItems.Count; ;
+            var placeholdersToAdd = Math.Min(itemCount, availableSlots);
+
+            if (placeholdersToAdd > 0)
+            {
+                for (int i = 0; i < placeholdersToAdd; i++)
+                {
+                    MediaItems.Add(new PlaceholderViewModel());
+                }
+            }
+        }
+
+        private void ReplacePlaceholderWithViewModel(MediaItem newItem)
+        {
+            var placeholder = MediaItems.OfType<PlaceholderViewModel>().FirstOrDefault();
+            if (placeholder != null)
+            {
+                var vm = _mediaItemViewModelFactory.Create(newItem);
+                var placeholderIndex = MediaItems.IndexOf(placeholder);
+
+                MediaItems[placeholderIndex] = vm;
+
+                _ = vm.LoadThumbnailAsync();
             }
         }
     }

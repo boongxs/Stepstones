@@ -66,6 +66,7 @@ namespace stepstones
                     services.AddSingleton<IDataMigrationService, DataMigrationService>();
                     services.AddSingleton<IMediaItemViewModelFactory, MediaItemViewModelFactory>();
                     services.AddSingleton<IFolderWatcherService, FolderWatcherService>();
+                    services.AddSingleton<IMediaItemProcessorService, MediaItemProcessorService>();
 
                     services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 
