@@ -1,17 +1,17 @@
-﻿using System.IO;
+﻿using System.Windows.Controls;
 using System.Windows;
-using System.Windows.Controls;
+using System.Windows.Input;
+using System;
 using System.Windows.Threading;
 using System.Windows.Media.Animation;
-using stepstones.ViewModels;
-using Vlc.DotNet.Core;
 
 namespace stepstones.Views
 {
     public partial class EnlargeVideoView : UserControl
     {
+        private bool _isPlaying = false;
         private readonly DispatcherTimer _indicatorTimer;
-        private bool _videoHasEnded = false;
+
         private const int MinimumDisplaySize = 400;
         public int MinSize => MinimumDisplaySize;
 
@@ -19,110 +19,64 @@ namespace stepstones.Views
         {
             InitializeComponent();
 
-            this.DataContextChanged += EnlargeVideoView_DataContextChanged;
+            this.Loaded += EnlargeVideoView_Loaded;
             this.Unloaded += EnlargeVideoView_Unloaded;
+            this.MouseLeftButtonDown += EnlargeVideoView_MouseLeftButtonDown;
 
             _indicatorTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(750)
+                Interval = TimeSpan.FromMilliseconds(500)
             };
             _indicatorTimer.Tick += IndicatorTimer_Tick;
-
-            var currentAssembly = System.Reflection.Assembly.GetEntryAssembly();
-            if (currentAssembly == null)
-            {
-                return;
-            }
-
-            var currentDirectory = new FileInfo(currentAssembly.Location).DirectoryName;
-            if (currentDirectory == null)
-            {
-                return;
-            }
-
-            var vlcLibDirectory = new DirectoryInfo(Path.Combine(currentDirectory, "libvlc", IntPtr.Size == 4 ? "win-x86" : "win-x64"));
-
-            var appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "stepstones", "vlc-cache");
-            Directory.CreateDirectory(appDataFolder);
-
-            var options = new string[]
-            {
-                $"--config={appDataFolder}\\vlcrc",
-                "--no-video-title-show",
-                "--no-sub-autodetect-file"
-            };
-
-            MediaPlayer.SourceProvider.CreatePlayer(vlcLibDirectory, options);
-
-            MediaPlayer.SourceProvider.MediaPlayer.EndReached += MediaPlayer_EndReached;
         }
 
-        private void EnlargeVideoView_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        private void EnlargeVideoView_Loaded(object sender, RoutedEventArgs e)
         {
-            if (DataContext is EnlargeVideoViewModel vm)
-            {
-                MediaPlayer.SourceProvider.MediaPlayer.Play(new FileInfo(vm.FilePath));
-                MediaPlayer.MouseLeftButtonDown += MediaPlayer_MouseLeftButtonDown;
-            }
+            MediaPlayer.Play();
+            _isPlaying = true;
         }
 
-        private async void EnlargeVideoView_Unloaded(object sender, RoutedEventArgs e)
+        private void EnlargeVideoView_Unloaded(object sender, RoutedEventArgs e)
         {
-            MediaPlayer.MouseLeftButtonDown -= MediaPlayer_MouseLeftButtonDown;
-            await Task.Delay(100);
-            MediaPlayer.Dispose();
+            _indicatorTimer.Stop();
+            MediaPlayer.Stop();
+            MediaPlayer.Close();
         }
 
-        private void MediaPlayer_EndReached(object sender, VlcMediaPlayerEndReachedEventArgs e)
+        private void EnlargeVideoView_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            Dispatcher.Invoke(() =>
+            if (_isPlaying)
             {
-                _videoHasEnded = true;
+                StopAnimationAndHide(PlayIndicator);
+                AnimateIcon(PauseIndicator, "FadeInAnimation");
 
-                StopAnimationAndHide(PlayIcon);
-                StopAnimationAndHide(PauseIcon);
-
-                EndOverlay.Opacity = 1;
-            });
-        }
-
-        private void MediaPlayer_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            if (_videoHasEnded)
-            {
-                e.Handled = true;
-                return;
-            }
-
-            if (MediaPlayer.SourceProvider.MediaPlayer.IsPlaying())
-            {
-                StopAnimationAndHide(PlayIcon);
-                AnimateIcon(PauseIcon, "FadeInAnimation");
+                MediaPlayer.Pause();
+                _isPlaying = false;
             }
             else
             {
-                StopAnimationAndHide(PauseIcon);
-                AnimateIcon(PlayIcon, "FadeInAnimation");
+                StopAnimationAndHide(PauseIndicator);
+                AnimateIcon(PlayIndicator, "FadeInAnimation");
+
+                MediaPlayer.Play();
+                _isPlaying = true;
             }
 
             _indicatorTimer.Stop();
             _indicatorTimer.Start();
 
-            MediaPlayer.SourceProvider.MediaPlayer.Pause();
-
-            // prevent click event from bubbling up and potentially closing the dialog
             e.Handled = true;
         }
 
         private void IndicatorTimer_Tick(object sender, EventArgs e)
         {
-            if (PlayIcon.Opacity > 0)
+            if (PlayIndicator.Opacity > 0)
             {
-                AnimateIcon(PlayIcon, "FadeOutAnimation");
+                AnimateIcon(PlayIndicator, "FadeOutAnimation");
             }
-            if (PauseIcon.Opacity > 0)
+            if (PauseIndicator.Opacity > 0)
             {
-                AnimateIcon(PauseIcon, "FadeOutAnimation");
+                AnimateIcon(PauseIndicator, "FadeOutAnimation");
             }
 
             _indicatorTimer.Stop();
@@ -130,7 +84,7 @@ namespace stepstones.Views
 
         private void AnimateIcon(FrameworkElement icon, string storyboardName)
         {
-            var storyboard = (Storyboard)this.Resources[storyboardName];
+            var storyboard = (Storyboard)this.FindResource(storyboardName);
             storyboard.Begin(icon);
         }
 

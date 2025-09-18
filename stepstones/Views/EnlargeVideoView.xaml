@@ -4,71 +4,55 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
-             xmlns:vlc="clr-namespace:Vlc.DotNet.Wpf;assembly=Vlc.DotNet.Wpf"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewmodels:EnlargeVideoViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
-    <UserControl.Resources>
-        <Storyboard x:Key="FadeInAnimation">
-            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                             From="0"
-                             To="1"
-                             Duration="0:0:0.1">
-            </DoubleAnimation>
-        </Storyboard>
-
-        <Storyboard x:Key="FadeOutAnimation">
-            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                             To="0"
-                             Duration="0:0:0.1">
-            </DoubleAnimation>
-        </Storyboard>
-    </UserControl.Resources>
-    
     <Grid MaxWidth="{Binding OriginalWidth}"
           MaxHeight="{Binding OriginalHeight}"
           MinWidth="{Binding MinSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
           MinHeight="{Binding MinSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
           Background="Transparent"
           Margin="20">
-        <vlc:VlcControl x:Name="MediaPlayer"/>
+        <MediaElement x:Name="MediaPlayer"
+                      LoadedBehavior="Manual"
+                      UnloadedBehavior="Close"
+                      Source="{Binding FilePath}"
+                      Stretch="Fill">
+        </MediaElement>
 
-        <Grid IsHitTestVisible="False"
-              Opacity="0.8">
-            <Path x:Name="PlayIcon"
-                  Data="M8,5.14V19.14L19,12.14L8,5.14Z"
-                  Fill="White"
-                  Stretch="Uniform"
-                  Width="60"
-                  Height="60"
+        <Grid IsHitTestVisible="False">
+            <Grid x:Name="PlayIndicator"
                   Opacity="0">
-            </Path>
+                <Ellipse Fill="Black"
+                         Opacity="0.5"
+                         Width="80"
+                         Height="80">
+                </Ellipse>
 
-            <Path x:Name="PauseIcon"
-                  Data="M14,19H18V5H14M6,19H10V5H6V19Z"
-                  Fill="White"
-                  Stretch="Uniform"
-                  Width="60"
-                  Height="60"
+                <Path Data="M8,5.14V19.14L19,12.14L8,5.14Z"
+                      Fill="White"
+                      Stretch="Uniform"
+                      Width="40"
+                      Height="40"
+                      Margin="5,0,0,0">
+                </Path>
+            </Grid>
+
+            <Grid x:Name="PauseIndicator"
                   Opacity="0">
-            </Path>
+                <Ellipse Fill="Black"
+                         Opacity="0.5"
+                         Width="80"
+                         Height="80">
+                </Ellipse>
+
+                <Path Data="M14,19H18V5H14M6,19H10V5H6V19Z"
+                      Fill="White"
+                      Stretch="Uniform"
+                      Width="40"
+                      Height="40">
+                </Path>
+            </Grid>
         </Grid>
-
-        <Border x:Name="EndOverlay"
-                VerticalAlignment="Top"
-                HorizontalAlignment="Stretch"
-                Height="50"
-                Background="#C0F44336"
-                Opacity="0"
-                IsHitTestVisible="False">
-            <Path Data="M18,18H22V6H18V18M2,6V18L13,12L2,6Z"
-                  Fill="White"
-                  Stretch="Uniform"
-                  Width="24"
-                  Height="24"
-                  HorizontalAlignment="Center"
-                  VerticalAlignment="Center">
-            </Path>
-        </Border>
     </Grid>
 </UserControl>

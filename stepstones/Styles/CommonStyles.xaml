@@ -214,4 +214,19 @@
             </Trigger>
         </Style.Triggers>
     </Style>
+
+    <Storyboard x:Key="FadeInAnimation">
+        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                         From="0"
+                         To="1"
+                         Duration="0:0:0.2">
+        </DoubleAnimation>
+    </Storyboard>
+
+    <Storyboard x:Key="FadeOutAnimation">
+        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                         To="0"
+                         Duration="0:0:0.2">
+        </DoubleAnimation>
+    </Storyboard>
 </ResourceDictionary>
