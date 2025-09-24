@@ -29,6 +29,10 @@
         <DataTemplate DataType="{x:Type viewmodels:EnlargeGifViewModel}">
             <views:EnlargeGifView/>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewmodels:EnlargeAudioViewModel}">
+            <views:EnlargeAudioView/>
+        </DataTemplate>
     </UserControl.Resources>
 
     <Grid>

@@ -23,6 +23,12 @@ namespace stepstones.Services.Core
                 return MediaType.Gif;
             }
 
+            if (Path.GetExtension(filePath).Equals(".mp3", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogInformation("Identified '{File}' as Audio.", filePath);
+                return MediaType.Audio;
+            }
+
             try
             {
                 var imageInfo = await Image.IdentifyAsync(filePath);

@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\audio_placeholder.jpg" />
     <None Remove="Resources\Icons\copy-hover.png" />
     <None Remove="Resources\Icons\copy.png" />
     <None Remove="Resources\Icons\delete-hover.png" />
@@ -42,6 +43,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\audio_placeholder.jpg">
+      <CopyToOutputDirectory></CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\Icons\copy-hover.png" />
     <Resource Include="Resources\Icons\copy.png" />
     <Resource Include="Resources\Icons\delete-hover.png" />

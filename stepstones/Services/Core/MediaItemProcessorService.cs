@@ -37,14 +37,22 @@ namespace stepstones.Services.Core
 
                 // get the duration if it's a video file
                 TimeSpan duration = TimeSpan.Zero;
-                if (mediaType == MediaType.Video)
+                if (mediaType == MediaType.Video || mediaType == MediaType.Audio)
                 {
                     var mediaInfo = await FFMpegCore.FFProbe.AnalyseAsync(finalPath);
                     duration = mediaInfo.Duration;
                 }
 
                 // create the thumbnail
-                var thumbnailPath = await _thumbnailService.CreateThumbnailAsync(finalPath, mediaType);
+                string? thumbnailPath = null;
+                if (mediaType != MediaType.Audio)
+                {
+                    thumbnailPath = await _thumbnailService.CreateThumbnailAsync(finalPath, mediaType);
+                }
+                else
+                {
+                    thumbnailPath = "pack://application:,,,/Resources/audio_placeholder.jpg";
+                }
 
                 // construct the MediaItem object
                 var newItem = new MediaItem

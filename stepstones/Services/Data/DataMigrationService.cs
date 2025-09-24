@@ -2,7 +2,6 @@
 using stepstones.Models;
 using stepstones.Services.Core;
 using System.IO;
-using System.Windows.Forms;
 
 namespace stepstones.Services.Data
 {
@@ -79,7 +78,19 @@ namespace stepstones.Services.Data
         private async Task CheckThumbnailPathsAsync(List<MediaItem> items, Action<MediaItem> onItemRepaired)
         {
             var itemsWithMissingThumbnails = items
-                .Where(item => string.IsNullOrWhiteSpace(item.ThumbnailPath) || !File.Exists(item.ThumbnailPath))
+                .Where(item =>
+                {
+                    if (string.IsNullOrWhiteSpace(item.ThumbnailPath))
+                    {
+                        return true;
+                    }
+                    if (item.ThumbnailPath.StartsWith("pack://"))
+                    {
+                        return false;
+                    }
+
+                    return !File.Exists(item.ThumbnailPath);
+                })
                 .ToList();
 
             if (!itemsWithMissingThumbnails.Any())

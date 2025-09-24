@@ -15,8 +15,9 @@ namespace stepstones.ViewModels
         public bool IsImage { get; }
         public bool IsVideo { get; }
         public bool IsGif { get; }
+        public bool IsAudio { get; }
 
-        public bool IsPlayableMedia => IsVideo || IsGif;
+        public bool IsPlayableMedia => IsVideo || IsGif || IsAudio;
 
         public EnlargeMediaViewModelBase(string filePath, MediaType fileType, int width, int height, BitmapImage? imageSource = null)
         {
@@ -29,6 +30,7 @@ namespace stepstones.ViewModels
             IsImage = fileType == MediaType.Image;
             IsVideo = fileType == MediaType.Video;
             IsGif = fileType == MediaType.Gif;
+            IsAudio = fileType == MediaType.Audio;
         }
     }
 }

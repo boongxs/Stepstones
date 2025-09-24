@@ -60,13 +60,22 @@ namespace stepstones.ViewModels
         public string? ThumbnailPath => _mediaItem.ThumbnailPath;
         public bool IsVideo => FileType == MediaType.Video;
         public bool IsGif => FileType == MediaType.Gif;
+        public bool IsAudio => FileType == MediaType.Audio;
         public string FormattedDuration => _mediaItem.Duration.ToString(@"hh\:mm\:ss");
 
         public async Task LoadThumbnailAsync()
         {
-            if (string.IsNullOrWhiteSpace(ThumbnailPath) || !File.Exists(ThumbnailPath))
+            if (string.IsNullOrWhiteSpace(ThumbnailPath))
             {
                 return;
+            }
+
+            if (!ThumbnailPath.StartsWith("pack://"))
+            {
+                if (!File.Exists(ThumbnailPath))
+                {
+                    return;
+                }
             }
 
             try
@@ -138,10 +147,14 @@ namespace stepstones.ViewModels
         [RelayCommand]
         private async Task Enlarge()
         {
-            var dimensions = await _imageDimensionService.GetDimensionsAsync(this.FilePath, this.FileType);
-            if (dimensions.Width == 0 || dimensions.Height == 0)
+            var dimensions = (Width: 0, Height: 0);
+            if (this.FileType != MediaType.Audio)
             {
-                return;
+                dimensions = await _imageDimensionService.GetDimensionsAsync(this.FilePath, this.FileType);
+                if (dimensions.Width == 0 || dimensions.Height == 0)
+                {
+                    return;
+                }
             }
 
             object? dialogViewModel = null;
@@ -211,6 +224,14 @@ namespace stepstones.ViewModels
                         dimensions.Width,
                         dimensions.Height);
 
+                    break;
+
+                case MediaType.Audio:
+                    dialogViewModel = new EnlargeAudioViewModel(
+                        this.FilePath,
+                        this.FileType,
+                        400,
+                        400);
                     break;
             }
 

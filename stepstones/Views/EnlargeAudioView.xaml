@@ -1,0 +1,59 @@
+﻿<UserControl x:Class="stepstones.Views.EnlargeAudioView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=viewmodels:EnlargeAudioViewModel}"
+             d:DesignHeight="450" 
+             d:DesignWidth="800">
+    <Grid MaxWidth="400"
+          MaxHeight="400"
+          Background="Transparent"
+          Margin="20">
+        <Image Source="/Resources/audio_placeholder.jpg"/>
+
+        <MediaElement x:Name="MediaPlayer"
+                      LoadedBehavior="Manual"
+                      UnloadedBehavior="Close"
+                      Source="{Binding FilePath}"
+                      Stretch="Fill">
+        </MediaElement>
+
+        <Grid IsHitTestVisible="False">
+            <Grid x:Name="PlayIndicator"
+                  Opacity="0">
+                <Ellipse Fill="Black"
+                         Opacity="0.5"
+                         Width="80"
+                         Height="80">
+                </Ellipse>
+
+                <Path Data="M8,5.14V19.14L19,12.14L8,5.14Z"
+                      Fill="White"
+                      Stretch="Uniform"
+                      Width="40"
+                      Height="40"
+                      Margin="5,0,0,0">
+                </Path>
+            </Grid>
+
+            <Grid x:Name="PauseIndicator"
+                  Opacity="0">
+                <Ellipse Fill="Black"
+                         Opacity="0.5"
+                         Width="80"
+                         Height="80">
+                </Ellipse>
+
+                <Path Data="M14,19H18V5H14M6,19H10V5H6V19Z"
+                      Fill="White"
+                      Stretch="Uniform"
+                      Width="40"
+                      Height="40">
+                </Path>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

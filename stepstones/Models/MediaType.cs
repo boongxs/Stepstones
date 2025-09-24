@@ -5,6 +5,7 @@
         Unknown,
         Image,
         Video,
-        Gif
+        Gif,
+        Audio
     }
 }
