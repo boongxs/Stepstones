@@ -73,6 +73,8 @@ namespace stepstones.ViewModels
         [ObservableProperty]
         private string _emptyViewSubtitle;
 
+        private CancellationTokenSource? _activeTranscodingCts;
+
         public MainViewModel(ILogger<MainViewModel> logger,
                              ISettingsService settingsService,
                              IFolderDialogService folderDialogService,
@@ -130,6 +132,11 @@ namespace stepstones.ViewModels
             _messenger.Register<FileSystemChangesDetectedMessage>(this, (recipient, message) =>
             {
                 _ = HandleFileSystemChangesAsync(message);
+            });
+
+            _messenger.Register<TranscodingStartedMessage>(this, (recipient, message) =>
+            {
+                _activeTranscodingCts = message.CancellationTokenSource;
             });
 
             logger.LogInformation("MainViewModel has been created.");
@@ -390,6 +397,11 @@ namespace stepstones.ViewModels
 
                 var dialogResult = new EditTagsResult { WasSaved = wasSaved, NewTags = editTagsVM.TagsText };
                 _editTagsCompletionSource?.SetResult(dialogResult);
+            }
+            else if (ActiveDialogViewModel is TranscodingProgressViewModel)
+            {
+                _activeTranscodingCts?.Cancel();
+                _logger.LogInformation("User cancelled the transcoding operation via dialog's overlay.");
             }
 
             ActiveDialogViewModel = null;

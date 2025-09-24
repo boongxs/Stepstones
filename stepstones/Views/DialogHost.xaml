@@ -22,6 +22,10 @@
             <views:EnlargeVideoView/>
         </DataTemplate>
 
+        <DataTemplate DataType="{x:Type viewmodels:TranscodingProgressViewModel}">
+            <views:TranscodingProgressView/>
+        </DataTemplate>
+
         <DataTemplate DataType="{x:Type viewmodels:EnlargeGifViewModel}">
             <views:EnlargeGifView/>
         </DataTemplate>
@@ -45,7 +49,7 @@
             <Border.InputBindings>
                 <MouseBinding Gesture="LeftClick"
                               Command="{Binding CloseDialogCommand}"
-                              CommandParameter="Save">
+                              CommandParameter="{x:Null}">
                 </MouseBinding>
             </Border.InputBindings>
         </Border>

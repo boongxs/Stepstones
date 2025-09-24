@@ -1,5 +1,4 @@
-﻿using System.Windows.Media.Imaging;
-using stepstones.Models;
+﻿using stepstones.Models;
 
 namespace stepstones.ViewModels
 {
@@ -8,6 +7,7 @@ namespace stepstones.ViewModels
         public EnlargeVideoViewModel(string filePath, MediaType fileType, int width, int height)
             : base(filePath, fileType, width, height)
         {
+            
         }
     }
 }

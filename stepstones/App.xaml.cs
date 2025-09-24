@@ -53,6 +53,7 @@ namespace stepstones
                     services.AddSingleton<IMediaItemViewModelFactory, MediaItemViewModelFactory>();
                     services.AddSingleton<IFolderWatcherService, FolderWatcherService>();
                     services.AddSingleton<IMediaItemProcessorService, MediaItemProcessorService>();
+                    services.AddSingleton<ITranscodingService, TranscodingService>();
 
                     services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 
@@ -77,6 +78,9 @@ namespace stepstones
 
         protected override async void OnExit(ExitEventArgs e)
         {
+            var transcodingService = _host.Services.GetRequiredService<ITranscodingService>();
+            transcodingService.ClearCache();
+
             await _host.StopAsync();
             _host.Dispose();
             Log.CloseAndFlush();

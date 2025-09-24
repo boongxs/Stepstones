@@ -16,6 +16,7 @@ namespace stepstones.ViewModels
         private readonly IMessenger _messenger;
         private readonly IImageDimensionService _imageDimensionService;
         private readonly Lazy<IDialogPresenter> _lazyDialogPresenter;
+        private readonly ITranscodingService _transcodingService;
 
         public MediaItemViewModelFactory(IClipboardService clipboardService, 
                                          IMessageBoxService messageBoxService, 
@@ -23,7 +24,8 @@ namespace stepstones.ViewModels
                                          IDatabaseService databaseService, 
                                          IMessenger messenger,
                                          IImageDimensionService imageDimensionService,
-                                         Lazy<IDialogPresenter> lazyDialogPresenter)
+                                         Lazy<IDialogPresenter> lazyDialogPresenter,
+                                         ITranscodingService transcodingService)
         {
             _clipboardService = clipboardService;
             _messageBoxService = messageBoxService;
@@ -32,6 +34,7 @@ namespace stepstones.ViewModels
             _messenger = messenger;
             _imageDimensionService = imageDimensionService;
             _lazyDialogPresenter = lazyDialogPresenter;
+            _transcodingService = transcodingService;
         }
 
         public MediaItemViewModel Create(MediaItem mediaItem)
@@ -43,7 +46,8 @@ namespace stepstones.ViewModels
                                           _databaseService,
                                           _messenger,
                                           _imageDimensionService,
-                                          _lazyDialogPresenter.Value);
+                                          _lazyDialogPresenter.Value,
+                                          _transcodingService);
         }
     }
 }

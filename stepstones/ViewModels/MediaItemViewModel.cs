@@ -25,6 +25,9 @@ namespace stepstones.ViewModels
         private readonly IMessenger _messenger;
         private readonly IImageDimensionService _imageDimensionService;
         private readonly IDialogPresenter _dialogPresenter;
+        private readonly ITranscodingService _transcodingService;
+
+        private CancellationTokenSource? _transcodingCts;
 
         [ObservableProperty]
         private BitmapImage? _thumbnailImage;
@@ -36,7 +39,8 @@ namespace stepstones.ViewModels
                                   IDatabaseService databaseService, 
                                   IMessenger messenger,
                                   IImageDimensionService imageDimensionService,
-                                  IDialogPresenter dialogPresenter)
+                                  IDialogPresenter dialogPresenter,
+                                  ITranscodingService transcodingService)
         {
             _mediaItem = mediaItem;
 
@@ -47,6 +51,7 @@ namespace stepstones.ViewModels
             _messenger = messenger;
             _imageDimensionService = imageDimensionService;
             _dialogPresenter = dialogPresenter;
+            _transcodingService = transcodingService;
         }
 
         public string FileName => _mediaItem.FileName;
@@ -161,8 +166,38 @@ namespace stepstones.ViewModels
                     break;
 
                 case MediaType.Video:
+                    _transcodingCts = new CancellationTokenSource();
+
+                    if (await _transcodingService.IsTranscodingRequiredAsync(this.FilePath))
+                    {
+                        _messenger.Send(new ShowDialogMessage(new TranscodingProgressViewModel()));
+                        _messenger.Send(new TranscodingStartedMessage(_transcodingCts));
+                    }
+
+                    var transcodingTask = Task.Run(() => _transcodingService.EnsurePlayableFileAsync(this.FilePath));
+                    var playableFilePath = await transcodingTask;
+
+                    if (_transcodingCts.Token.IsCancellationRequested)
+                    {
+                        Log.Information("Cancellation was requested. Cleaning up transcoded file.");
+                        var cachedFilePath = _transcodingService.GetCachePathForFile(this.FilePath);
+                        try
+                        {
+                            if (File.Exists(cachedFilePath))
+                            {
+                                File.Delete(cachedFilePath);
+                                Log.Information("Successfully deleted transcoded file '{Path}'", cachedFilePath);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Failed to delete transcoded file '{Path}'", cachedFilePath);
+                        }
+                        return;
+                    }
+
                     dialogViewModel = new EnlargeVideoViewModel(
-                        this.FilePath,
+                        playableFilePath,
                         this.FileType,
                         dimensions.Width,
                         dimensions.Height);
