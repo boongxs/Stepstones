@@ -17,18 +17,14 @@ namespace stepstones.Services.Core
 
         public async Task<MediaType> IdentifyAsync(string filePath)
         {
+            // if GIF
             if (Path.GetExtension(filePath).Equals(".gif", StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogInformation("Identified '{File}' as GIF.", filePath);
                 return MediaType.Gif;
             }
 
-            if (Path.GetExtension(filePath).Equals(".mp3", StringComparison.OrdinalIgnoreCase))
-            {
-                _logger.LogInformation("Identified '{File}' as Audio.", filePath);
-                return MediaType.Audio;
-            }
-
+            // if IMAGE
             try
             {
                 var imageInfo = await Image.IdentifyAsync(filePath);
@@ -43,6 +39,7 @@ namespace stepstones.Services.Core
                 _logger.LogInformation("File '{File}' has not been identified as Image.", filePath);
             }
 
+            // if VIDEO or AUDIO
             try
             {
                 var mediaInfo = await FFProbe.AnalyseAsync(filePath);
@@ -51,12 +48,18 @@ namespace stepstones.Services.Core
                     _logger.LogInformation("Identified '{File}' as Video.", filePath);
                     return MediaType.Video;
                 }
+                if (mediaInfo.AudioStreams.Any())
+                {
+                    _logger.LogInformation("Identified '{File}' as Audio.", filePath);
+                    return MediaType.Audio;
+                }
             }
             catch (Exception)
             {
                 _logger.LogInformation("File '{Path}' has not been identified as Video.", filePath);
             }
 
+            // if UNKNOWN
             _logger.LogWarning("Could not identify '{File}' as a Image or Video.", filePath);
             return MediaType.Unknown;
         }

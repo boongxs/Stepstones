@@ -132,11 +132,22 @@
                                 <!-- Fallback layer -->
                                 <Border CornerRadius="10"
                                         Background="#404040">
-                                    <Image Source="/Resources/Icons/file.png"
-                                           Width="60"
+                                    <Image Width="60"
                                            Height="60"
                                            Stretch="Uniform"
                                            Opacity="0.5">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="/Resources/Icons/file.png"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAudio}"
+                                                                 Value="True">
+                                                        <Setter Property="Source" Value="/Resources/Icons/file_audio.png"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
                                     </Image>
                                 </Border>
                                 

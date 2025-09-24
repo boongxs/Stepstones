@@ -80,13 +80,13 @@ namespace stepstones.Services.Data
             var itemsWithMissingThumbnails = items
                 .Where(item =>
                 {
+                    if (item.FileType == MediaType.Audio)
+                    {
+                        return false;
+                    }
                     if (string.IsNullOrWhiteSpace(item.ThumbnailPath))
                     {
                         return true;
-                    }
-                    if (item.ThumbnailPath.StartsWith("pack://"))
-                    {
-                        return false;
                     }
 
                     return !File.Exists(item.ThumbnailPath);

@@ -22,6 +22,7 @@
     <None Remove="Resources\Icons\enlarge-hover.png" />
     <None Remove="Resources\Icons\enlarge.png" />
     <None Remove="Resources\Icons\file.png" />
+    <None Remove="Resources\Icons\file_audio.png" />
     <None Remove="Resources\Icons\select_folder.png" />
     <None Remove="Resources\Icons\stepstones.ico" />
     <None Remove="Resources\Icons\upload.png" />
@@ -43,9 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\audio_placeholder.jpg">
-      <CopyToOutputDirectory></CopyToOutputDirectory>
-    </Resource>
+    <Resource Include="Resources\audio_placeholder.jpg" />
     <Resource Include="Resources\Icons\copy-hover.png" />
     <Resource Include="Resources\Icons\copy.png" />
     <Resource Include="Resources\Icons\delete-hover.png" />
@@ -55,6 +54,7 @@
     <Resource Include="Resources\Icons\enlarge-hover.png" />
     <Resource Include="Resources\Icons\enlarge.png" />
     <Resource Include="Resources\Icons\file.png" />
+    <Resource Include="Resources\Icons\file_audio.png" />
     <Resource Include="Resources\Icons\select_folder.png" />
     <Resource Include="Resources\Icons\upload.png" />
     <Resource Include="stepstones.ico" />

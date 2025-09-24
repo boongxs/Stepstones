@@ -49,10 +49,6 @@ namespace stepstones.Services.Core
                 {
                     thumbnailPath = await _thumbnailService.CreateThumbnailAsync(finalPath, mediaType);
                 }
-                else
-                {
-                    thumbnailPath = "pack://application:,,,/Resources/audio_placeholder.jpg";
-                }
 
                 // construct the MediaItem object
                 var newItem = new MediaItem
