@@ -54,5 +54,51 @@
                 </Path>
             </Grid>
         </Grid>
+
+        <Border x:Name="ControlsOverlay"
+                VerticalAlignment="Bottom"
+                Background="#cc000000"
+                Height="50"
+                MouseLeftButtonDown="ControlsOverlay_MouseLeftButtonDown">
+            <Button HorizontalAlignment="Left"
+                    Padding="10,0,10,0"
+                    Click="PlayPauseButton_Click">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="Transparent"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Button.Style>
+
+                <Path x:Name="PlayPauseIcon"
+                      Fill="White"
+                      Stretch="Uniform"
+                      Width="25"
+                      Height="25">
+                    <Path.Style>
+                        <Style TargetType="Path">
+                            <Setter Property="Data" Value="M8,5.14V19.14L19,12.14L8,5.14Z"/>
+
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsPlaying, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                             Value="True">
+                                    <Setter Property="Data" Value="M14,19H18V5H14M6,19H10V5H6V19Z"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Path.Style>
+                </Path>
+            </Button>
+        </Border>
     </Grid>
 </UserControl>
