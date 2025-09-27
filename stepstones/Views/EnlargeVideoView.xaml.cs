@@ -5,7 +5,6 @@ using System.Windows.Threading;
 using System.Windows.Media.Animation;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 
 namespace stepstones.Views
 {
@@ -15,6 +14,7 @@ namespace stepstones.Views
         private readonly DispatcherTimer _indicatorTimer;
         private readonly DispatcherTimer _inactivityTimer;
         private bool _isOverlayVisible = true;
+        private bool _isMuted = false;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -31,6 +31,19 @@ namespace stepstones.Views
                 if (_isPlaying != value)
                 {
                     _isPlaying = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public bool IsMuted
+        {
+            get => _isMuted;
+            set
+            {
+                if (_isMuted != value)
+                {
+                    _isMuted = value;
                     OnPropertyChanged();
                 }
             }
@@ -81,6 +94,7 @@ namespace stepstones.Views
             if (IsPlaying)
             {
                 StopAnimationAndHide(PlayIndicator);
+                PauseIndicator.Visibility = Visibility.Visible;
                 AnimateElement(PauseIndicator, "FadeInAnimation");
 
                 MediaPlayer.Pause();
@@ -89,6 +103,7 @@ namespace stepstones.Views
             else
             {
                 StopAnimationAndHide(PauseIndicator);
+                PlayIndicator.Visibility = Visibility.Visible;
                 AnimateElement(PlayIndicator, "FadeInAnimation");
 
                 MediaPlayer.Play();
@@ -127,6 +142,12 @@ namespace stepstones.Views
             e.Handled = true;
         }
 
+        private void MuteButton_Click(object sender, RoutedEventArgs e)
+        {
+            MediaPlayer.IsMuted = !MediaPlayer.IsMuted;
+            IsMuted = MediaPlayer.IsMuted;
+        }
+
         private void IndicatorTimer_Tick(object sender, EventArgs e)
         {
             if (PlayIndicator.Opacity > 0)
@@ -162,6 +183,7 @@ namespace stepstones.Views
         {
             icon.BeginAnimation(UIElement.OpacityProperty, null);
             icon.Opacity = 0;
+            icon.Visibility = Visibility.Collapsed;
         }
     }
 }
