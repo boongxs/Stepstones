@@ -13,6 +13,7 @@ namespace stepstones.Views
         private bool _isPlaying = false;
         private readonly DispatcherTimer _indicatorTimer;
         private readonly DispatcherTimer _inactivityTimer;
+        private readonly DispatcherTimer _volumePopupTimer;
         private bool _isOverlayVisible = true;
         private bool _isMuted = false;
 
@@ -72,6 +73,12 @@ namespace stepstones.Views
                 Interval = TimeSpan.FromSeconds(2)
             };
             _inactivityTimer.Tick += InactivityTimer_Tick;
+
+            _volumePopupTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(200)
+            };
+            _volumePopupTimer.Tick += VolumePopupTimer_Tick;
         }
 
         private void EnlargeVideoView_Loaded(object sender, RoutedEventArgs e)
@@ -173,6 +180,15 @@ namespace stepstones.Views
             }
         }
 
+        private void VolumePopupTimer_Tick(object? sender, EventArgs e)
+        {
+            _volumePopupTimer.Stop();
+            if (!VolumeControlContainer.IsMouseOver && !VolumePopup.IsMouseOver)
+            {
+                VolumePopup.IsOpen = false;
+            }
+        }
+
         private void AnimateElement(FrameworkElement element, string storyboardName)
         {
             var storyboard = (Storyboard)this.FindResource(storyboardName);
@@ -184,6 +200,33 @@ namespace stepstones.Views
             icon.BeginAnimation(UIElement.OpacityProperty, null);
             icon.Opacity = 0;
             icon.Visibility = Visibility.Collapsed;
+        }
+
+        private void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            MediaPlayer.IsMuted = e.NewValue == 0;
+            IsMuted = MediaPlayer.IsMuted;
+        }
+
+        private void VolumeControlContainer_MouseEnter(object sender, MouseEventArgs e)
+        {
+            _volumePopupTimer.Stop();
+            VolumePopup.IsOpen = true;
+        }
+
+        private void VolumeControlContainer_MouseLeave(object sender, MouseEventArgs e)
+        {
+            _volumePopupTimer.Start();
+        }
+
+        private void VolumePopup_MouseEnter(object sender, MouseEventArgs e)
+        {
+            _volumePopupTimer.Stop();
+        }
+
+        private void VolumePopup_MouseLeave(object sender, MouseEventArgs e)
+        {
+            _volumePopupTimer.Start();
         }
     }
 }

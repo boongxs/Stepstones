@@ -17,7 +17,8 @@
                       LoadedBehavior="Manual"
                       UnloadedBehavior="Close"
                       Source="{Binding FilePath}"
-                      Stretch="Fill">
+                      Stretch="Fill"
+                      Volume="0.5">
         </MediaElement>
 
         <Grid IsHitTestVisible="False">
@@ -58,7 +59,6 @@
         <Border x:Name="ControlsOverlay"
                 VerticalAlignment="Bottom"
                 Background="#cc000000"
-                Width="400"
                 Height="50"
                 MouseLeftButtonDown="ControlsOverlay_MouseLeftButtonDown">
             <Grid>
@@ -102,42 +102,138 @@
                     </Path>
                 </Button>
 
-                <Button HorizontalAlignment="Right"
-                        Padding="10,0,10,0"
-                        Click="MuteButton_Click">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="Transparent"
-                                                Padding="{TemplateBinding Padding}">
-                                            <ContentPresenter/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </Button.Style>
+                <Grid x:Name="VolumeControlContainer"
+                      HorizontalAlignment="Right"
+                      Background="Transparent"
+                      MouseEnter="VolumeControlContainer_MouseEnter"
+                      MouseLeave="VolumeControlContainer_MouseLeave">
+                    <Popup x:Name="VolumePopup"
+                           Placement="Top"
+                           PlacementTarget="{Binding ElementName=MuteButton}"
+                           StaysOpen="True"
+                           AllowsTransparency="True"
+                           HorizontalOffset="13">
+                        <Border Background="#444444"
+                                Padding="5"
+                                CornerRadius="10"
+                                MouseEnter="VolumePopup_MouseEnter"
+                                MouseLeave="VolumePopup_MouseLeave">
+                            <Slider x:Name="VolumeSlider"
+                                    Orientation="Vertical"
+                                    Height="100"
+                                    Minimum="0"
+                                    Maximum="1"
+                                    Value="{Binding Volume, ElementName=MediaPlayer, Mode=TwoWay}"
+                                    ValueChanged="VolumeSlider_ValueChanged"
+                                    IsMoveToPointEnabled="True">
+                                <Slider.Style>
+                                    <Style TargetType="Slider">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Slider">
+                                                    <ControlTemplate.Resources>
+                                                        <Style x:Key="SliderRepeatButtonStyle"
+                                                               TargetType="RepeatButton">
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="RepeatButton">
+                                                                        <Grid Background="Transparent"/>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </ControlTemplate.Resources>
 
-                    <Image Width="25"
-                           Height="25">
-                        <Image.Style>
-                            <Style TargetType="Image">
-                                <Setter Property="Source" Value="/Resources/Icons/volume.png"/>
+                                                    <Grid>
+                                                        <Border x:Name="TrackBorder"
+                                                                Width="6"
+                                                                Background="Gray"
+                                                                CornerRadius="3">
+                                                        </Border>
 
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsMuted, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                 Value="True">
-                                        <Setter Property="Source" Value="/Resources/Icons/volume-off.png"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
+                                                        <Track x:Name="PART_Track">
+                                                            <Track.DecreaseRepeatButton>
+                                                                <RepeatButton Command="{x:Static Slider.DecreaseLarge}"
+                                                                              IsHitTestVisible="True">
+                                                                    <RepeatButton.Template>
+                                                                        <ControlTemplate TargetType="RepeatButton">
+                                                                            <Border Background="White"
+                                                                                    Width="6"
+                                                                                    CornerRadius="3"
+                                                                                    Margin="0,-5,0,0">
+                                                                            </Border>
+                                                                        </ControlTemplate>
+                                                                    </RepeatButton.Template>
+                                                                </RepeatButton>
+                                                            </Track.DecreaseRepeatButton>
+
+                                                            <Track.IncreaseRepeatButton>
+                                                                <RepeatButton Command="{x:Static Slider.IncreaseLarge}"
+                                                                              Style="{StaticResource SliderRepeatButtonStyle}"
+                                                                              IsHitTestVisible="True">
+                                                                </RepeatButton>
+                                                            </Track.IncreaseRepeatButton>
+
+                                                            <Track.Thumb>
+                                                                <Thumb Width="10"
+                                                                       Height="10">
+                                                                    <Thumb.Template>
+                                                                        <ControlTemplate TargetType="Thumb">
+                                                                            <Grid>
+                                                                                <Ellipse Fill="White"/>
+                                                                            </Grid>
+                                                                        </ControlTemplate>
+                                                                    </Thumb.Template>
+                                                                </Thumb>
+                                                            </Track.Thumb>
+                                                        </Track>
+                                                    </Grid>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Slider.Style>
+                            </Slider>
+                        </Border>
+                    </Popup>
+
+                    <Button x:Name="MuteButton"
+                            Padding="10,0,10,0"
+                            Click="MuteButton_Click">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="Transparent"
+                                                    Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
                             </Style>
-                        </Image.Style>
-                    </Image>
-                </Button>
+                        </Button.Style>
+
+                        <Image Width="25"
+                               Height="25">
+                            <Image.Style>
+                                <Style TargetType="Image">
+                                    <Setter Property="Source" Value="/Resources/Icons/volume.png"/>
+
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMuted, ElementName=MediaPlayer}"
+                                                     Value="True">
+                                            <Setter Property="Source" Value="/Resources/Icons/volume-off.png"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Image.Style>
+                        </Image>
+                    </Button>
+                </Grid>
             </Grid>
         </Border>
     </Grid>
