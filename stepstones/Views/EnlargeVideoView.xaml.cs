@@ -173,7 +173,7 @@ namespace stepstones.Views
         {
             _inactivityTimer.Stop();
 
-            if (_isOverlayVisible)
+            if (_isOverlayVisible && !ControlsOverlay.IsMouseOver && !VolumePopup.IsMouseOver)
             {
                 AnimateElement(ControlsOverlay, "FadeOutAnimation");
                 _isOverlayVisible = false;
