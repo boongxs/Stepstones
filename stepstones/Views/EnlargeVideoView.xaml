@@ -125,7 +125,9 @@
                                     Maximum="1"
                                     Value="{Binding Volume, ElementName=MediaPlayer, Mode=TwoWay}"
                                     ValueChanged="VolumeSlider_ValueChanged"
-                                    IsMoveToPointEnabled="True">
+                                    PreviewMouseLeftButtonDown="VolumeSlider_PreviewMouseLeftButtonDown"
+                                    PreviewMouseMove="VolumeSlider_PreviewMouseMove"
+                                    PreviewMouseLeftButtonUp="VolumeSlider_PreviewMouseLeftButtonUp">
                                 <Slider.Style>
                                     <Style TargetType="Slider">
                                         <Setter Property="Template">

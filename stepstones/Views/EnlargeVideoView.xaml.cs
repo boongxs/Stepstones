@@ -5,6 +5,7 @@ using System.Windows.Threading;
 using System.Windows.Media.Animation;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Controls.Primitives;
 
 namespace stepstones.Views
 {
@@ -227,6 +228,48 @@ namespace stepstones.Views
         private void VolumePopup_MouseLeave(object sender, MouseEventArgs e)
         {
             _volumePopupTimer.Start();
+        }
+
+        private void VolumeSlider_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // only start the drag if the click is not on the thumb itself
+            if (e.OriginalSource is not Thumb && sender is Slider slider)
+            {
+                // first move the thumb to the clicked position
+                UpdateSliderValueFromMousePosition(slider, e);
+
+                slider.CaptureMouse();
+            }
+        }
+
+        private void VolumeSlider_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (sender is Slider slider && slider.IsMouseCaptured && e.LeftButton == MouseButtonState.Pressed)
+            {
+                UpdateSliderValueFromMousePosition(slider, e);
+            }
+        }
+
+        private void VolumeSlider_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Slider slider)
+            {
+                slider.ReleaseMouseCapture();
+            }
+        }
+
+        private void UpdateSliderValueFromMousePosition(Slider slider, MouseEventArgs e)
+        {
+            if (slider.Template.FindName("PART_Track", slider) is Track track)
+            {
+                Point point = e.GetPosition(track);
+
+                double newValue = track.Maximum - ((point.Y / track.ActualHeight) * (track.Maximum - track.Minimum));
+
+                newValue = Math.Clamp(newValue, slider.Minimum, slider.Maximum);
+
+                slider.Value = newValue;
+            }
         }
     }
 }
