@@ -166,13 +166,46 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
-                    <Border x:Name="TextBoxBorder"
+                    <Grid>
+                        <Border x:Name="TextBoxBorder"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="10">
-                        <ScrollViewer x:Name="PART_ContentHost"/>
-                    </Border>
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+
+                        <TextBlock Text="Search by tags..."
+                                   IsHitTestVisible="False"
+                                   Foreground="Gray"
+                                   FontSize="28"
+                                   Padding="{TemplateBinding Padding}"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"
+                                   Margin="5,0,0,0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}"
+                                                           Value="">
+                                                </Condition>
+
+                                                <Condition Binding="{Binding IsKeyboardFocusWithin, RelativeSource={RelativeSource TemplatedParent}}"
+                                                           Value="False">
+                                                </Condition>
+                                            </MultiDataTrigger.Conditions>
+
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
