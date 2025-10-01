@@ -105,6 +105,7 @@
                 <Grid x:Name="VolumeControlContainer"
                       HorizontalAlignment="Right"
                       Background="Transparent"
+                      Margin="0,0,5,0"
                       MouseEnter="VolumeControlContainer_MouseEnter"
                       MouseLeave="VolumeControlContainer_MouseLeave">
                     <Popup x:Name="VolumePopup"
@@ -112,7 +113,8 @@
                            PlacementTarget="{Binding ElementName=MuteButton}"
                            StaysOpen="True"
                            AllowsTransparency="True"
-                           HorizontalOffset="13">
+                           HorizontalOffset="8"
+                           VerticalOffset="-5">
                         <Border Background="#444444"
                                 Padding="5"
                                 CornerRadius="10"
@@ -200,40 +202,10 @@
                     </Popup>
 
                     <Button x:Name="MuteButton"
-                            Padding="10,0,10,0"
-                            Click="MuteButton_Click">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="BorderThickness" Value="0"/>
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="Transparent"
-                                                    Padding="{TemplateBinding Padding}">
-                                                <ContentPresenter/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Style>
-
-                        <Image Width="25"
-                               Height="25">
-                            <Image.Style>
-                                <Style TargetType="Image">
-                                    <Setter Property="Source" Value="/Resources/Icons/volume.png"/>
-
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsMuted, ElementName=MediaPlayer}"
-                                                     Value="True">
-                                            <Setter Property="Source" Value="/Resources/Icons/volume-off.png"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Image.Style>
-                        </Image>
+                            Width="35"
+                            Height="35"
+                            Click="MuteButton_Click"
+                            Style="{StaticResource MuteButtonStyle}">
                     </Button>
                 </Grid>
             </Grid>

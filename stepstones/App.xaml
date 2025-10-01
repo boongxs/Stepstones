@@ -8,6 +8,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Resources/Iconography.xaml"/>
                 <ResourceDictionary Source="/Styles/CommonStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 

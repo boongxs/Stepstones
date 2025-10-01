@@ -262,4 +262,16 @@
                          Duration="0:0:0.2">
         </DoubleAnimation>
     </Storyboard>
+
+    <Style x:Key="MuteButtonStyle"
+           TargetType="Button">
+        <Setter Property="Template" Value="{StaticResource VolumeOnIconTemplate}"/>
+
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsMuted, ElementName=MediaPlayer}"
+                         Value="True">
+                <Setter Property="Template" Value="{StaticResource VolumeOffIconTemplate}"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
 </ResourceDictionary>
