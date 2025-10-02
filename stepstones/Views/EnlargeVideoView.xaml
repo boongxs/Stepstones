@@ -1,9 +1,10 @@
-﻿<UserControl x:Class="stepstones.Views.EnlargeVideoView"
+﻿<views:MediaPlayerViewBase x:Class="stepstones.Views.EnlargeVideoView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
+             xmlns:views="clr-namespace:stepstones.Views"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewmodels:EnlargeVideoViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
@@ -211,4 +212,4 @@
             </Grid>
         </Border>
     </Grid>
-</UserControl>
+</views:MediaPlayerViewBase>
