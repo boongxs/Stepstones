@@ -70,7 +70,7 @@ namespace stepstones.Views
 
             _inactivityTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromSeconds(InactivityTimerInterval)
+                Interval = TimeSpan.FromMilliseconds(InactivityTimerInterval)
             };
             _inactivityTimer.Tick += InactivityTimer_Tick;
 
