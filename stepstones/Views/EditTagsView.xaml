@@ -6,6 +6,7 @@
              xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
              xmlns:views="clr-namespace:stepstones.Views"
              xmlns:local="clr-namespace:stepstones.Views"
+             xmlns:res="clr-namespace:stepstones.Resources"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewmodels:EditTagsViewModel}"
              d:DesignHeight="150" d:DesignWidth="400">
@@ -22,7 +23,7 @@
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0"
-                       Text="Tags"
+                       Text="{x:Static res:AppConstants.EditTagsDialogTitle}"
                        FontSize="32"
                        FontWeight="Bold"
                        Foreground="White"
@@ -50,24 +51,24 @@
                         Margin="0,10,0,0">
                 <Button x:Name="CancelButton"
                         Style="{StaticResource StackPanelButtonStyle}"
-                        Content="Cancel"
+                        Content="{x:Static res:AppConstants.CancelCommandParameter}"
                         Width="80"
                         Height="40"
                         Margin="5"
                         FontSize="16"
                         Command="{Binding DataContext.CloseDialogCommand, RelativeSource={RelativeSource AncestorType=views:DialogHost}}"
-                        CommandParameter="Cancel">
+                        CommandParameter="{x:Static res:AppConstants.CancelCommandParameter}">
                 </Button>
 
                 <Button x:Name="SaveButton"
                         Style="{StaticResource StackPanelButtonStyle}"
-                        Content="Save"
+                        Content="{x:Static res:AppConstants.SaveCommandParameter}"
                         Width="80"
                         Height="40"
                         Margin="5"
                         FontSize="16"
                         Command="{Binding DataContext.CloseDialogCommand, RelativeSource={RelativeSource AncestorType=views:DialogHost}}"
-                        CommandParameter="Save">
+                        CommandParameter="{x:Static res:AppConstants.SaveCommandParameter}">
                 </Button>
             </StackPanel>
         </Grid>

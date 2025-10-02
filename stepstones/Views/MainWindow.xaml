@@ -7,9 +7,10 @@
         xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
         xmlns:views="clr-namespace:stepstones.Views"
         xmlns:converters="clr-namespace:stepstones.Converters"
+        xmlns:res="clr-namespace:stepstones.Resources"
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
-        Title="Stepstones" 
+        Title="{x:Static res:AppConstants.MainWindowTitle}" 
         Height="650" MinHeight="600"
         Width="1000" MinWidth="700"
         WindowState="Maximized"
@@ -26,7 +27,7 @@
 
         <!-- Title Label -->
         <Label Grid.Row="0"
-               Content="Stepstones"
+               Content="{x:Static res:AppConstants.MainWindowTitle}"
                HorizontalAlignment="Center"
                VerticalAlignment="Center"
                FontSize="90"
@@ -437,7 +438,7 @@
                                 Height="250"
                                 Background="#303030"
                                 CornerRadius="5">
-                            <TextBlock Text="Loading..."
+                            <TextBlock Text="{x:Static res:AppConstants.LoadingPlaceholder}"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
                                        Foreground="#f0f0f0"

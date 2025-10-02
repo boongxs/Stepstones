@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Input;
 using stepstones.ViewModels;
+using static stepstones.Resources.AppConstants;
 
 namespace stepstones
 {
@@ -32,8 +33,8 @@ namespace stepstones
                 return;
             }
 
-            double desiredThumbnailWidth = 270;
-            double horizontalItemMargin = 14;
+            double desiredThumbnailWidth = DesiredThumbnailWidth;
+            double horizontalItemMargin = HorizontalItemMargin;
 
             int newColumns = (int)Math.Max(1, Math.Floor(availableWidth / (desiredThumbnailWidth + horizontalItemMargin)));
 

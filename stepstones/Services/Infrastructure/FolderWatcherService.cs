@@ -1,13 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading;
 using stepstones.Messages;
 using stepstones.Services.Data;
-using System.Diagnostics;
+using static stepstones.Resources.AppConstants;
 
 namespace stepstones.Services.Infrastructure
 {
@@ -97,7 +94,7 @@ namespace stepstones.Services.Infrastructure
 
         private void ResetTimer()
         {
-            _debounceTimer?.Change(2000, Timeout.Infinite);
+            _debounceTimer?.Change(FolderWatcherDebounceTime, Timeout.Infinite);
         }
 
         private async void OnTimerElapsed(object? state)

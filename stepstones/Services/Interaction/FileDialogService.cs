@@ -1,4 +1,5 @@
 ﻿using Ookii.Dialogs.Wpf;
+using static stepstones.Resources.AppConstants;
 
 namespace stepstones.Services.Interaction
 {
@@ -8,7 +9,7 @@ namespace stepstones.Services.Interaction
         {
             var dialog = new VistaOpenFileDialog
             {
-                Title = "Select file(s) to upload",
+                Title = SelectFilesDialogTitle,
                 Multiselect = true
             };
 

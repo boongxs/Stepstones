@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System.IO;
 using System.Text;
 using System.Security.Cryptography;
+using static stepstones.Resources.AppConstants;
 
 namespace stepstones.Services.Core
 {
@@ -14,8 +15,8 @@ namespace stepstones.Services.Core
         public TranscodingService(ILogger<TranscodingService> logger)
         {
             _logger = logger;
-            var appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "stepstones");
-            _transcodeCacheFolder = Path.Combine(appDataFolder, "transcode-cache");
+            var appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppDataFolderName);
+            _transcodeCacheFolder = Path.Combine(appDataFolder, TranscodedCacheFolderName);
             Directory.CreateDirectory(_transcodeCacheFolder);
         }
 
@@ -27,7 +28,7 @@ namespace stepstones.Services.Core
                 var videoStream = mediaInfo.VideoStreams.FirstOrDefault();
 
                 // valid codec case
-                if (videoStream != null && videoStream.CodecName == "h264")
+                if (videoStream != null && videoStream.CodecName == CompatibleVideoCodec)
                 {
                     return false;
                 }
@@ -57,7 +58,7 @@ namespace stepstones.Services.Core
                 var mediaInfo = await FFProbe.AnalyseAsync(filePath);
                 var videoStream = mediaInfo.VideoStreams.FirstOrDefault();
 
-                if (videoStream != null && videoStream.CodecName == "h264")
+                if (videoStream != null && videoStream.CodecName == CompatibleVideoCodec)
                 {
                     _logger.LogInformation("Video '{Path}' is already in a compatible format. Playing directly.", filePath);
                     return filePath;
@@ -74,8 +75,8 @@ namespace stepstones.Services.Core
                 await FFMpegArguments
                     .FromFileInput(filePath)
                     .OutputToFile(outputFilePath, true, options => options
-                        .WithVideoCodec("libx264")
-                        .WithAudioCodec("aac"))
+                        .WithVideoCodec(TranscodeVideoCodec)
+                        .WithAudioCodec(TranscodeAudioCodec))
                     .ProcessAsynchronously();
 
                 _logger.LogInformation("Successfully transcoded file to '{Path}'", outputFilePath);
@@ -109,7 +110,7 @@ namespace stepstones.Services.Core
             using var md5 = MD5.Create();
             var hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(sourceFilePath.ToLowerInvariant()));
             var hashString = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
-            return Path.Combine(_transcodeCacheFolder, $"{hashString}.mp4");
+            return Path.Combine(_transcodeCacheFolder, $"{hashString}{Mp4Extension}");
         }
     }
 }

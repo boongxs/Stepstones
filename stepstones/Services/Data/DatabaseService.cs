@@ -2,6 +2,7 @@
 using SQLite;
 using System.IO;
 using stepstones.Models;
+using static stepstones.Resources.AppConstants;
 
 namespace stepstones.Services.Data
 {
@@ -24,9 +25,9 @@ namespace stepstones.Services.Data
 
             try
             {
-                var appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "stepstones");
+                var appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppDataFolderName);
                 Directory.CreateDirectory(appDataFolder);
-                var databasePath = Path.Combine(appDataFolder, "stepstones.db");
+                var databasePath = Path.Combine(appDataFolder, DatabaseFileName);
 
                 _database = new SQLiteAsyncConnection(databasePath);
                 await _database.CreateTableAsync<MediaItem>();

@@ -1,4 +1,5 @@
 ﻿using Ookii.Dialogs.Wpf;
+using static stepstones.Resources.AppConstants;
 
 namespace stepstones.Services.Interaction
 {
@@ -7,7 +8,7 @@ namespace stepstones.Services.Interaction
         public string? ShowDialog()
         {
             var dialog = new VistaFolderBrowserDialog();
-            dialog.Description = "Select a folder";
+            dialog.Description = SelectFolderDialogDescription;
             dialog.UseDescriptionForTitle = true;
 
             if (dialog.ShowDialog().GetValueOrDefault())

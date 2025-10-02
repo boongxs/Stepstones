@@ -11,6 +11,7 @@ using stepstones.Services.Infrastructure;
 using stepstones.Enums;
 using stepstones.Messages;
 using stepstones.Models;
+using static stepstones.Resources.AppConstants;
 
 namespace stepstones.ViewModels
 {
@@ -105,12 +106,12 @@ namespace stepstones.ViewModels
             try
             {
                 _clipboardService.CopyFileToClipboard(FilePath);
-                _messenger.Send(new ShowToastMessage("File copied to clipboard.", ToastNotificationType.Success));
+                _messenger.Send(new ShowToastMessage(FileCopiedSuccessMessage, ToastNotificationType.Success));
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "An error occurred while copying '{File}' to the clipboard.", FileName);
-                _messenger.Send(new ShowToastMessage("Failed to copy file.", ToastNotificationType.Error));
+                _messenger.Send(new ShowToastMessage(FileCopyErrorMessage, ToastNotificationType.Error));
             }
         }
 
@@ -132,13 +133,13 @@ namespace stepstones.ViewModels
                     {
                         _mediaItem.Tags = newTags;
                         await _databaseService.UpdateMediaItemAsync(_mediaItem);
-                        _messenger.Send(new ShowToastMessage("Tags updated successfully.", ToastNotificationType.Success));
+                        _messenger.Send(new ShowToastMessage(TagsUpdateSuccessMessage, ToastNotificationType.Success));
                     }
                     catch (Exception ex)
                     {
                         _mediaItem.Tags = originalTags;
                         Log.Error(ex, "Failed to update tags for '{FileName}'.", FileName);
-                        _messenger.Send(new ShowToastMessage("Failed to save tags.", ToastNotificationType.Error));
+                        _messenger.Send(new ShowToastMessage(TagsUpdateErrorMessage, ToastNotificationType.Error));
                     }
                 }
             }
@@ -230,8 +231,8 @@ namespace stepstones.ViewModels
                     dialogViewModel = new EnlargeAudioViewModel(
                         this.FilePath,
                         this.FileType,
-                        400,
-                        400);
+                        MinimumDisplaySize,
+                        MinimumDisplaySize);
                     break;
             }
 
@@ -244,7 +245,8 @@ namespace stepstones.ViewModels
         [RelayCommand]
         private async Task Delete()
         {
-            bool confirmed = _messageBoxService.ShowConfirmation("Delete File", $"Are you sure you want to permanently delete '{FileName}'?");
+            var message = string.Format(DeleteFileConfirmationMessage, FileName);
+            bool confirmed = _messageBoxService.ShowConfirmation(DeleteFileConfirmationTitle, message);
 
             if (confirmed)
             {
@@ -257,12 +259,17 @@ namespace stepstones.ViewModels
                     await _databaseService.DeleteMediaItemAsync(_mediaItem);
 
                     _messenger.Send(new MediaItemDeletedMessage(this));
-                    _messenger.Send(new ShowToastMessage($"'{_mediaItem.FileName}' was deleted.", ToastNotificationType.Success));
+
+                    var toastMessage = string.Format(FileDeleteSuccessMessage, _mediaItem.FileName);
+                    _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Success));
                 }
                 catch (Exception ex)
                 {
                     Log.Error(ex, "An error occurred during the deletion of '{FileName}'.", _mediaItem.FileName);
-                    _messenger.Send(new ShowToastMessage($"Failed to delete '{_mediaItem.FileName}'.", ToastNotificationType.Error));
+
+                    var toastMessage = string.Format(FileDeleteErrorMessage, _mediaItem.FileName);
+                    _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Error));
+
                     await LoadThumbnailAsync();
                 }
             }

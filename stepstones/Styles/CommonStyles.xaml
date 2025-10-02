@@ -1,5 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:res="clr-namespace:stepstones.Resources">
     <Style x:Key="QuadrantIconButtonStyle"
            TargetType="Button">
         <Setter Property="Template">
@@ -175,7 +176,7 @@
                             <ScrollViewer x:Name="PART_ContentHost"/>
                         </Border>
 
-                        <TextBlock Text="Search by tags..."
+                        <TextBlock Text="{x:Static res:AppConstants.SearchBoxPlaceholder}"
                                    IsHitTestVisible="False"
                                    Foreground="Gray"
                                    FontSize="28"

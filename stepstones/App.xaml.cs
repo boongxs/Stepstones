@@ -9,6 +9,7 @@ using stepstones.Services.Interaction;
 using stepstones.Services.Data;
 using stepstones.Services.Core;
 using stepstones.Services.Infrastructure;
+using static stepstones.Resources.AppConstants;
 
 namespace stepstones
 {
@@ -22,7 +23,7 @@ namespace stepstones
 
             // logger setup
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var logPath = Path.Combine(appDataPath, "stepstones", "logs", "stepstones-.txt");
+            var logPath = Path.Combine(appDataPath, AppDataFolderName, LogsFolderName, LogFileNameFormat);
 
             Log.Logger = new LoggerConfiguration()
                 .Enrich.FromLogContext()

@@ -1,11 +1,11 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using static stepstones.Resources.AppConstants;
 
 namespace stepstones.Views
 {
     public partial class EnlargeImageView : UserControl
     {
-        private const int MinimumDisplaySize = 400;
         public int MinSize => MinimumDisplaySize;
 
         public EnlargeImageView()

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.IO;
+using static stepstones.Resources.AppConstants;
 
 namespace stepstones.Services.Infrastructure
 {
@@ -12,8 +13,8 @@ namespace stepstones.Services.Infrastructure
         public SettingsService(ILogger<SettingsService> logger)
         {
             _logger = logger;
-            _appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "stepstones");
-            _settingsFilePath = Path.Combine(_appDataFolder, "media_folder.path");
+            _appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppDataFolderName);
+            _settingsFilePath = Path.Combine(_appDataFolder, MediaFolderPathFileName);
         }
 
         public string? LoadMediaFolderPath()

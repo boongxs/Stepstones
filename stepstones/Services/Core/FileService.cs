@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using stepstones.Models;
 using stepstones.Messages;
 using stepstones.Enums;
+using static stepstones.Resources.AppConstants;
 
 namespace stepstones.Services.Core
 {
@@ -40,7 +41,9 @@ namespace stepstones.Services.Core
                         else
                         {
                             _logger.LogInformation("File '{SourceFile}' already exists as '{DestinationFile}'. Skipping.", sourcePath, destinationPath);
-                            _messenger.Send(new ShowToastMessage($"'{Path.GetFileName(sourcePath)}' already in media folder. Skipped.", ToastNotificationType.Info));
+
+                            var toastMessage = string.Format(DuplicateFileSkippedMessage, Path.GetFileName(sourcePath));
+                            _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Info));
                         }
 
                         pathMappings[sourcePath] = destinationPath;

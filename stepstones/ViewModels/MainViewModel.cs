@@ -12,6 +12,7 @@ using stepstones.Services.Data;
 using stepstones.Services.Core;
 using stepstones.Services.Infrastructure;
 using stepstones.Enums;
+using static stepstones.Resources.AppConstants;
 
 namespace stepstones.ViewModels
 {
@@ -52,7 +53,7 @@ namespace stepstones.ViewModels
         private string? _filterText;
 
         [ObservableProperty]
-        private int _pageSize = 24;
+        private int _pageSize = DefaultPageSize;
 
         [ObservableProperty]
         private int _currentPage = 1;
@@ -60,7 +61,7 @@ namespace stepstones.ViewModels
         [ObservableProperty]
         private int _totalPages = 1;
 
-        public string PageInfo => $"Page {CurrentPage} of {TotalPages}";
+        public string PageInfo => string.Format(PageInfoFormat, CurrentPage, TotalPages);
 
         public ObservableCollection<ToastViewModel> Toasts { get; } = new ObservableCollection<ToastViewModel>();
 
@@ -124,7 +125,7 @@ namespace stepstones.ViewModels
                 {
                     var newToast = new ToastViewModel(message.Message, message.Type);
                     Toasts.Add(newToast);
-                    await Task.Delay(3100);
+                    await Task.Delay(ToastNotificationDuration);
                     Toasts.Remove(newToast);
                 });
             });
@@ -151,8 +152,8 @@ namespace stepstones.ViewModels
             if (string.IsNullOrWhiteSpace(savedPath))
             {
                 IsMediaViewEmpty = true;
-                EmptyViewTitle = "No media folder selected";
-                EmptyViewSubtitle = "Use the Folder button to select a media folder";
+                EmptyViewTitle = NoMediaFolderTitle;
+                EmptyViewSubtitle = NoMediaFolderSubtitle;
 
                 _logger.LogInformation("Application startup: No previously saved media folder path found.");
             }
@@ -260,8 +261,8 @@ namespace stepstones.ViewModels
             if (MediaItems.Count == 0)
             {
                 IsMediaViewEmpty = true;
-                EmptyViewTitle = "This media folder is empty";
-                EmptyViewSubtitle = "Use the Upload button to import some media files (e.g. pictures, videos, GIFs...)";
+                EmptyViewTitle = EmptyFolderTitle;
+                EmptyViewSubtitle = EmptyFolderSubtitle;
             }
             else
             {
@@ -293,13 +294,16 @@ namespace stepstones.ViewModels
                     _settingsService.SaveMediaFolderPath(selectedPath);
                     CurrentPage = 1;
                     await SynchronizeAndLoadAsync(selectedPath);
-                    _messenger.Send(new ShowToastMessage($"Folder '{Path.GetFileName(selectedPath)}' loaded.", ToastNotificationType.Success));
+
+                    var toastMessage = string.Format(FolderLoadSuccessMessage, Path.GetFileName(selectedPath));
+                    _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Success));
+
                     _folderWatcherService.StartWatching(selectedPath);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to load the selected folder.");
-                    _messenger.Send(new ShowToastMessage("Failed to load folder.", ToastNotificationType.Error));
+                    _messenger.Send(new ShowToastMessage(FolderLoadErrorMessage, ToastNotificationType.Error));
                 }
             }
         }
@@ -314,7 +318,7 @@ namespace stepstones.ViewModels
             if (string.IsNullOrWhiteSpace(mediaFolderPath))
             {
                 _logger.LogWarning("Upload aborted: Media folder path has not been set.");
-                _messageBoxService.Show("No media folder set", "No media folder path has been set, please set it first before attempting to upload file(s).");
+                _messageBoxService.Show(NoMediaFolderSetTitle, NoMediaFolderSetMessage);
                 return;
             }
 
@@ -393,7 +397,7 @@ namespace stepstones.ViewModels
         {
             if (ActiveDialogViewModel is EditTagsViewModel editTagsVM)
             {
-                var wasSaved = result == "Save";
+                var wasSaved = result == SaveCommandParameter;
 
                 var dialogResult = new EditTagsResult { WasSaved = wasSaved, NewTags = editTagsVM.TagsText };
                 _editTagsCompletionSource?.SetResult(dialogResult);
@@ -428,7 +432,8 @@ namespace stepstones.ViewModels
         {
             try
             {
-                await Task.Delay(300, token);
+                // debounce
+                await Task.Delay(FilterTriggerDelay, token);
 
                 _logger.LogInformation("Filter text changed, reloading media items.");
                 await LoadMediaItemsAsync();

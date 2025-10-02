@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
+             xmlns:res="clr-namespace:stepstones.Resources"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewmodels:TranscodingProgressViewModel}"
              d:DesignHeight="150" 
@@ -13,7 +14,7 @@
             BorderThickness="1"
             Padding="25"
             CornerRadius="5">
-        <TextBlock Text="Preparing video for playback, please wait..."
+        <TextBlock Text="{x:Static res:AppConstants.TranscodingProgressText}"
                    Foreground="White"
                    FontSize="18"
                    TextWrapping="Wrap">

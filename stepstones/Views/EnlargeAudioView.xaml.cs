@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using System.Windows.Media.Animation;
+using static stepstones.Resources.AppConstants;
 
 namespace stepstones.Views
 {
@@ -21,7 +22,7 @@ namespace stepstones.Views
 
             _indicatorTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(500)
+                Interval = TimeSpan.FromMilliseconds(IndicatorTimerInterval)
             };
             _indicatorTimer.Tick += IndicatorTimer_Tick;
         }

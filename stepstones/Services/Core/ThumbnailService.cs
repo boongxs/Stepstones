@@ -6,6 +6,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using stepstones.Models;
+using static stepstones.Resources.AppConstants;
 
 namespace stepstones.Services.Core
 {
@@ -13,14 +14,13 @@ namespace stepstones.Services.Core
     {
         private readonly ILogger<ThumbnailService> _logger;
         private readonly string _thumbnailCacheFolder;
-        private const int ThumbnailSize = 250;
 
         public ThumbnailService(ILogger<ThumbnailService> logger)
         {
             _logger = logger;
 
-            var appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "stepstones");
-            _thumbnailCacheFolder = Path.Combine(appDataFolder, "thumbnails");
+            var appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppDataFolderName);
+            _thumbnailCacheFolder = Path.Combine(appDataFolder, ThumbnailCacheFolderName);
             Directory.CreateDirectory(_thumbnailCacheFolder);
         }
 
@@ -50,7 +50,7 @@ namespace stepstones.Services.Core
                         break;
 
                     case MediaType.Video:
-                        tempImagePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.png");
+                        tempImagePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}{PngExtension}");
 
                         var mediaInfo = await FFProbe.AnalyseAsync(sourceFilePath);
                         var duration = mediaInfo.Duration;
@@ -110,7 +110,7 @@ namespace stepstones.Services.Core
             using var md5 = MD5.Create();
             var hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(sourceFilePath.ToLowerInvariant()));
             var hashString = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
-            return Path.Combine(_thumbnailCacheFolder, $"{hashString}.jpg");
+            return Path.Combine(_thumbnailCacheFolder, $"{hashString}{JpgExtension}");
         }
 
         private void ResizeAndCropImage(Image image)

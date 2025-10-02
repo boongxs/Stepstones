@@ -6,6 +6,7 @@ using System.Windows.Media.Animation;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls.Primitives;
+using static stepstones.Resources.AppConstants;
 
 namespace stepstones.Views
 {
@@ -50,8 +51,6 @@ namespace stepstones.Views
                 }
             }
         }
-
-        private const int MinimumDisplaySize = 400;
         public int MinSize => MinimumDisplaySize;
 
         public EnlargeVideoView()
@@ -65,19 +64,19 @@ namespace stepstones.Views
 
             _indicatorTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(500)
+                Interval = TimeSpan.FromMilliseconds(IndicatorTimerInterval)
             };
             _indicatorTimer.Tick += IndicatorTimer_Tick;
 
             _inactivityTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromSeconds(2)
+                Interval = TimeSpan.FromSeconds(InactivityTimerInterval)
             };
             _inactivityTimer.Tick += InactivityTimer_Tick;
 
             _volumePopupTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(200)
+                Interval = TimeSpan.FromMilliseconds(VolumePopupTimerInterval)
             };
             _volumePopupTimer.Tick += VolumePopupTimer_Tick;
         }
