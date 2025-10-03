@@ -1,7 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
 using stepstones.ViewModels;
-using static stepstones.Resources.AppConstants;
 
 namespace stepstones
 {
@@ -20,28 +19,6 @@ namespace stepstones
                     MainScrollViewer.ScrollToTop();
                 }
             };
-        }
-
-        // itemscontrol responsive grid layout depending on window dimensions
-        private void MediaItemsControl_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            var viewModel = DataContext as MainViewModel;
-            double availableWidth = e.NewSize.Width;
-
-            if (availableWidth <= 0 || viewModel == null)
-            {
-                return;
-            }
-
-            double desiredThumbnailWidth = DesiredThumbnailWidth;
-            double horizontalItemMargin = HorizontalItemMargin;
-
-            int newColumns = (int)Math.Max(1, Math.Floor(availableWidth / (desiredThumbnailWidth + horizontalItemMargin)));
-
-            if (viewModel.GridColumns != newColumns)
-            {
-                viewModel.GridColumns = newColumns;
-            }
         }
 
         // to allow user to make filter textbox "inactive" when clicked anywhere else

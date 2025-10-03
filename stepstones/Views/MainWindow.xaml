@@ -8,6 +8,7 @@
         xmlns:views="clr-namespace:stepstones.Views"
         xmlns:converters="clr-namespace:stepstones.Converters"
         xmlns:res="clr-namespace:stepstones.Resources"
+        xmlns:vwp="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
         Title="{x:Static res:AppConstants.MainWindowTitle}" 
@@ -165,11 +166,13 @@
                       Style="{StaticResource CustomScrollViewerStyle}">
             <ItemsControl x:Name="MediaItemsControl"
                           ItemsSource="{Binding MediaItems}"
-                          SizeChanged="MediaItemsControl_SizeChanged"
-                          VerticalAlignment="Top">
+                          VerticalAlignment="Top"
+                          ScrollViewer.CanContentScroll="True"
+                          VirtualizingPanel.IsVirtualizing="True"
+                          VirtualizingPanel.VirtualizationMode="Recycling">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <UniformGrid Columns="{Binding GridColumns}"/>
+                        <vwp:VirtualizingWrapPanel StretchItems="True"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
 
@@ -178,6 +181,7 @@
                         <Border x:Name="ItemContainer"
                                 Margin="7"
                                 Height="250"
+                                MinWidth="270"
                                 CornerRadius="10"
                                 ClipToBounds="True">
                             <Grid>
@@ -436,6 +440,7 @@
                     <DataTemplate DataType="{x:Type viewmodels:PlaceholderViewModel}">
                         <Border Margin="5"
                                 Height="250"
+                                MinWidth="270"
                                 Background="#303030"
                                 CornerRadius="5">
                             <TextBlock Text="{x:Static res:AppConstants.LoadingPlaceholder}"

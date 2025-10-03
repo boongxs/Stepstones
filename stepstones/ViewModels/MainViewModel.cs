@@ -37,9 +37,6 @@ namespace stepstones.ViewModels
         public ObservableCollection<object> MediaItems { get; } = new();
 
         [ObservableProperty]
-        private int _gridColumns = 4;
-
-        [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsOverlayVisible))]
         private object? _activeDialogViewModel;
 
