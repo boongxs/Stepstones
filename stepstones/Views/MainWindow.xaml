@@ -215,11 +215,11 @@
                                     </Border.Background>
                                 </Border>
 
-                                <!-- Video file details overlay -->
+                                <!-- File details overlay -->
                                 <Border HorizontalAlignment="Right"
                                         VerticalAlignment="Top"
                                         Margin="10"
-                                        Padding="5"
+                                        Padding="8,5"
                                         CornerRadius="10"
                                         BorderThickness="2"
                                         BorderBrush="#f0f0f0"
@@ -229,8 +229,8 @@
                                             <Setter Property="Visibility" Value="Collapsed"/>
 
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsVideo}"
-                                                             Value="True">
+                                                <DataTrigger Binding="{Binding MediaTypeOverlayText, Converter={StaticResource NullToVisibilityConverter}}"
+                                                             Value="Visible">
                                                     <Setter Property="Visibility" Value="Visible"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
@@ -238,10 +238,10 @@
                                     </Border.Style>
 
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding FormattedDuration}"
+                                        <TextBlock Text="{Binding MediaTypeOverlayText}"
                                                    Foreground="#f0f0f0"
-                                                   VerticalAlignment="Center"
-                                                   Margin="3,0,5,0">
+                                                   FontWeight="Bold"
+                                                   VerticalAlignment="Center">
                                         </TextBlock>
 
                                         <Path Data="M8,5.14V19.14L19,12.14L8,5.14Z"
@@ -249,69 +249,22 @@
                                               Stretch="Uniform"
                                               Width="15"
                                               Height="15"
-                                              HorizontalAlignment="Center"
                                               VerticalAlignment="Center"
                                               Margin="4,0,0,0">
+                                            <Path.Style>
+                                                <Style TargetType="Path">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsVideo}"
+                                                                     Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Path.Style>
                                         </Path>
                                     </StackPanel>
-                                </Border>
-
-                                <!-- Gif file details overlay -->
-                                <Border HorizontalAlignment="Right"
-                                        VerticalAlignment="Top"
-                                        Margin="10"
-                                        Padding="8,5"
-                                        CornerRadius="10"
-                                        BorderThickness="2"
-                                        BorderBrush="#f0f0f0"
-                                        Background="#cc000000">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsGif}"
-                                                             Value="True">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-
-                                    <TextBlock Text="GIF"
-                                               Foreground="White"
-                                               FontWeight="Bold"
-                                               VerticalAlignment="Center">  
-                                    </TextBlock>
-                                </Border>
-
-                                <!-- Audio file details overlay -->
-                                <Border HorizontalAlignment="Right"
-                                        VerticalAlignment="Top"
-                                        Margin="10"
-                                        Padding="8,5"
-                                        CornerRadius="10"
-                                        BorderThickness="2"
-                                        BorderBrush="#f0f0f0"
-                                        Background="#cc000000">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsAudio}"
-                                                             Value="True">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-
-                                    <TextBlock Text="AUDIO"
-                                               Foreground="White"
-                                               FontWeight="Bold"
-                                               VerticalAlignment="Center">
-                                    </TextBlock>
                                 </Border>
                                 
                                 <!-- Darkening overlay -->

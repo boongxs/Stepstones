@@ -64,6 +64,12 @@ namespace stepstones.ViewModels
         public bool IsAudio => FileType == MediaType.Audio;
         public string FormattedDuration => _mediaItem.Duration.ToString(@"hh\:mm\:ss");
 
+        public string? MediaTypeOverlayText =>
+            IsVideo ? FormattedDuration :
+            IsGif ? "GIF" :
+            IsAudio ? "AUDIO" :
+            null;
+
         public async Task LoadThumbnailAsync()
         {
             if (string.IsNullOrWhiteSpace(ThumbnailPath))
