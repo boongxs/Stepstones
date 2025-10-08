@@ -339,6 +339,8 @@ namespace stepstones.ViewModels
             var fileList = selectedFiles.ToList();
             _logger.LogInformation("{FileCount} file(s) have been selected for upload.", fileList.Count);
 
+            IsMediaViewEmpty = false;
+
             // temporarily stop watcher to prevent it from reacting to UploadFiles command copies
             _folderWatcherService.StopWatching();
 
