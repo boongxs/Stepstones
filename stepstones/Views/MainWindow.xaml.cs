@@ -12,9 +12,9 @@ namespace stepstones
             this.DataContext = viewModel;
 
             // scroll to the top on page change
-            viewModel.PropertyChanged += (sender, args) =>
+            viewModel.Paginator.PropertyChanged += (sender, args) =>
             {
-                if (args.PropertyName == nameof(viewModel.CurrentPage))
+                if (args.PropertyName == nameof(viewModel.Paginator.CurrentPage))
                 {
                     MainScrollViewer.ScrollToTop();
                 }

@@ -85,7 +85,7 @@
             </Button>
 
             <!-- Pagination controls -->
-            <Button Command="{Binding GoToFirstPageCommand}"
+            <Button Command="{Binding Paginator.GoToFirstPageCommand}"
                     Style="{StaticResource StackPanelButtonStyle}"
                     Margin="20,5,5,5">
                 <Grid>
@@ -107,7 +107,7 @@
                 </Grid>
             </Button>
             
-            <Button Command="{Binding GoToPreviousPageCommand}"
+            <Button Command="{Binding Paginator.GoToPreviousPageCommand}"
                     Style="{StaticResource StackPanelButtonStyle}"
                     Margin="5,5,10,5">
                 <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
@@ -119,13 +119,13 @@
                 </Path>
             </Button>
 
-            <TextBlock Text="{Binding PageInfo}"
+            <TextBlock Text="{Binding Paginator.PageInfo}"
                        Foreground="White"
                        FontSize="16"
                        VerticalAlignment="Center">
             </TextBlock>
 
-            <Button Command="{Binding GoToNextPageCommand}"
+            <Button Command="{Binding Paginator.GoToNextPageCommand}"
                     Style="{StaticResource StackPanelButtonStyle}"
                     Margin="10,5,5,5">
                 <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
@@ -137,7 +137,7 @@
                 </Path>
             </Button>
 
-            <Button Command="{Binding GoToLastPageCommand}"
+            <Button Command="{Binding Paginator.GoToLastPageCommand}"
                     Style="{StaticResource StackPanelButtonStyle}">
                 <Grid>
                     <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"

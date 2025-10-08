@@ -13,7 +13,6 @@ using stepstones.Services.Core;
 using stepstones.Services.Infrastructure;
 using stepstones.Enums;
 using static stepstones.Resources.AppConstants;
-using System.Threading.Tasks;
 
 namespace stepstones.ViewModels
 {
@@ -50,16 +49,7 @@ namespace stepstones.ViewModels
         [ObservableProperty]
         private string? _filterText;
 
-        [ObservableProperty]
-        private int _pageSize = DefaultPageSize;
-
-        [ObservableProperty]
-        private int _currentPage = 1;
-
-        [ObservableProperty]
-        private int _totalPages = 1;
-
-        public string PageInfo => string.Format(PageInfoFormat, CurrentPage, TotalPages);
+        public Paginator Paginator { get; }
 
         public ObservableCollection<ToastViewModel> Toasts { get; } = new ObservableCollection<ToastViewModel>();
 
@@ -109,6 +99,8 @@ namespace stepstones.ViewModels
             _dataMigrationService = dataMigrationService;
             _folderWatcherService = folderWatcherService;
             _mediaItemProcessorService = mediaItemProcessorService;
+
+            Paginator = new Paginator(async (page) => await LoadMediaItemsAsync());
 
             _messenger.Register<MediaItemDeletedMessage>(this, (recipient, message) =>
             {
@@ -207,12 +199,7 @@ namespace stepstones.ViewModels
 
             var currentDbItemCount = await _databaseService.GetItemCountForFolderAsync(folderPath, FilterText);
             var totalVirtualItems = currentDbItemCount + _pendingFilesCount;
-            TotalPages = (int)Math.Ceiling((double)totalVirtualItems / PageSize);
-
-            if (TotalPages == 0)
-            {
-                TotalPages = 1;
-            }
+            Paginator.UpdateTotalPages(totalVirtualItems);
 
             await LoadMediaItemsAsync();
 
@@ -265,19 +252,15 @@ namespace stepstones.ViewModels
                 return;
             }
 
-            _logger.LogInformation("Loading page {Page} for folder '{Path}'", CurrentPage, mediaFolderPath);
+            _logger.LogInformation("Loading page {Page} for folder '{Path}'", Paginator.CurrentPage, mediaFolderPath);
 
             if (!_isProcessingUpload)
             {
                 var totalItems = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText);
-                TotalPages = (int)Math.Ceiling((double)totalItems / PageSize);
-                if (TotalPages == 0)
-                {
-                    TotalPages = 1;
-                }
+                Paginator.UpdateTotalPages(totalItems);
             }
 
-            var items = await _databaseService.GetAllItemsForFolderAsyncPaging(mediaFolderPath, CurrentPage, PageSize, FilterText);
+            var items = await _databaseService.GetAllItemsForFolderAsyncPaging(mediaFolderPath, Paginator.CurrentPage, Paginator.PageSize, FilterText);
 
             MediaItems.Clear();
             var newViewModels = new List<MediaItemViewModel>();
@@ -291,18 +274,18 @@ namespace stepstones.ViewModels
             if (_isProcessingUpload)
             {
                 var currentDbItemCount = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText);
-                var startItemIndexOfPage = (CurrentPage - 1) * PageSize;
+                var startItemIndexOfPage = (Paginator.CurrentPage - 1) * Paginator.PageSize;
                 var placeholdersToAdd = 0;
 
                 if (startItemIndexOfPage >= currentDbItemCount)
                 {
                     var pendingItemsAlreadyShown = startItemIndexOfPage - currentDbItemCount;
                     var pendingItemsLeft = _pendingFilesCount - pendingItemsAlreadyShown;
-                    placeholdersToAdd = Math.Max(0, Math.Min(PageSize, pendingItemsLeft));
+                    placeholdersToAdd = Math.Max(0, Math.Min(Paginator.PageSize, pendingItemsLeft));
                 }
-                else if (MediaItems.Count < PageSize)
+                else if (MediaItems.Count < Paginator.PageSize)
                 {
-                    placeholdersToAdd = Math.Max(0, Math.Min(PageSize - MediaItems.Count, _pendingFilesCount));
+                    placeholdersToAdd = Math.Max(0, Math.Min(Paginator.PageSize - MediaItems.Count, _pendingFilesCount));
                 }
 
                 for (int i = 0; i < placeholdersToAdd; i++)
@@ -350,7 +333,7 @@ namespace stepstones.ViewModels
             {
                 _logger.LogInformation("User selected folder '{Path}'", folderPath);
                 _settingsService.SaveMediaFolderPath(folderPath);
-                CurrentPage = 1;
+                Paginator.CurrentPage = 1;
                 await SynchronizeAndLoadAsync(folderPath);
 
                 if (showToast)
@@ -401,12 +384,7 @@ namespace stepstones.ViewModels
 
             var currentDbItemCount = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText);
             var totalVirtualItems = currentDbItemCount + _pendingFilesCount;
-            TotalPages = (int)Math.Ceiling((double)totalVirtualItems / PageSize);
-
-            if (TotalPages == 0)
-            {
-                TotalPages = 1;
-            }
+            Paginator.UpdateTotalPages(totalVirtualItems);
 
             await LoadMediaItemsAsync();
 
@@ -459,7 +437,7 @@ namespace stepstones.ViewModels
 
         partial void OnFilterTextChanged(string? value)
         {
-            CurrentPage = 1;
+            Paginator.CurrentPage = 1;
 
             _filterCts?.Cancel();
             _filterCts = new CancellationTokenSource();
@@ -480,72 +458,6 @@ namespace stepstones.ViewModels
             {
                 // expected catch, when user is typing quickly
             }
-        }
-
-        partial void OnCurrentPageChanged(int value)
-        {
-            OnPropertyChanged(nameof(PageInfo));
-            GoToNextPageCommand.NotifyCanExecuteChanged();
-            GoToPreviousPageCommand.NotifyCanExecuteChanged();
-            GoToFirstPageCommand.NotifyCanExecuteChanged();
-            GoToLastPageCommand.NotifyCanExecuteChanged();
-        }
-
-        partial void OnTotalPagesChanged(int value)
-        {
-            OnPropertyChanged(nameof(PageInfo));
-            GoToNextPageCommand.NotifyCanExecuteChanged();
-            GoToPreviousPageCommand.NotifyCanExecuteChanged();
-            GoToFirstPageCommand.NotifyCanExecuteChanged();
-            GoToLastPageCommand.NotifyCanExecuteChanged();
-        }
-
-        [RelayCommand(CanExecute = nameof(CanGoToNextPage))]
-        private async Task GoToNextPage()
-        {
-            CurrentPage++;
-            await LoadMediaItemsAsync();
-        }
-
-        private bool CanGoToNextPage()
-        {
-            return CurrentPage < TotalPages;
-        }
-
-        [RelayCommand(CanExecute = nameof(CanGoToPreviousPage))]
-        private async Task GoToPreviousPage()
-        {
-            CurrentPage--;
-            await LoadMediaItemsAsync();
-        }
-
-        private bool CanGoToPreviousPage()
-        {
-            return CurrentPage > 1;
-        }
-
-        [RelayCommand(CanExecute = nameof(CanGoToFirstPage))]
-        private async Task GoToFirstPage()
-        {
-            CurrentPage = 1;
-            await LoadMediaItemsAsync();
-        }
-
-        private bool CanGoToFirstPage()
-        {
-            return CurrentPage > 1;
-        }
-
-        [RelayCommand(CanExecute = nameof(CanGoToLastPage))]
-        private async Task GoToLastPage()
-        {
-            CurrentPage = TotalPages;
-            await LoadMediaItemsAsync();
-        }
-
-        private bool CanGoToLastPage()
-        {
-            return CurrentPage < TotalPages;
         }
 
         private async Task HandleFileSystemChangesAsync(FileSystemChangesDetectedMessage message)
@@ -636,7 +548,7 @@ namespace stepstones.ViewModels
 
         private void AddPlaceholdersToView(int itemCount)
         {
-            var availableSlots = PageSize - MediaItems.Count; ;
+            var availableSlots = Paginator.PageSize - MediaItems.Count; ;
             var placeholdersToAdd = Math.Min(itemCount, availableSlots);
 
             if (placeholdersToAdd > 0)
@@ -658,8 +570,8 @@ namespace stepstones.ViewModels
 
             var preExistingItemCount = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText) - _processedFilesCount;
             var newItemAbsoluteIndex = preExistingItemCount + _processedFilesCount - 1;
-            var pageStartIndex = (CurrentPage - 1) * PageSize;
-            var pageEndIndex = pageStartIndex + PageSize - 1;
+            var pageStartIndex = (Paginator.CurrentPage - 1) * Paginator.PageSize;
+            var pageEndIndex = pageStartIndex + Paginator.PageSize - 1;
 
             if (newItemAbsoluteIndex >= pageStartIndex && newItemAbsoluteIndex <= pageEndIndex)
             {
