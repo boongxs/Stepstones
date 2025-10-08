@@ -13,6 +13,7 @@ using stepstones.Services.Core;
 using stepstones.Services.Infrastructure;
 using stepstones.Enums;
 using static stepstones.Resources.AppConstants;
+using System.Threading.Tasks;
 
 namespace stepstones.ViewModels
 {
@@ -72,6 +73,10 @@ namespace stepstones.ViewModels
         private string _emptyViewSubtitle;
 
         private CancellationTokenSource? _activeTranscodingCts;
+
+        private bool _isProcessingUpload = false;
+        private int _pendingFilesCount = 0;
+        private int _processedFilesCount = 0;
 
         public MainViewModel(ILogger<MainViewModel> logger,
                              ISettingsService settingsService,
@@ -192,25 +197,49 @@ namespace stepstones.ViewModels
             // if there aren't any orphans, finish
             if (orphans.Count == 0)
             {
+                await LoadMediaItemsAsync();
                 return;
             }
 
-            IsMediaViewEmpty = false;
+            _isProcessingUpload = true;
+            _pendingFilesCount = orphans.Count;
+            _processedFilesCount = 0;
 
-            AddPlaceholdersToView(orphans.Count);
+            var currentDbItemCount = await _databaseService.GetItemCountForFolderAsync(folderPath, FilterText);
+            var totalVirtualItems = currentDbItemCount + _pendingFilesCount;
+            TotalPages = (int)Math.Ceiling((double)totalVirtualItems / PageSize);
 
-            // start processing orphans
-            await _synchronizationService.SynchronizeDataAsync(folderPath, (processedItem) =>
+            if (TotalPages == 0)
             {
-                // when sync service sends back signal that it has processed an orphan...
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    ReplacePlaceholderWithViewModel(processedItem);
-                });
-            });
+                TotalPages = 1;
+            }
 
-            // to ensure that pagination controls are correct
             await LoadMediaItemsAsync();
+
+            try
+            {
+                await _synchronizationService.SynchronizeDataAsync(folderPath, (processedItem) =>
+                {
+                    _pendingFilesCount--;
+
+                    if (processedItem != null)
+                    {
+                        _processedFilesCount++;
+                        // when sync service sends back signal that it has processed an orphan...
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            ReplacePlaceholderWithViewModel(processedItem);
+                        });
+                    }
+                });
+            }
+            finally
+            {
+                _isProcessingUpload = false;
+                _pendingFilesCount = 0;
+                _processedFilesCount = 0;
+                await LoadMediaItemsAsync();
+            }
         }
 
         private async Task<List<string>> GetOrphanPathsAsync(string folderPath)
@@ -238,11 +267,14 @@ namespace stepstones.ViewModels
 
             _logger.LogInformation("Loading page {Page} for folder '{Path}'", CurrentPage, mediaFolderPath);
 
-            var totalItems = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText);
-            TotalPages = (int)Math.Ceiling((double)totalItems / PageSize);
-            if (TotalPages == 0)
+            if (!_isProcessingUpload)
             {
-                TotalPages = 1;
+                var totalItems = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText);
+                TotalPages = (int)Math.Ceiling((double)totalItems / PageSize);
+                if (TotalPages == 0)
+                {
+                    TotalPages = 1;
+                }
             }
 
             var items = await _databaseService.GetAllItemsForFolderAsyncPaging(mediaFolderPath, CurrentPage, PageSize, FilterText);
@@ -256,7 +288,30 @@ namespace stepstones.ViewModels
                 MediaItems.Add(vm);
             }
 
-            if (MediaItems.Count == 0)
+            if (_isProcessingUpload)
+            {
+                var currentDbItemCount = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText);
+                var startItemIndexOfPage = (CurrentPage - 1) * PageSize;
+                var placeholdersToAdd = 0;
+
+                if (startItemIndexOfPage >= currentDbItemCount)
+                {
+                    var pendingItemsAlreadyShown = startItemIndexOfPage - currentDbItemCount;
+                    var pendingItemsLeft = _pendingFilesCount - pendingItemsAlreadyShown;
+                    placeholdersToAdd = Math.Max(0, Math.Min(PageSize, pendingItemsLeft));
+                }
+                else if (MediaItems.Count < PageSize)
+                {
+                    placeholdersToAdd = Math.Max(0, Math.Min(PageSize - MediaItems.Count, _pendingFilesCount));
+                }
+
+                for (int i = 0; i < placeholdersToAdd; i++)
+                {
+                    MediaItems.Add(new PlaceholderViewModel());
+                }
+            }
+
+            if (MediaItems.Count == 0 && !_isProcessingUpload)
             {
                 IsMediaViewEmpty = true;
                 EmptyViewTitle = EmptyFolderTitle;
@@ -270,7 +325,6 @@ namespace stepstones.ViewModels
             _logger.LogInformation("Loaded {Count} media items.", newViewModels.Count);
 
             var thumbnailLoadTasks = newViewModels.Select(vm => vm.LoadThumbnailAsync()).ToList();
-            await Task.WhenAll(thumbnailLoadTasks);
             _logger.LogInformation("Background thumbnail loading complete.");
         }
 
@@ -341,63 +395,39 @@ namespace stepstones.ViewModels
 
             IsMediaViewEmpty = false;
 
-            // temporarily stop watcher to prevent it from reacting to UploadFiles command copies
-            _folderWatcherService.StopWatching();
+            _isProcessingUpload = true;
+            _pendingFilesCount = fileList.Count;
+            _processedFilesCount = 0;
 
-            try
+            var currentDbItemCount = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText);
+            var totalVirtualItems = currentDbItemCount + _pendingFilesCount;
+            TotalPages = (int)Math.Ceiling((double)totalVirtualItems / PageSize);
+
+            if (TotalPages == 0)
             {
-                // place temporary placeholders for immediate feedback
-                AddPlaceholdersToView(fileList.Count);
-
-                // start processing the uploaded files
-                await Task.Run(async () =>
-                {
-                    // first copy and rename all files into media folder 
-                    var pathMappings = await _fileService.CopyFilesAsync(fileList, mediaFolderPath);
-
-                    foreach (var sourcePath in fileList)
-                    {
-                        // if a file is not in the map, it means an error occurred during copy
-                        if (!pathMappings.TryGetValue(sourcePath, out var newFilePath))
-                        {
-                            continue;
-                        }
-
-                        // if the new path is null, it was a duplicate
-                        if (newFilePath == null)
-                        {
-                            continue;
-                        }
-
-                        try
-                        {
-                            // process file into media item object
-                            var processedItem = await _mediaItemProcessorService.ProcessNewFileAsync(sourcePath, newFilePath);
-
-                            if (processedItem != null)
-                            {
-                                // replace a placeholder with the processed file
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    ReplacePlaceholderWithViewModel(processedItem);
-                                });
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Failed to process uploaded file '{Path}'", sourcePath);
-                        }
-                    }
-                });
-            }
-            finally
-            {
-                // restart watcher so that user's manually copied files are processed
-                _folderWatcherService.StartWatching(mediaFolderPath);
+                TotalPages = 1;
             }
 
-            _logger.LogInformation("Upload processing complete. Refreshing UI.");
             await LoadMediaItemsAsync();
+
+            _ = Task.Run(async () =>
+            {
+                // temporarily stop watcher to prevent it from reacting to UploadFiles command copies
+                _folderWatcherService.StopWatching();
+
+                try
+                {
+                    await _fileService.CopyFilesAsync(fileList, mediaFolderPath);
+                    await Application.Current.Dispatcher.InvokeAsync(() =>
+                    {
+                        SynchronizeAndLoadAsync(mediaFolderPath);
+                    });
+                }
+                finally
+                {
+                    _folderWatcherService.StartWatching(mediaFolderPath);
+                }
+            });
         }
 
         [RelayCommand]
@@ -618,17 +648,33 @@ namespace stepstones.ViewModels
             }
         }
 
-        private void ReplacePlaceholderWithViewModel(MediaItem newItem)
+        private async Task ReplacePlaceholderWithViewModel(MediaItem newItem)
         {
-            var placeholder = MediaItems.OfType<PlaceholderViewModel>().FirstOrDefault();
-            if (placeholder != null)
+            var mediaFolderPath = _settingsService.LoadMediaFolderPath();
+            if (string.IsNullOrWhiteSpace(mediaFolderPath))
             {
-                var vm = _mediaItemViewModelFactory.Create(newItem);
-                var placeholderIndex = MediaItems.IndexOf(placeholder);
+                return;
+            }
 
-                MediaItems[placeholderIndex] = vm;
+            var preExistingItemCount = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText) - _processedFilesCount;
+            var newItemAbsoluteIndex = preExistingItemCount + _processedFilesCount - 1;
+            var pageStartIndex = (CurrentPage - 1) * PageSize;
+            var pageEndIndex = pageStartIndex + PageSize - 1;
 
-                _ = vm.LoadThumbnailAsync();
+            if (newItemAbsoluteIndex >= pageStartIndex && newItemAbsoluteIndex <= pageEndIndex)
+            {
+                var placeholder = MediaItems.OfType<PlaceholderViewModel>().FirstOrDefault();
+                if (placeholder != null)
+                {
+                    var vm = _mediaItemViewModelFactory.Create(newItem);
+                    var placeholderIndex = MediaItems.IndexOf(placeholder);
+
+                    if (placeholderIndex >= 0 && placeholderIndex < MediaItems.Count)
+                    {
+                        MediaItems[placeholderIndex] = vm;
+                        _ = vm.LoadThumbnailAsync();
+                    }
+                }
             }
         }
     }
