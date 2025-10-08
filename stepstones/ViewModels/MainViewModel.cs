@@ -157,8 +157,7 @@ namespace stepstones.ViewModels
             else
             {
                 _logger.LogInformation("Application startup: Located saved media folder path: {Path}", savedPath);
-                await SynchronizeAndLoadAsync(savedPath);
-                _folderWatcherService.StartWatching(savedPath);
+                await LoadFolderAsync(savedPath, showToast: false);
             }
         }
 
@@ -195,6 +194,8 @@ namespace stepstones.ViewModels
             {
                 return;
             }
+
+            IsMediaViewEmpty = false;
 
             AddPlaceholdersToView(orphans.Count);
 
@@ -285,23 +286,31 @@ namespace stepstones.ViewModels
             }
             else
             {
-                try
-                {
-                    _logger.LogInformation("User selected folder '{Path}'", selectedPath);
-                    _settingsService.SaveMediaFolderPath(selectedPath);
-                    CurrentPage = 1;
-                    await SynchronizeAndLoadAsync(selectedPath);
+                await LoadFolderAsync(selectedPath, showToast: true);
+            }
+        }
 
-                    var toastMessage = string.Format(FolderLoadSuccessMessage, Path.GetFileName(selectedPath));
+        private async Task LoadFolderAsync(string folderPath, bool showToast)
+        {
+            try
+            {
+                _logger.LogInformation("User selected folder '{Path}'", folderPath);
+                _settingsService.SaveMediaFolderPath(folderPath);
+                CurrentPage = 1;
+                await SynchronizeAndLoadAsync(folderPath);
+
+                if (showToast)
+                {
+                    var toastMessage = string.Format(FolderLoadSuccessMessage, Path.GetFileName(folderPath));
                     _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Success));
+                }
 
-                    _folderWatcherService.StartWatching(selectedPath);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to load the selected folder.");
-                    _messenger.Send(new ShowToastMessage(FolderLoadErrorMessage, ToastNotificationType.Error));
-                }
+                _folderWatcherService.StartWatching(folderPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load the selected folder.");
+                _messenger.Send(new ShowToastMessage(FolderLoadErrorMessage, ToastNotificationType.Error));
             }
         }
 
