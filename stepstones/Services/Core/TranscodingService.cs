@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System.IO;
 using System.Text;
 using System.Security.Cryptography;
+using System.Threading;
 using static stepstones.Resources.AppConstants;
 
 namespace stepstones.Services.Core
@@ -49,7 +50,7 @@ namespace stepstones.Services.Core
             }
         }
 
-        public async Task<string> EnsurePlayableFileAsync(string filePath)
+        public async Task<string> EnsurePlayableFileAsync(string filePath, CancellationToken cancellationToken)
         {
             var outputFilePath = GetCachePathForFile(filePath);
 
@@ -77,10 +78,18 @@ namespace stepstones.Services.Core
                     .OutputToFile(outputFilePath, true, options => options
                         .WithVideoCodec(TranscodeVideoCodec)
                         .WithAudioCodec(TranscodeAudioCodec))
+                    .CancellableThrough(cancellationToken)
                     .ProcessAsynchronously();
 
                 _logger.LogInformation("Successfully transcoded file to '{Path}'", outputFilePath);
                 return outputFilePath;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Transcoding was cancelled for file '{Path}'.", filePath);
+
+                // re-throw so called knows it was cancelled
+                throw;
             }
             catch (Exception ex)
             {

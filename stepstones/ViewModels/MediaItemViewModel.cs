@@ -25,7 +25,7 @@ namespace stepstones.ViewModels
         private readonly IDatabaseService _databaseService;
         private readonly IMessenger _messenger;
         private readonly IImageDimensionService _imageDimensionService;
-        private readonly IDialogPresenter _dialogPresenter;
+        private readonly IDialogService _dialogService;
         private readonly ITranscodingService _transcodingService;
 
         private CancellationTokenSource? _transcodingCts;
@@ -40,7 +40,7 @@ namespace stepstones.ViewModels
                                   IDatabaseService databaseService, 
                                   IMessenger messenger,
                                   IImageDimensionService imageDimensionService,
-                                  IDialogPresenter dialogPresenter,
+                                  IDialogService dialogService,
                                   ITranscodingService transcodingService)
         {
             _mediaItem = mediaItem;
@@ -51,7 +51,7 @@ namespace stepstones.ViewModels
             _databaseService = databaseService;
             _messenger = messenger;
             _imageDimensionService = imageDimensionService;
-            _dialogPresenter = dialogPresenter;
+            _dialogService = dialogService;
             _transcodingService = transcodingService;
         }
 
@@ -126,7 +126,7 @@ namespace stepstones.ViewModels
         {
             // get the selected item's Tags column value and pre-fill the dialog
             var originalTags = _mediaItem.Tags;
-            var result = await _dialogPresenter.ShowEditTagsDialogAsync(originalTags);
+            var result = await _dialogService.ShowEditTagsDialogAsync(originalTags);
 
             if (result.WasSaved)
             {
@@ -190,14 +190,25 @@ namespace stepstones.ViewModels
 
                     if (await _transcodingService.IsTranscodingRequiredAsync(this.FilePath))
                     {
-                        _messenger.Send(new ShowDialogMessage(new TranscodingProgressViewModel()));
-                        _messenger.Send(new TranscodingStartedMessage(_transcodingCts));
+                        _dialogService.ShowTranscodingDialog(_transcodingCts);
                     }
 
-                    var transcodingTask = Task.Run(() => _transcodingService.EnsurePlayableFileAsync(this.FilePath));
-                    var playableFilePath = await transcodingTask;
+                    try
+                    {
+                        var playableFilePath = await _transcodingService.EnsurePlayableFileAsync(this.FilePath, _transcodingCts.Token);
 
-                    if (_transcodingCts.Token.IsCancellationRequested)
+                        if (!_transcodingCts.Token.IsCancellationRequested)
+                        {
+                            dialogViewModel = new EnlargeVideoViewModel(
+                                playableFilePath,
+                                this.FileType,
+                                dimensions.Width,
+                                dimensions.Height);
+
+                            _dialogService.ShowDialog(dialogViewModel);
+                        }
+                    }
+                    catch (OperationCanceledException)
                     {
                         Log.Information("Cancellation was requested. Cleaning up transcoded file.");
                         var cachedFilePath = _transcodingService.GetCachePathForFile(this.FilePath);
@@ -207,20 +218,15 @@ namespace stepstones.ViewModels
                             {
                                 File.Delete(cachedFilePath);
                                 Log.Information("Successfully deleted transcoded file '{Path}'", cachedFilePath);
+
+                                return;
                             }
                         }
                         catch (Exception ex)
                         {
                             Log.Error(ex, "Failed to delete transcoded file '{Path}'", cachedFilePath);
                         }
-                        return;
                     }
-
-                    dialogViewModel = new EnlargeVideoViewModel(
-                        playableFilePath,
-                        this.FileType,
-                        dimensions.Width,
-                        dimensions.Height);
 
                     break;
 
@@ -244,7 +250,7 @@ namespace stepstones.ViewModels
 
             if (dialogViewModel != null)
             {
-                _messenger.Send(new ShowDialogMessage(dialogViewModel));
+                _dialogService.ShowDialog(dialogViewModel);
             }
         }
 

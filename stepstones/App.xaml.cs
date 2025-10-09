@@ -55,14 +55,12 @@ namespace stepstones
                     services.AddSingleton<IFolderWatcherService, FolderWatcherService>();
                     services.AddSingleton<IMediaItemProcessorService, MediaItemProcessorService>();
                     services.AddSingleton<ITranscodingService, TranscodingService>();
+                    services.AddSingleton<IDialogService, DialogService>();
 
                     services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 
                     services.AddSingleton<MainViewModel>();
                     services.AddTransient<MainWindow>();
-
-                    services.AddSingleton<IDialogPresenter>(s => s.GetRequiredService<MainViewModel>());
-                    services.AddTransient<Lazy<IDialogPresenter>>(s => new Lazy<IDialogPresenter>(() => s.GetRequiredService<IDialogPresenter>()));
                 })
                 .Build();
         }

@@ -24,10 +24,6 @@
         #endregion
 
         #region UI Text
-
-        public const string MainWindowTitle = "Stepstones";
-        public const string SearchBoxPlaceholder = "Search by tags...";
-        public const string LoadingPlaceholder = "Loading...";
         public const string PageInfoFormat = "Page {0} of {1}";
 
         #endregion

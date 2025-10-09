@@ -5,10 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewmodels="clr-namespace:stepstones.ViewModels"
              xmlns:views="clr-namespace:stepstones.Views"
+             xmlns:interaction="clr-namespace:stepstones.Services.Interaction"
              mc:Ignorable="d" 
              d:DesignHeight="450" 
              d:DesignWidth="800"
-             d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}">
+             d:DataContext="{d:DesignInstance Type=interaction:DialogService}">
     <UserControl.Resources>
         <DataTemplate DataType="{x:Type viewmodels:EditTagsViewModel}">
             <views:EditTagsView/>

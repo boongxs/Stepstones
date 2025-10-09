@@ -16,7 +16,7 @@ using static stepstones.Resources.AppConstants;
 
 namespace stepstones.ViewModels
 {
-    public partial class MainViewModel : ObservableObject, IDialogPresenter
+    public partial class MainViewModel : ObservableObject
     {
         private readonly ILogger<MainViewModel> _logger;
         private readonly ISettingsService _settingsService;
@@ -33,16 +33,11 @@ namespace stepstones.ViewModels
         private readonly IDataMigrationService _dataMigrationService;
         private readonly IFolderWatcherService _folderWatcherService;
         private readonly IMediaItemProcessorService _mediaItemProcessorService;
+        private readonly IDialogService _dialogService;
+
+        public IDialogService DialogService => _dialogService;
 
         public ObservableCollection<object> MediaItems { get; } = new();
-
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsOverlayVisible))]
-        private object? _activeDialogViewModel;
-
-        public bool IsOverlayVisible => ActiveDialogViewModel != null;
-
-        private TaskCompletionSource<EditTagsResult>? _editTagsCompletionSource;
 
         private CancellationTokenSource? _filterCts;
 
@@ -82,7 +77,8 @@ namespace stepstones.ViewModels
                              IFileTypeIdentifierService fileTypeIdentifierService,
                              IDataMigrationService dataMigrationService,
                              IFolderWatcherService folderWatcherService,
-                             IMediaItemProcessorService mediaItemProcessorService)
+                             IMediaItemProcessorService mediaItemProcessorService,
+                             IDialogService dialogService)
         {
             _logger = logger;
             _settingsService = settingsService;
@@ -99,6 +95,7 @@ namespace stepstones.ViewModels
             _dataMigrationService = dataMigrationService;
             _folderWatcherService = folderWatcherService;
             _mediaItemProcessorService = mediaItemProcessorService;
+            _dialogService = dialogService;
 
             Paginator = new Paginator(async (page) => await LoadMediaItemsAsync());
 
@@ -106,11 +103,6 @@ namespace stepstones.ViewModels
             {
                 _ = LoadMediaItemsAsync();
                 _logger.LogInformation("Removed deleted item from UI: '{FileName}'", message.Value.FileName);
-            });
-
-            _messenger.Register<ShowDialogMessage>(this, (recipient, message) =>
-            {
-                ActiveDialogViewModel = message.ViewModel;
             });
 
             _messenger.Register<ShowToastMessage>(this, async (recipient, message) =>
@@ -127,11 +119,6 @@ namespace stepstones.ViewModels
             _messenger.Register<FileSystemChangesDetectedMessage>(this, (recipient, message) =>
             {
                 _ = HandleFileSystemChangesAsync(message);
-            });
-
-            _messenger.Register<TranscodingStartedMessage>(this, (recipient, message) =>
-            {
-                _activeTranscodingCts = message.CancellationTokenSource;
             });
 
             logger.LogInformation("MainViewModel has been created.");
@@ -406,33 +393,6 @@ namespace stepstones.ViewModels
                     _folderWatcherService.StartWatching(mediaFolderPath);
                 }
             });
-        }
-
-        [RelayCommand]
-        private void CloseDialog(string? result)
-        {
-            if (ActiveDialogViewModel is EditTagsViewModel editTagsVM)
-            {
-                var wasSaved = result == SaveCommandParameter;
-
-                var dialogResult = new EditTagsResult { WasSaved = wasSaved, NewTags = editTagsVM.TagsText };
-                _editTagsCompletionSource?.SetResult(dialogResult);
-            }
-            else if (ActiveDialogViewModel is TranscodingProgressViewModel)
-            {
-                _activeTranscodingCts?.Cancel();
-                _logger.LogInformation("User cancelled the transcoding operation via dialog's overlay.");
-            }
-
-            ActiveDialogViewModel = null;
-        }
-
-        public Task<EditTagsResult> ShowEditTagsDialogAsync(string? currentTags)
-        {
-            _editTagsCompletionSource = new TaskCompletionSource<EditTagsResult>();
-            var dialogViewModel = new EditTagsViewModel(currentTags);
-            ActiveDialogViewModel = dialogViewModel;
-            return _editTagsCompletionSource.Task;
         }
 
         partial void OnFilterTextChanged(string? value)
