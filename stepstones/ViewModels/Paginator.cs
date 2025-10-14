@@ -12,6 +12,8 @@ namespace stepstones.ViewModels
         [NotifyPropertyChangedFor(nameof(PageInfo))]
         [NotifyCanExecuteChangedFor(nameof(GoToPreviousPageCommand))]
         [NotifyCanExecuteChangedFor(nameof(GoToFirstPageCommand))]
+        [NotifyCanExecuteChangedFor(nameof(GoToNextPageCommand))]
+        [NotifyCanExecuteChangedFor(nameof(GoToLastPageCommand))]
         private int _currentPage = 1;
 
         [ObservableProperty]
