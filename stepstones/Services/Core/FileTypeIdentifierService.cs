@@ -1,8 +1,9 @@
 ﻿using FFMpegCore;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
-using stepstones.Models;
 using System.IO;
+using System.Threading;
+using stepstones.Models;
 using static stepstones.Resources.AppConstants;
 
 namespace stepstones.Services.Core
@@ -10,14 +11,48 @@ namespace stepstones.Services.Core
     public class FileTypeIdentifierService : IFileTypeIdentifierService
     {
         private readonly ILogger<FileTypeIdentifierService> _logger;
+        private const int FileReadyTimeoutMs = 30000;
+        private const int FileReadyCheckIntervalMs = 500;
 
         public FileTypeIdentifierService(ILogger<FileTypeIdentifierService> logger)
         {
             _logger = logger;
         }
 
+        private async Task<bool> IsFileReadyAsync(string filePath)
+        {
+            var cancellationTokenSource = new CancellationTokenSource(FileReadyTimeoutMs);
+
+            while (!cancellationTokenSource.IsCancellationRequested)
+            {
+                try
+                {
+                    using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
+                    {
+                        return true;
+                    }
+                }
+                catch (IOException)
+                {
+                    await Task.Delay(FileReadyCheckIntervalMs, cancellationTokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+            }
+
+            return false;
+        }
+
         public async Task<MediaType> IdentifyAsync(string filePath)
         {
+            if (!await IsFileReadyAsync(filePath))
+            {
+                _logger.LogWarning("File '{File}' was not ready for processing after {Timeout} seconds. Skipping.", filePath, FileReadyTimeoutMs / 1000);
+                return MediaType.Unknown;
+            }
+
             // if GIF
             if (Path.GetExtension(filePath).Equals(GifExtension, StringComparison.OrdinalIgnoreCase))
             {

@@ -56,6 +56,7 @@
         public const string FolderLoadSuccessMessage = "Folder '{0}' loaded.";
         public const string FolderLoadErrorMessage = "Failed to load folder.";
         public const string DuplicateFileSkippedMessage = "'{0}' already in media folder. Skipped.";
+        public const string UploadSuccessMessage = "Successfully uploaded {0} of {1} files.";
 
         #endregion
 

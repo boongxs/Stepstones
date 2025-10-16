@@ -205,7 +205,7 @@
                                         </Image.Style>
                                     </Image>
                                 </Border>
-                                
+
                                 <!-- Thumbnail layer -->
                                 <Border CornerRadius="10">
                                     <Border.Background>
@@ -265,7 +265,7 @@
                                         </Path>
                                     </StackPanel>
                                 </Border>
-                                
+
                                 <!-- Darkening overlay -->
                                 <Border Background="#80000000"
                                         CornerRadius="10">
@@ -388,21 +388,6 @@
                             </Grid>
                         </Border>
                     </DataTemplate>
-
-                    <DataTemplate DataType="{x:Type viewmodels:PlaceholderViewModel}">
-                        <Border Margin="5"
-                                Height="250"
-                                MinWidth="270"
-                                Background="#303030"
-                                CornerRadius="5">
-                            <TextBlock Text="Loading..."
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Foreground="#f0f0f0"
-                                       FontSize="16">
-                            </TextBlock>
-                        </Border>
-                    </DataTemplate>
                 </ItemsControl.Resources>
             </ItemsControl>
         </ScrollViewer>
@@ -447,5 +432,21 @@
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
         </ItemsControl>
+
+        <Border Grid.Row="3"
+                VerticalAlignment="Bottom"
+                HorizontalAlignment="Center"
+                Background="#282828"
+                BorderBrush="#505050"
+                BorderThickness="1"
+                CornerRadius="5"
+                Padding="15,10"
+                Margin="0,0,0,20"
+                Visibility="{Binding IsStatusIndicatorVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TextBlock Text="{Binding StatusIndicatorText}"
+                       Foreground="White"
+                       FontSize="16">
+            </TextBlock>
+        </Border>
     </Grid>
 </Window>

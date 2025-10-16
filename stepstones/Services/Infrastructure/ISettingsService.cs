@@ -2,7 +2,7 @@
 {
     public interface ISettingsService
     {
-        string? LoadMediaFolderPath();
+        Task<string?> LoadMediaFolderPathAsync();
         void SaveMediaFolderPath(string path);
     }
 }

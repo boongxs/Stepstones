@@ -26,10 +26,8 @@ namespace stepstones.ViewModels
         private readonly IFileService _fileService;
         private readonly IDatabaseService _databaseService;
         private readonly ISynchronizationService _synchronizationService;
-        private readonly IThumbnailService _thumbnailService;
         private readonly IMediaItemViewModelFactory _mediaItemViewModelFactory;
         private readonly IMessenger _messenger;
-        private readonly IFileTypeIdentifierService _fileTypeIdentifierService;
         private readonly IDataMigrationService _dataMigrationService;
         private readonly IFolderWatcherService _folderWatcherService;
         private readonly IMediaItemProcessorService _mediaItemProcessorService;
@@ -57,11 +55,11 @@ namespace stepstones.ViewModels
         [ObservableProperty]
         private string _emptyViewSubtitle;
 
-        private CancellationTokenSource? _activeTranscodingCts;
+        [ObservableProperty]
+        private bool _isStatusIndicatorVisible;
 
-        private bool _isProcessingUpload = false;
-        private int _pendingFilesCount = 0;
-        private int _processedFilesCount = 0;
+        [ObservableProperty]
+        private string _statusIndicatorText;
 
         public MainViewModel(ILogger<MainViewModel> logger,
                              ISettingsService settingsService,
@@ -71,10 +69,8 @@ namespace stepstones.ViewModels
                              IFileService fileService,
                              IDatabaseService databaseService,
                              ISynchronizationService synchronizationService,
-                             IThumbnailService thumbnailService,
                              IMediaItemViewModelFactory mediaItemViewModelFactory,
                              IMessenger messenger,
-                             IFileTypeIdentifierService fileTypeIdentifierService,
                              IDataMigrationService dataMigrationService,
                              IFolderWatcherService folderWatcherService,
                              IMediaItemProcessorService mediaItemProcessorService,
@@ -88,10 +84,8 @@ namespace stepstones.ViewModels
             _fileService = fileService;
             _databaseService = databaseService;
             _synchronizationService = synchronizationService;
-            _thumbnailService = thumbnailService;
             _mediaItemViewModelFactory = mediaItemViewModelFactory;
             _messenger = messenger;
-            _fileTypeIdentifierService = fileTypeIdentifierService;
             _dataMigrationService = dataMigrationService;
             _folderWatcherService = folderWatcherService;
             _mediaItemProcessorService = mediaItemProcessorService;
@@ -128,8 +122,10 @@ namespace stepstones.ViewModels
 
         private async Task InitializeAsync()
         {
-            // load media folder saved path
-            var savedPath = _settingsService.LoadMediaFolderPath();
+            // Load the last saved media folder path
+            var savedPath = await _settingsService.LoadMediaFolderPathAsync();
+
+            // case where no media folder is set in preferences
             if (string.IsNullOrWhiteSpace(savedPath))
             {
                 IsMediaViewEmpty = true;
@@ -138,21 +134,24 @@ namespace stepstones.ViewModels
 
                 _logger.LogInformation("Application startup: No previously saved media folder path found.");
             }
+            // a media folder is set in preferences
             else
             {
                 _logger.LogInformation("Application startup: Located saved media folder path: {Path}", savedPath);
-                await LoadFolderAsync(savedPath, showToast: false);
+
+                await LoadFolderAsync(savedPath);
             }
         }
 
         private async Task SynchronizeAndLoadAsync(string folderPath)
         {
-            // load existing, already-processed items before processing orphans
             await LoadMediaItemsAsync();
+            RunDataMigration(folderPath);
+            await HandleOrphanFilesAsync(folderPath);
+        }
 
-            var orphans = await GetOrphanPathsAsync(folderPath);
-
-            // callback for each repaired item (media items get their data updated one by one instead all at once)
+        private void RunDataMigration(string folderPath)
+        {
             Action<MediaItem> onItemRepairedCallback = (repairedItem) =>
             {
                 Application.Current.Dispatcher.Invoke(() =>
@@ -170,48 +169,43 @@ namespace stepstones.ViewModels
                 });
             };
 
-            // ensure data is valid before checking orphans is correct
             _dataMigrationService.RunMigration(folderPath, onItemRepairedCallback);
+        }
 
-            // if there aren't any orphans, finish
+        private async Task HandleOrphanFilesAsync(string folderPath)
+        {
+            var orphans = await GetOrphanPathsAsync(folderPath);
+
+            // if there's no orphans
             if (orphans.Count == 0)
             {
                 await LoadMediaItemsAsync();
                 return;
             }
 
-            _isProcessingUpload = true;
-            _pendingFilesCount = orphans.Count;
-            _processedFilesCount = 0;
-
-            var currentDbItemCount = await _databaseService.GetItemCountForFolderAsync(folderPath, FilterText);
-            var totalVirtualItems = currentDbItemCount + _pendingFilesCount;
-            Paginator.UpdateTotalPages(totalVirtualItems);
-
-            await LoadMediaItemsAsync();
+            // show the status indicator
+            StatusIndicatorText = $"Found {orphans.Count} new files. Processing 0 of {orphans.Count}...";
+            IsStatusIndicatorVisible = true;
+            var processedCount = 0;
 
             try
             {
                 await _synchronizationService.SynchronizeDataAsync(folderPath, (processedItem) =>
                 {
-                    _pendingFilesCount--;
-
                     if (processedItem != null)
                     {
-                        _processedFilesCount++;
-                        // when sync service sends back signal that it has processed an orphan...
+                        processedCount++;
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            ReplacePlaceholderWithViewModel(processedItem);
+                            StatusIndicatorText = $"Found {orphans.Count} new files. Processing {processedCount} of {orphans.Count}...";
                         });
                     }
-                });
+                }); 
             }
             finally
             {
-                _isProcessingUpload = false;
-                _pendingFilesCount = 0;
-                _processedFilesCount = 0;
+                // when finished, hide the indicator and refresh the view
+                IsStatusIndicatorVisible = false;
                 await LoadMediaItemsAsync();
             }
         }
@@ -230,23 +224,24 @@ namespace stepstones.ViewModels
 
         private async Task LoadMediaItemsAsync()
         {
-            var mediaFolderPath = _settingsService.LoadMediaFolderPath();
+            // Get the stored media folder path
+            var mediaFolderPath = await _settingsService.LoadMediaFolderPathAsync();
             if (string.IsNullOrWhiteSpace(mediaFolderPath))
             {
                 _logger.LogInformation("Load media items skipped: Media folder not set.");
-                MediaItems.Clear();
 
+                MediaItems.Clear();
                 return;
             }
 
+            // If media folder path was successful
             _logger.LogInformation("Loading page {Page} for folder '{Path}'", Paginator.CurrentPage, mediaFolderPath);
 
-            if (!_isProcessingUpload)
-            {
-                var totalItems = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText);
-                Paginator.UpdateTotalPages(totalItems);
-            }
+            // Update pagination controls
+            var totalItems = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText);
+            Paginator.UpdateTotalPages(totalItems);
 
+            // Load media items associated with the loaded media folder
             var items = await _databaseService.GetAllItemsForFolderAsyncPaging(mediaFolderPath, Paginator.CurrentPage, Paginator.PageSize, FilterText);
 
             MediaItems.Clear();
@@ -258,30 +253,8 @@ namespace stepstones.ViewModels
                 MediaItems.Add(vm);
             }
 
-            if (_isProcessingUpload)
-            {
-                var currentDbItemCount = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText);
-                var startItemIndexOfPage = (Paginator.CurrentPage - 1) * Paginator.PageSize;
-                var placeholdersToAdd = 0;
-
-                if (startItemIndexOfPage >= currentDbItemCount)
-                {
-                    var pendingItemsAlreadyShown = startItemIndexOfPage - currentDbItemCount;
-                    var pendingItemsLeft = _pendingFilesCount - pendingItemsAlreadyShown;
-                    placeholdersToAdd = Math.Max(0, Math.Min(Paginator.PageSize, pendingItemsLeft));
-                }
-                else if (MediaItems.Count < Paginator.PageSize)
-                {
-                    placeholdersToAdd = Math.Max(0, Math.Min(Paginator.PageSize - MediaItems.Count, _pendingFilesCount));
-                }
-
-                for (int i = 0; i < placeholdersToAdd; i++)
-                {
-                    MediaItems.Add(new PlaceholderViewModel());
-                }
-            }
-
-            if (MediaItems.Count == 0 && !_isProcessingUpload)
+            // If there are no media items for the associated media folder
+            if (MediaItems.Count == 0)
             {
                 IsMediaViewEmpty = true;
                 EmptyViewTitle = EmptyFolderTitle;
@@ -294,6 +267,7 @@ namespace stepstones.ViewModels
 
             _logger.LogInformation("Loaded {Count} media items.", newViewModels.Count);
 
+            // Load thumbnails for each media item in MediaItems
             var thumbnailLoadTasks = newViewModels.Select(vm => vm.LoadThumbnailAsync()).ToList();
             _logger.LogInformation("Background thumbnail loading complete.");
         }
@@ -304,31 +278,22 @@ namespace stepstones.ViewModels
             _logger.LogInformation("'Select Folder' button clicked, opening folder dialog.");
             var selectedPath = _folderDialogService.ShowDialog();
 
-            if (string.IsNullOrWhiteSpace(selectedPath))
+            if (!string.IsNullOrWhiteSpace(selectedPath))
             {
-                _logger.LogWarning("Folder selection was cancelled by the user.");
+                await SetNewMediaFolderAsync(selectedPath);
             }
             else
             {
-                await LoadFolderAsync(selectedPath, showToast: true);
+                _logger.LogWarning("Folder selection was cancelled by the user.");
             }
         }
 
-        private async Task LoadFolderAsync(string folderPath, bool showToast)
+        private async Task LoadFolderAsync(string folderPath)
         {
             try
             {
-                _logger.LogInformation("User selected folder '{Path}'", folderPath);
-                _settingsService.SaveMediaFolderPath(folderPath);
                 Paginator.CurrentPage = 1;
                 await SynchronizeAndLoadAsync(folderPath);
-
-                if (showToast)
-                {
-                    var toastMessage = string.Format(FolderLoadSuccessMessage, Path.GetFileName(folderPath));
-                    _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Success));
-                }
-
                 _folderWatcherService.StartWatching(folderPath);
             }
             catch (Exception ex)
@@ -338,13 +303,24 @@ namespace stepstones.ViewModels
             }
         }
 
+        private async Task SetNewMediaFolderAsync(string folderPath)
+        {
+            _logger.LogInformation("User selected new media folder: '{Path}'", folderPath);
+            _settingsService.SaveMediaFolderPath(folderPath);
+
+            await LoadFolderAsync(folderPath);
+
+            var toastMessage = string.Format(FolderLoadSuccessMessage, Path.GetFileName(folderPath));
+            _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Success));
+        }
+
         [RelayCommand]
         private async Task UploadFiles()
         {
-            _logger.LogInformation("'Upload' button clicked.");
+            _logger.LogInformation("Upload button clicked.");
 
             // first check if we have a set media folder
-            var mediaFolderPath = _settingsService.LoadMediaFolderPath();
+            var mediaFolderPath = await _settingsService.LoadMediaFolderPathAsync();
             if (string.IsNullOrWhiteSpace(mediaFolderPath))
             {
                 _logger.LogWarning("Upload aborted: Media folder path has not been set.");
@@ -365,32 +341,42 @@ namespace stepstones.ViewModels
 
             IsMediaViewEmpty = false;
 
-            _isProcessingUpload = true;
-            _pendingFilesCount = fileList.Count;
-            _processedFilesCount = 0;
-
-            var currentDbItemCount = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText);
-            var totalVirtualItems = currentDbItemCount + _pendingFilesCount;
-            Paginator.UpdateTotalPages(totalVirtualItems);
-
-            await LoadMediaItemsAsync();
+            StatusIndicatorText = $"Processing 0 of {fileList.Count} files...";
+            IsStatusIndicatorVisible = true;
 
             _ = Task.Run(async () =>
             {
                 // temporarily stop watcher to prevent it from reacting to UploadFiles command copies
                 _folderWatcherService.StopWatching();
 
+                var processedCount = 0;
                 try
                 {
                     await _fileService.CopyFilesAsync(fileList, mediaFolderPath);
-                    await Application.Current.Dispatcher.InvokeAsync(() =>
+
+                    await _synchronizationService.SynchronizeDataAsync(mediaFolderPath, (processedItem) =>
                     {
-                        SynchronizeAndLoadAsync(mediaFolderPath);
+                        if (processedItem != null)
+                        {
+                            processedCount++;
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                StatusIndicatorText = $"Processing {processedCount} of {fileList.Count} files...";
+                            });
+                        }
                     });
                 }
                 finally
                 {
                     _folderWatcherService.StartWatching(mediaFolderPath);
+
+                    await Application.Current.Dispatcher.InvokeAsync(async () =>
+                    {
+                        IsStatusIndicatorVisible = false;
+                        await LoadMediaItemsAsync();
+                        var toastMessage = string.Format(UploadSuccessMessage, processedCount, fileList.Count);
+                        _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Success));
+                    });
                 }
             });
         }
@@ -432,39 +418,26 @@ namespace stepstones.ViewModels
 
         private async Task AddNewMediaItemsAsync(List<string> filePaths)
         {
-            if (!filePaths.Any())
+            if (filePaths.Count == 0)
             {
                 return;
             }
 
-            // add placeholders for the "to-be" processed files
-            await Application.Current.Dispatcher.InvokeAsync(() =>
-            {
-                AddPlaceholdersToView(filePaths.Count);
-            });
+            _logger.LogInformation("Processing {Count} newly detected files from file watcher.", filePaths.Count);
 
-            // process files
             foreach (var filePath in filePaths)
             {
                 try
                 {
-                    // for a file watcher, the original and final path are the same
-                    var processedItem = await _mediaItemProcessorService.ProcessNewFileAsync(filePath, filePath);
-
-                    if (processedItem != null)
-                    {
-                        // replace placeholder with processed media item
-                        await Application.Current.Dispatcher.InvokeAsync(() =>
-                        {
-                            ReplacePlaceholderWithViewModel(processedItem);
-                        });
-                    }
+                    await _mediaItemProcessorService.ProcessNewFileAsync(filePath, filePath);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to process newly detected file '{Path}'", filePath);
                 }
             }
+
+            await Application.Current.Dispatcher.InvokeAsync(LoadMediaItemsAsync);
         }
 
         private async Task HandleRenamedFilesAsync(Dictionary<string, string> renamedFiles)
@@ -503,50 +476,6 @@ namespace stepstones.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to process batch deletion of files.");
-            }
-        }
-
-        private void AddPlaceholdersToView(int itemCount)
-        {
-            var availableSlots = Paginator.PageSize - MediaItems.Count; ;
-            var placeholdersToAdd = Math.Min(itemCount, availableSlots);
-
-            if (placeholdersToAdd > 0)
-            {
-                for (int i = 0; i < placeholdersToAdd; i++)
-                {
-                    MediaItems.Add(new PlaceholderViewModel());
-                }
-            }
-        }
-
-        private async Task ReplacePlaceholderWithViewModel(MediaItem newItem)
-        {
-            var mediaFolderPath = _settingsService.LoadMediaFolderPath();
-            if (string.IsNullOrWhiteSpace(mediaFolderPath))
-            {
-                return;
-            }
-
-            var preExistingItemCount = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText) - _processedFilesCount;
-            var newItemAbsoluteIndex = preExistingItemCount + _processedFilesCount - 1;
-            var pageStartIndex = (Paginator.CurrentPage - 1) * Paginator.PageSize;
-            var pageEndIndex = pageStartIndex + Paginator.PageSize - 1;
-
-            if (newItemAbsoluteIndex >= pageStartIndex && newItemAbsoluteIndex <= pageEndIndex)
-            {
-                var placeholder = MediaItems.OfType<PlaceholderViewModel>().FirstOrDefault();
-                if (placeholder != null)
-                {
-                    var vm = _mediaItemViewModelFactory.Create(newItem);
-                    var placeholderIndex = MediaItems.IndexOf(placeholder);
-
-                    if (placeholderIndex >= 0 && placeholderIndex < MediaItems.Count)
-                    {
-                        MediaItems[placeholderIndex] = vm;
-                        _ = vm.LoadThumbnailAsync();
-                    }
-                }
             }
         }
     }

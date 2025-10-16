@@ -17,13 +17,16 @@ namespace stepstones.Services.Infrastructure
             _settingsFilePath = Path.Combine(_appDataFolder, MediaFolderPathFileName);
         }
 
-        public string? LoadMediaFolderPath()
+        public async Task<string?> LoadMediaFolderPathAsync()
         {
+            // IO operation so try-catch block
             try
             {
+                // Retrieve the last saved media folder path
                 if (File.Exists(_settingsFilePath))
                 {
-                    var path = File.ReadAllText(_settingsFilePath);
+                    var path = await File.ReadAllTextAsync(_settingsFilePath);
+
                     if (!string.IsNullOrWhiteSpace(path))
                     {
                         _logger.LogInformation("Media folder path loaded from settings file: '{Path}'", path);
