@@ -1,9 +1,8 @@
-﻿using stepstones.Models;
-
-namespace stepstones.Services.Data
+﻿namespace stepstones.Services.Data
 {
     public interface ISynchronizationService
     {
-        Task SynchronizeDataAsync(string folderPath, Action<MediaItem> onItemProcessed);
+        Task DeleteGhostRecordsAsync(string folderPath);
+        Task SynchronizeOrphanFilesAsync(string folderPath, IProgress<string> progress);
     }
 }

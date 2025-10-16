@@ -5,6 +5,7 @@ using stepstones.Models;
 using stepstones.Messages;
 using stepstones.Enums;
 using static stepstones.Resources.AppConstants;
+using System.IO.Packaging;
 
 namespace stepstones.Services.Core
 {
@@ -18,6 +19,39 @@ namespace stepstones.Services.Core
         {
             _logger = logger;
             _messenger = messenger;
+        }
+
+        public async Task<string?> CopyFileAsync(string sourcePath, string destinationFolderPath)
+        {
+            string? destinationPath = null;
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    var uniqueFileName = FileNameGenerator.GenerateUniqueFileName(sourcePath);
+                    destinationPath = Path.Combine(destinationFolderPath, uniqueFileName);
+
+                    if (!File.Exists(destinationPath))
+                    {
+                        File.Copy(sourcePath, destinationPath);
+                        _logger.LogInformation("Successfully copied '{SourceFile}' to '{DestinationFile}'", sourcePath, destinationPath);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("File '{SourceFile}' already exists as '{DestinationFile}'. Skipping.", sourcePath, destinationPath);
+                        var toastMessage = string.Format(DuplicateFileSkippedMessage, Path.GetFileName(sourcePath));
+                        _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Info));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to copy '{SourceFile}'", sourcePath);
+                    destinationPath = null;
+                }
+            });
+
+            return destinationPath;
         }
 
         public async Task<Dictionary<string, string>> CopyFilesAsync(IEnumerable<string> sourceFilePaths, string destinationFolderPath)

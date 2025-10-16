@@ -23,7 +23,6 @@ namespace stepstones.ViewModels
         private readonly IFolderDialogService _folderDialogService;
         private readonly IFileDialogService _fileDialogService;
         private readonly IMessageBoxService _messageBoxService;
-        private readonly IFileService _fileService;
         private readonly IDatabaseService _databaseService;
         private readonly ISynchronizationService _synchronizationService;
         private readonly IMediaItemViewModelFactory _mediaItemViewModelFactory;
@@ -66,7 +65,6 @@ namespace stepstones.ViewModels
                              IFolderDialogService folderDialogService,
                              IFileDialogService fileDialogService,
                              IMessageBoxService messageBoxService,
-                             IFileService fileService,
                              IDatabaseService databaseService,
                              ISynchronizationService synchronizationService,
                              IMediaItemViewModelFactory mediaItemViewModelFactory,
@@ -81,7 +79,6 @@ namespace stepstones.ViewModels
             _folderDialogService = folderDialogService;
             _fileDialogService = fileDialogService;
             _messageBoxService = messageBoxService;
-            _fileService = fileService;
             _databaseService = databaseService;
             _synchronizationService = synchronizationService;
             _mediaItemViewModelFactory = mediaItemViewModelFactory;
@@ -120,6 +117,7 @@ namespace stepstones.ViewModels
             _ = InitializeAsync();
         }
 
+        // on-startup methods
         private async Task InitializeAsync()
         {
             // Load the last saved media folder path
@@ -143,83 +141,48 @@ namespace stepstones.ViewModels
             }
         }
 
-        private async Task SynchronizeAndLoadAsync(string folderPath)
+        private async Task LoadFolderAsync(string folderPath)
         {
-            await LoadMediaItemsAsync();
-            RunDataMigration(folderPath);
-            await HandleOrphanFilesAsync(folderPath);
-        }
-
-        private void RunDataMigration(string folderPath)
-        {
-            Action<MediaItem> onItemRepairedCallback = (repairedItem) =>
-            {
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    var oldViewModel = MediaItems.OfType<MediaItemViewModel>()
-                                                 .FirstOrDefault(vm => vm.FilePath == repairedItem.FilePath);
-
-                    if (oldViewModel != null)
-                    {
-                        var index = MediaItems.IndexOf(oldViewModel);
-                        var newViewModel = _mediaItemViewModelFactory.Create(repairedItem);
-                        MediaItems[index] = newViewModel;
-                        _ = newViewModel.LoadThumbnailAsync();
-                    }
-                });
-            };
-
-            _dataMigrationService.RunMigration(folderPath, onItemRepairedCallback);
-        }
-
-        private async Task HandleOrphanFilesAsync(string folderPath)
-        {
-            var orphans = await GetOrphanPathsAsync(folderPath);
-
-            // if there's no orphans
-            if (orphans.Count == 0)
-            {
-                await LoadMediaItemsAsync();
-                return;
-            }
-
-            // show the status indicator
-            StatusIndicatorText = $"Found {orphans.Count} new files. Processing 0 of {orphans.Count}...";
-            IsStatusIndicatorVisible = true;
-            var processedCount = 0;
-
             try
             {
-                await _synchronizationService.SynchronizeDataAsync(folderPath, (processedItem) =>
-                {
-                    if (processedItem != null)
-                    {
-                        processedCount++;
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            StatusIndicatorText = $"Found {orphans.Count} new files. Processing {processedCount} of {orphans.Count}...";
-                        });
-                    }
-                }); 
+                Paginator.CurrentPage = 1;
+                await SynchronizeAndLoadAsync(folderPath);
+                _folderWatcherService.StartWatching(folderPath);
             }
-            finally
+            catch (Exception ex)
             {
-                // when finished, hide the indicator and refresh the view
-                IsStatusIndicatorVisible = false;
-                await LoadMediaItemsAsync();
+                _logger.LogError(ex, "Failed to load the selected folder.");
+                _messenger.Send(new ShowToastMessage(FolderLoadErrorMessage, ToastNotificationType.Error));
             }
         }
 
-        private async Task<List<string>> GetOrphanPathsAsync(string folderPath)
+        private async Task SynchronizeAndLoadAsync(string folderPath)
         {
-            _logger.LogInformation("Checking for orphan files in '{Path}'", folderPath);
+            // load the already processed items associated with media folder
+            await LoadMediaItemsAsync();
 
-            var filesInFolder = _fileService.GetAllFiles(folderPath).ToList();
-            var filePathsInDatabase = await _databaseService.GetFilePathsForFolderAsync(folderPath);
-            var orphans = filesInFolder.Except(filePathsInDatabase).ToList();
+            // clean up ghost records in the database
+            await _synchronizationService.DeleteGhostRecordsAsync(folderPath);
 
-            _logger.LogInformation("Found {Count} orphan files to process.", orphans.Count);
-            return orphans;
+            // check for data integrity for existing items
+            RunDataMigration(folderPath);
+
+            // set up UI for processing new orphan files
+            var progress = new Progress<string>(status =>
+            {
+                if (!IsStatusIndicatorVisible)
+                {
+                    IsStatusIndicatorVisible = true;
+                }
+                StatusIndicatorText = status;
+            });
+
+            // import orphans
+            await _synchronizationService.SynchronizeOrphanFilesAsync(folderPath, progress);
+
+            // hide indicator and refresh UI
+            IsStatusIndicatorVisible = false;
+            await LoadMediaItemsAsync();
         }
 
         private async Task LoadMediaItemsAsync()
@@ -234,16 +197,16 @@ namespace stepstones.ViewModels
                 return;
             }
 
-            // If media folder path was successful
             _logger.LogInformation("Loading page {Page} for folder '{Path}'", Paginator.CurrentPage, mediaFolderPath);
 
             // Update pagination controls
             var totalItems = await _databaseService.GetItemCountForFolderAsync(mediaFolderPath, FilterText);
             Paginator.UpdateTotalPages(totalItems);
 
-            // Load media items associated with the loaded media folder
+            // Get media items associated with the loaded media folder
             var items = await _databaseService.GetAllItemsForFolderAsyncPaging(mediaFolderPath, Paginator.CurrentPage, Paginator.PageSize, FilterText);
 
+            // For each received media item, build a MediaItemViewModel
             MediaItems.Clear();
             var newViewModels = new List<MediaItemViewModel>();
             foreach (var item in items)
@@ -272,46 +235,53 @@ namespace stepstones.ViewModels
             _logger.LogInformation("Background thumbnail loading complete.");
         }
 
+        private void RunDataMigration(string folderPath)
+        {
+            Action<MediaItem> onItemRepairedCallback = (repairedItem) =>
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    var oldViewModel = MediaItems.OfType<MediaItemViewModel>()
+                                                 .FirstOrDefault(vm => vm.FilePath == repairedItem.FilePath);
+
+                    if (oldViewModel != null)
+                    {
+                        var index = MediaItems.IndexOf(oldViewModel);
+                        var newViewModel = _mediaItemViewModelFactory.Create(repairedItem);
+                        MediaItems[index] = newViewModel;
+                        _ = newViewModel.LoadThumbnailAsync();
+                    }
+                });
+            };
+
+            _dataMigrationService.RunMigration(folderPath, onItemRepairedCallback);
+        }
+
+        // user triggered methods
         [RelayCommand]
         private async Task SelectFolder()
         {
             _logger.LogInformation("'Select Folder' button clicked, opening folder dialog.");
             var selectedPath = _folderDialogService.ShowDialog();
 
+            // if valid folder was selected
             if (!string.IsNullOrWhiteSpace(selectedPath))
             {
-                await SetNewMediaFolderAsync(selectedPath);
+                // save the selected folder into preferences
+                _logger.LogInformation("User selected new media folder: '{Path}'", selectedPath);
+                _settingsService.SaveMediaFolderPath(selectedPath);
+
+                // perform initialization checks for the folder and reload UI
+                await LoadFolderAsync(selectedPath);
+
+                // feedback to user that folder was successfully loaded
+                var toastMessage = string.Format(FolderLoadSuccessMessage, Path.GetFileName(selectedPath));
+                _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Success));
             }
             else
             {
                 _logger.LogWarning("Folder selection was cancelled by the user.");
             }
-        }
-
-        private async Task LoadFolderAsync(string folderPath)
-        {
-            try
-            {
-                Paginator.CurrentPage = 1;
-                await SynchronizeAndLoadAsync(folderPath);
-                _folderWatcherService.StartWatching(folderPath);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to load the selected folder.");
-                _messenger.Send(new ShowToastMessage(FolderLoadErrorMessage, ToastNotificationType.Error));
-            }
-        }
-
-        private async Task SetNewMediaFolderAsync(string folderPath)
-        {
-            _logger.LogInformation("User selected new media folder: '{Path}'", folderPath);
-            _settingsService.SaveMediaFolderPath(folderPath);
-
-            await LoadFolderAsync(folderPath);
-
-            var toastMessage = string.Format(FolderLoadSuccessMessage, Path.GetFileName(folderPath));
-            _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Success));
         }
 
         [RelayCommand]
@@ -340,44 +310,23 @@ namespace stepstones.ViewModels
             _logger.LogInformation("{FileCount} file(s) have been selected for upload.", fileList.Count);
 
             IsMediaViewEmpty = false;
-
-            StatusIndicatorText = $"Processing 0 of {fileList.Count} files...";
+            StatusIndicatorText = $"Processing 1 of {fileList.Count} files...";
             IsStatusIndicatorVisible = true;
+
+            var progress = new Progress<string>(status => StatusIndicatorText = status);
 
             _ = Task.Run(async () =>
             {
-                // temporarily stop watcher to prevent it from reacting to UploadFiles command copies
-                _folderWatcherService.StopWatching();
+                await _mediaItemProcessorService.ProcessUploadedFilesAsync(fileList, mediaFolderPath, progress);
 
-                var processedCount = 0;
-                try
+                await Application.Current.Dispatcher.InvokeAsync(async () =>
                 {
-                    await _fileService.CopyFilesAsync(fileList, mediaFolderPath);
+                    IsStatusIndicatorVisible = false;
+                    await LoadMediaItemsAsync();
 
-                    await _synchronizationService.SynchronizeDataAsync(mediaFolderPath, (processedItem) =>
-                    {
-                        if (processedItem != null)
-                        {
-                            processedCount++;
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                StatusIndicatorText = $"Processing {processedCount} of {fileList.Count} files...";
-                            });
-                        }
-                    });
-                }
-                finally
-                {
-                    _folderWatcherService.StartWatching(mediaFolderPath);
-
-                    await Application.Current.Dispatcher.InvokeAsync(async () =>
-                    {
-                        IsStatusIndicatorVisible = false;
-                        await LoadMediaItemsAsync();
-                        var toastMessage = string.Format(UploadSuccessMessage, processedCount, fileList.Count);
-                        _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Success));
-                    });
-                }
+                    var toastMessage = string.Format(UploadSuccessMessage, fileList.Count, fileList.Count);
+                    _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Success));
+                });
             });
         }
 
@@ -406,6 +355,7 @@ namespace stepstones.ViewModels
             }
         }
 
+        // folder watcher methods
         private async Task HandleFileSystemChangesAsync(FileSystemChangesDetectedMessage message)
         {
             await HandleRenamedFilesAsync(message.RenamedFilePaths);
