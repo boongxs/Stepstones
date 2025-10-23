@@ -88,7 +88,7 @@ namespace stepstones.ViewModels
             _mediaItemProcessorService = mediaItemProcessorService;
             _dialogService = dialogService;
 
-            Paginator = new Paginator(async (page) => await LoadMediaItemsAsync());
+            Paginator = new Paginator(async (page) => LoadMediaItemsAsync());
 
             _messenger.Register<MediaItemDeletedMessage>(this, (recipient, message) =>
             {

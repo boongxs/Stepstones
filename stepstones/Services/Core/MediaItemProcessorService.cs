@@ -119,6 +119,12 @@ namespace stepstones.Services.Core
                 {
                     var uniqueFileName = FileNameGenerator.GenerateUniqueFileName(orphanPath);
                     var newPath = Path.Combine(Path.GetDirectoryName(orphanPath), uniqueFileName);
+                    
+                    if (File.Exists(newPath))
+                    {
+                        _logger.LogWarning("Target file '{NewPath}' already exists for orphan '{OrphanPath}'. Skipping.", newPath, orphanPath);
+                        continue;
+                    }
                     File.Move(orphanPath, newPath);
 
                     await ProcessNewFileAsync(orphanPath, newPath);
