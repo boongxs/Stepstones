@@ -5,7 +5,6 @@ using stepstones.Models;
 using stepstones.Messages;
 using stepstones.Enums;
 using static stepstones.Resources.AppConstants;
-using System.IO.Packaging;
 
 namespace stepstones.Services.Core
 {
@@ -52,44 +51,6 @@ namespace stepstones.Services.Core
             });
 
             return destinationPath;
-        }
-
-        public async Task<Dictionary<string, string>> CopyFilesAsync(IEnumerable<string> sourceFilePaths, string destinationFolderPath)
-        {
-            var pathMappings = new Dictionary<string, string>();
-
-            await Task.Run(() =>
-            {
-                foreach (var sourcePath in sourceFilePaths)
-                {
-                    try
-                    {
-                        var uniqueFileName = FileNameGenerator.GenerateUniqueFileName(sourcePath);
-                        var destinationPath = Path.Combine(destinationFolderPath, uniqueFileName);
-
-                        if (!File.Exists(destinationPath))
-                        {
-                            File.Copy(sourcePath, destinationPath);
-                            _logger.LogInformation("Successfully copied '{SourceFile}' to '{DestinationFile}'", sourcePath, destinationPath);
-                        }
-                        else
-                        {
-                            _logger.LogInformation("File '{SourceFile}' already exists as '{DestinationFile}'. Skipping.", sourcePath, destinationPath);
-
-                            var toastMessage = string.Format(DuplicateFileSkippedMessage, Path.GetFileName(sourcePath));
-                            _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Info));
-                        }
-
-                        pathMappings[sourcePath] = destinationPath;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to copy '{SourceFile}'", sourcePath);
-                    }
-                }
-            });
-
-            return pathMappings;
         }
 
         public IEnumerable<string> GetAllFiles(string folderPath)

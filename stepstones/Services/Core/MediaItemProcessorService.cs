@@ -30,12 +30,15 @@ namespace stepstones.Services.Core
             _folderWatcherService = folderWatcherService;
         }
 
-        public async Task<MediaItem?> ProcessNewFileAsync(string originalPath, string finalPath)
+        public async Task<MediaItem?> ProcessNewFileAsync(string originalPath, string finalPath, MediaType? mediaType = null)
         {
             try
             {
-                // identify the file type
-                var mediaType = await _fileTypeIdentifierService.IdentifyAsync(finalPath);
+                if (mediaType is null)
+                {
+                    mediaType = await _fileTypeIdentifierService.IdentifyAsync(finalPath);
+                }
+
                 if (mediaType == MediaType.Unknown)
                 {
                     _logger.LogInformation("Skipping unsupported file type for '{Path}'", finalPath);
@@ -44,7 +47,7 @@ namespace stepstones.Services.Core
 
                 // get the duration if it's a video file
                 TimeSpan duration = TimeSpan.Zero;
-                if (mediaType == MediaType.Video || mediaType == MediaType.Audio)
+                if (mediaType.Value == MediaType.Video || mediaType.Value == MediaType.Audio)
                 {
                     var mediaInfo = await FFMpegCore.FFProbe.AnalyseAsync(finalPath);
                     duration = mediaInfo.Duration;
@@ -52,9 +55,9 @@ namespace stepstones.Services.Core
 
                 // create the thumbnail
                 string? thumbnailPath = null;
-                if (mediaType != MediaType.Audio)
+                if (mediaType.Value != MediaType.Audio)
                 {
-                    thumbnailPath = await _thumbnailService.CreateThumbnailAsync(finalPath, mediaType);
+                    thumbnailPath = await _thumbnailService.CreateThumbnailAsync(finalPath, mediaType.Value);
                 }
 
                 // construct the MediaItem object
@@ -62,7 +65,7 @@ namespace stepstones.Services.Core
                 {
                     FileName = Path.GetFileName(originalPath),
                     FilePath = finalPath,
-                    FileType = mediaType,
+                    FileType = mediaType.Value,
                     ThumbnailPath = thumbnailPath,
                     Duration = duration
                 };
@@ -80,7 +83,7 @@ namespace stepstones.Services.Core
             }
         }
 
-        public async Task ProcessUploadedFilesAsync(IEnumerable<string> sourceFilePaths, string destinationPath, IProgress<string> progress)
+        public async Task<int> ProcessUploadedFilesAsync(IEnumerable<string> sourceFilePaths, string destinationPath, IProgress<string> progress)
         {
             _folderWatcherService.StopWatching();
             var fileList = sourceFilePaths.ToList();
@@ -90,11 +93,24 @@ namespace stepstones.Services.Core
             {
                 foreach (var sourcePath in fileList)
                 {
-                    var newPath = await _fileService.CopyFileAsync(sourcePath, destinationPath);
-                    if (!string.IsNullOrWhiteSpace(newPath))
+                    var mediaType = await _fileTypeIdentifierService.IdentifyAsync(sourcePath);
+
+                    if (mediaType == MediaType.Unknown)
                     {
-                        await ProcessNewFileAsync(sourcePath, newPath);
-                        processedCount++;
+                        _logger.LogInformation("Skipping unsupported file '{SourcePath}'.", sourcePath);
+                    }
+                    else
+                    {
+                        var newPath = await _fileService.CopyFileAsync(sourcePath, destinationPath);
+                        if (!string.IsNullOrWhiteSpace(newPath))
+                        {
+                            var processedItem = await ProcessNewFileAsync(sourcePath, newPath, mediaType);
+
+                            if (processedItem != null)
+                            {
+                                processedCount++;
+                            }
+                        }
                     }
 
                     var currentFileNumber = fileList.IndexOf(sourcePath) + 1;
@@ -105,6 +121,8 @@ namespace stepstones.Services.Core
             {
                 _folderWatcherService.StartWatching(destinationPath);
             }
+
+            return processedCount;
         }
 
         public async Task ProcessOrphanFilesAsync(IEnumerable<string> orphanPaths, IProgress<string> progress)

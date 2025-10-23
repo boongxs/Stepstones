@@ -317,15 +317,38 @@ namespace stepstones.ViewModels
 
             _ = Task.Run(async () =>
             {
-                await _mediaItemProcessorService.ProcessUploadedFilesAsync(fileList, mediaFolderPath, progress);
+                int successCount = await _mediaItemProcessorService.ProcessUploadedFilesAsync(fileList, mediaFolderPath, progress);
 
                 await Application.Current.Dispatcher.InvokeAsync(async () =>
                 {
                     IsStatusIndicatorVisible = false;
                     await LoadMediaItemsAsync();
 
-                    var toastMessage = string.Format(UploadSuccessMessage, fileList.Count, fileList.Count);
-                    _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Success));
+                    int totalCount = fileList.Count;
+                    int skippedCount = totalCount - successCount;
+                    string toastMessage;
+                    ToastNotificationType toastType;
+
+                    if (skippedCount > 0 && successCount == 0)
+                    {
+                        // All files were skipped
+                        toastMessage = string.Format(UploadFailedMessage, totalCount);
+                        toastType = ToastNotificationType.Error;
+                    }
+                    else if (skippedCount > 0)
+                    {
+                        // Some files were skipped
+                        toastMessage = string.Format(UploadPartialSuccessMessage, successCount, skippedCount);
+                        toastType = ToastNotificationType.Info;
+                    }
+                    else
+                    {
+                        // All files succeeded
+                        toastMessage = string.Format(UploadSuccessMessage, successCount);
+                        toastType = ToastNotificationType.Success;
+                    }
+
+                    //_messenger.Send(new ShowToastMessage(toastMessage, toastType));
                 });
             });
         }
