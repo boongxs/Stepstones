@@ -9,11 +9,18 @@
              d:DataContext="{d:DesignInstance Type=viewmodels:EnlargeAudioViewModel}"
              d:DesignHeight="450" 
              d:DesignWidth="800">
-    <Grid MaxWidth="400"
-          MaxHeight="400"
-          Background="Transparent"
+    <Grid Width="400"
+          Height="400"
+          Background="#404040"
           Margin="20">
-        <Image Source="/Resources/audio_placeholder.jpg"/>
+        <ContentControl Template="{StaticResource FileAudioIconTemplate}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Foreground="White"
+                        Opacity="0.5"
+                        Width="200"
+                        Height="200">
+        </ContentControl>
 
         <MediaElement x:Name="MediaPlayer"
                       LoadedBehavior="Manual"

@@ -12,18 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\audio_placeholder.jpg" />
-    <None Remove="Resources\Icons\copy-hover.png" />
-    <None Remove="Resources\Icons\copy.png" />
-    <None Remove="Resources\Icons\delete-hover.png" />
-    <None Remove="Resources\Icons\delete.png" />
-    <None Remove="Resources\Icons\edit-hover.png" />
-    <None Remove="Resources\Icons\edit.png" />
-    <None Remove="Resources\Icons\enlarge-hover.png" />
-    <None Remove="Resources\Icons\enlarge.png" />
-    <None Remove="Resources\Icons\file.png" />
-    <None Remove="Resources\Icons\file_audio.png" />
-    <None Remove="Resources\Icons\stepstones.ico" />
     <None Remove="stepstones.ico" />
   </ItemGroup>
 
@@ -47,33 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\audio_placeholder.jpg" />
-    <Resource Include="Resources\Icons\copy-hover.png" />
-    <Resource Include="Resources\Icons\copy.png" />
-    <Resource Include="Resources\Icons\delete-hover.png" />
-    <Resource Include="Resources\Icons\delete.png" />
-    <Resource Include="Resources\Icons\edit-hover.png" />
-    <Resource Include="Resources\Icons\edit.png" />
-    <Resource Include="Resources\Icons\enlarge-hover.png" />
-    <Resource Include="Resources\Icons\enlarge.png" />
-    <Resource Include="Resources\Icons\file.png" />
-    <Resource Include="Resources\Icons\file_audio.png" />
     <Resource Include="stepstones.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

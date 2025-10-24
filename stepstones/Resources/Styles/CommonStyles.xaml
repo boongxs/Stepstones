@@ -6,25 +6,22 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Grid Background="Transparent">
-                        <Image x:Name="DefaultIcon"
-                               Source="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
-                               Width="70"
-                               Height="70">
-                        </Image>
-
-                        <Image x:Name="HoverIcon"
-                               Source="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"
-                               Width="70"
-                               Height="70"
-                               Visibility="Hidden">
-                        </Image>
+                        <ContentControl x:Name="IconControl"
+                                        Template="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                                        Width="70"
+                                        Height="70"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                        </ContentControl>
                     </Grid>
 
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver"
                                  Value="True">
-                            <Setter TargetName="DefaultIcon" Property="Visibility" Value="Hidden"/>
-                            <Setter TargetName="HoverIcon" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="IconControl"
+                                    Property="Template"
+                                    Value="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}">
+                            </Setter>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -153,6 +150,7 @@
         </Setter>
     </Style>
 
+    <!-- Filtering TextBox -->
     <Style x:Key="FilterTextBoxStyle"
                TargetType="TextBox">
         <Setter Property="Background" Value="#303030"/>
@@ -248,6 +246,7 @@
         </Style.Triggers>
     </Style>
 
+    <!-- Animations -->
     <Storyboard x:Key="FadeInAnimation">
         <DoubleAnimation Storyboard.TargetProperty="Opacity"
                          From="0"
@@ -263,6 +262,7 @@
         </DoubleAnimation>
     </Storyboard>
 
+    <!-- Composite Icons -->
     <Style x:Key="MuteButtonStyle"
            TargetType="Button">
         <Setter Property="Template" Value="{StaticResource VolumeOnIconTemplate}"/>
@@ -289,5 +289,19 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <Style x:Key="FallbackIconStyle"
+           TargetType="ContentControl">
+        <Setter Property="Template" Value="{StaticResource FileIconTemplate}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Opacity" Value="0.5"/>
+
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsAudio}"
+                         Value="True">
+                <Setter Property="Template" Value="{StaticResource FileAudioIconTemplate}"/>
+            </DataTrigger>
+        </Style.Triggers>
     </Style>
 </ResourceDictionary>

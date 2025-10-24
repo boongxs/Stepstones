@@ -9,7 +9,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Resources/Iconography.xaml"/>
-                <ResourceDictionary Source="/Styles/CommonStyles.xaml"/>
+                <ResourceDictionary Source="/Resources/Styles/CommonStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <DataTemplate DataType="{x:Type viewmodels:ToastViewModel}">

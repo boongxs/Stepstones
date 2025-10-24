@@ -271,9 +271,6 @@ namespace stepstones.ViewModels
                     await _databaseService.DeleteMediaItemAsync(_mediaItem);
 
                     _messenger.Send(new MediaItemDeletedMessage(this));
-
-                    var toastMessage = string.Format(FileDeleteSuccessMessage, _mediaItem.FileName);
-                    _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Success));
                 }
                 catch (Exception ex)
                 {
