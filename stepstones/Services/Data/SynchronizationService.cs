@@ -1,9 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.IO;
-using stepstones.Models;
 using stepstones.Services.Core;
 using stepstones.Services.Infrastructure;
-using System.Drawing;
 
 namespace stepstones.Services.Data
 {
@@ -12,25 +9,16 @@ namespace stepstones.Services.Data
         private readonly ILogger<SynchronizationService> _logger;
         private readonly IDatabaseService _databaseService;
         private readonly IFileService _fileService;
-        private readonly IThumbnailService _thumbnailService;
-        private readonly IFileTypeIdentifierService _fileTypeIdentifierService;
-        private readonly IFolderWatcherService _folderWatcherService;
         private readonly IMediaItemProcessorService _mediaItemProcessorService;
 
         public SynchronizationService(ILogger<SynchronizationService> logger,  
                                       IDatabaseService databaseService, 
                                       IFileService fileService,
-                                      IThumbnailService thumbnailService,
-                                      IFileTypeIdentifierService fileTypeIdentifierService,
-                                      IFolderWatcherService folderWatcherService,
                                       IMediaItemProcessorService mediaItemProcessorService)
         {
             _logger = logger;
             _databaseService = databaseService;
             _fileService = fileService;
-            _thumbnailService = thumbnailService;
-            _fileTypeIdentifierService = fileTypeIdentifierService;
-            _folderWatcherService = folderWatcherService;
             _mediaItemProcessorService = mediaItemProcessorService;
         }
 
@@ -47,7 +35,7 @@ namespace stepstones.Services.Data
             }
         }
 
-        public async Task SynchronizeOrphanFilesAsync(string folderPath, IProgress<string> progress)
+        public async Task SynchronizeOrphanFilesAsync(string folderPath, IProgress<(string Main, string Detail)> progress)
         {
             var filesInFolder = _fileService.GetAllFiles(folderPath).ToList();
             var filePathsInDatabase = await _databaseService.GetFilePathsForFolderAsync(folderPath);

@@ -58,7 +58,10 @@ namespace stepstones.ViewModels
         private bool _isStatusIndicatorVisible;
 
         [ObservableProperty]
-        private string _statusIndicatorText;
+        private string _statusIndicatorMainText;
+
+        [ObservableProperty]
+        private string _statusIndicatorDetailText;
 
         public MainViewModel(ILogger<MainViewModel> logger,
                              ISettingsService settingsService,
@@ -168,13 +171,15 @@ namespace stepstones.ViewModels
             RunDataMigration(folderPath);
 
             // set up UI for processing new orphan files
-            var progress = new Progress<string>(status =>
+            var progress = new Progress<(string Main, string Detail)>(status =>
             {
                 if (!IsStatusIndicatorVisible)
                 {
                     IsStatusIndicatorVisible = true;
                 }
-                StatusIndicatorText = status;
+
+                StatusIndicatorMainText = status.Main;
+                StatusIndicatorDetailText = status.Detail;
             });
 
             // import orphans
@@ -310,10 +315,15 @@ namespace stepstones.ViewModels
             _logger.LogInformation("{FileCount} file(s) have been selected for upload.", fileList.Count);
 
             IsMediaViewEmpty = false;
-            StatusIndicatorText = $"Processing 1 of {fileList.Count} files...";
+            StatusIndicatorMainText = $"Processing 1 of {fileList.Count} files...";
+            StatusIndicatorDetailText = Path.GetFileName(fileList.First());
             IsStatusIndicatorVisible = true;
 
-            var progress = new Progress<string>(status => StatusIndicatorText = status);
+            var progress = new Progress<(string Main, string Detail)>(status =>
+            {
+                StatusIndicatorMainText = status.Main;
+                StatusIndicatorDetailText = status.Detail;
+            });
 
             _ = Task.Run(async () =>
             {
@@ -322,6 +332,7 @@ namespace stepstones.ViewModels
                 await Application.Current.Dispatcher.InvokeAsync(async () =>
                 {
                     IsStatusIndicatorVisible = false;
+
                     await LoadMediaItemsAsync();
 
                     int totalCount = fileList.Count;

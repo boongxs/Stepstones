@@ -443,10 +443,32 @@
                 Padding="15,10"
                 Margin="0,0,0,20"
                 Visibility="{Binding IsStatusIndicatorVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <TextBlock Text="{Binding StatusIndicatorText}"
-                       Foreground="White"
-                       FontSize="16">
-            </TextBlock>
+            <StackPanel>
+                <TextBlock Text="{Binding StatusIndicatorMainText}"
+                           Foreground="White"
+                           FontSize="16"
+                           HorizontalAlignment="Center">
+                </TextBlock>
+
+                <TextBlock Text="{Binding StatusIndicatorDetailText}"
+                           Foreground="Gray"
+                           FontSize="12"
+                           HorizontalAlignment="Center"
+                           Margin="0,5,0,0">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding StatusIndicatorDetailText, Converter={StaticResource NullToVisibilityConverter}}"
+                                             Value="Visible">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
         </Border>
     </Grid>
 </Window>

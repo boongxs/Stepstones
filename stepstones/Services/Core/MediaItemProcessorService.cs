@@ -83,7 +83,7 @@ namespace stepstones.Services.Core
             }
         }
 
-        public async Task<int> ProcessUploadedFilesAsync(IEnumerable<string> sourceFilePaths, string destinationPath, IProgress<string> progress)
+        public async Task<int> ProcessUploadedFilesAsync(IEnumerable<string> sourceFilePaths, string destinationPath, IProgress<(string Main, string Detail)> progress)
         {
             _folderWatcherService.StopWatching();
             var fileList = sourceFilePaths.ToList();
@@ -93,6 +93,10 @@ namespace stepstones.Services.Core
             {
                 foreach (var sourcePath in fileList)
                 {
+                    var currentFileNumber = fileList.IndexOf(sourcePath) + 1;
+                    var currentFileName = Path.GetFileName(sourcePath);
+                    progress.Report((Main: $"Processing {currentFileNumber} of {fileList.Count} files...", Detail: currentFileName));
+
                     var mediaType = await _fileTypeIdentifierService.IdentifyAsync(sourcePath);
 
                     if (mediaType == MediaType.Unknown)
@@ -112,9 +116,6 @@ namespace stepstones.Services.Core
                             }
                         }
                     }
-
-                    var currentFileNumber = fileList.IndexOf(sourcePath) + 1;
-                    progress.Report($"Processing {currentFileNumber} of {fileList.Count} files...");
                 }
             }
             finally
@@ -125,7 +126,7 @@ namespace stepstones.Services.Core
             return processedCount;
         }
 
-        public async Task ProcessOrphanFilesAsync(IEnumerable<string> orphanPaths, IProgress<string> progress)
+        public async Task ProcessOrphanFilesAsync(IEnumerable<string> orphanPaths, IProgress<(string Main, string Detail)> progress)
         {
             var orphanList = orphanPaths.ToList();
             var processedCount = 0;
@@ -135,6 +136,10 @@ namespace stepstones.Services.Core
             {
                 foreach (var orphanPath in orphanList)
                 {
+                    processedCount++;
+                    var currentFileName = Path.GetFileName(orphanPath);
+                    progress.Report((Main: $"Processing {processedCount} of {orphanList.Count} orphan files...", Detail: currentFileName));
+
                     var uniqueFileName = FileNameGenerator.GenerateUniqueFileName(orphanPath);
                     var newPath = Path.Combine(Path.GetDirectoryName(orphanPath), uniqueFileName);
                     
@@ -146,8 +151,6 @@ namespace stepstones.Services.Core
                     File.Move(orphanPath, newPath);
 
                     await ProcessNewFileAsync(orphanPath, newPath);
-                    processedCount++;
-                    progress.Report($"Processing {processedCount} of {orphanList.Count} orphan files...");
                 }
             }
             finally
