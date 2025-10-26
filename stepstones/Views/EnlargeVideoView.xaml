@@ -12,15 +12,39 @@
           MaxHeight="{Binding OriginalHeight}"
           MinWidth="{Binding MinSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
           MinHeight="{Binding MinSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
-          Background="Transparent"
+          Background="Black"
           Margin="20">
+        <Border Width="{Binding OriginalWidth}"
+                Height="{Binding OriginalHeight}"
+                Visibility="Hidden">
+        </Border>
+        
         <MediaElement x:Name="MediaPlayer"
                       LoadedBehavior="Manual"
                       UnloadedBehavior="Close"
-                      Source="{Binding FilePath}"
+                      Source="{Binding PlayableFileUri}"
                       Stretch="Fill"
                       Volume="0.5">
         </MediaElement>
+
+        <TextBlock Text="Preparing video for playback..."
+                   Foreground="White"
+                   FontSize="18"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsTranscoding}"
+                                     Value="True">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
 
         <Grid IsHitTestVisible="False">
             <Grid x:Name="PlayIndicator"

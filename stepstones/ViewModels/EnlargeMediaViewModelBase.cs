@@ -1,12 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using System.Windows.Media.Imaging;
 using stepstones.Models;
 
 namespace stepstones.ViewModels
 {
     public abstract partial class EnlargeMediaViewModelBase : ObservableObject
     {
-        public BitmapImage? ImageSource { get; }
         public string FilePath { get; }
         public MediaType FileType { get; }
         public int OriginalWidth { get; }
@@ -19,13 +17,12 @@ namespace stepstones.ViewModels
 
         public bool IsPlayableMedia => IsVideo || IsGif || IsAudio;
 
-        public EnlargeMediaViewModelBase(string filePath, MediaType fileType, int width, int height, BitmapImage? imageSource = null)
+        public EnlargeMediaViewModelBase(string filePath, MediaType fileType, int width, int height)
         {
             FilePath = filePath;
             FileType = fileType;
             OriginalWidth = width;
             OriginalHeight = height;
-            ImageSource = imageSource;
 
             IsImage = fileType == MediaType.Image;
             IsVideo = fileType == MediaType.Video;

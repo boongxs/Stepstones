@@ -23,10 +23,6 @@
             <views:EnlargeVideoView/>
         </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewmodels:TranscodingProgressViewModel}">
-            <views:TranscodingProgressView/>
-        </DataTemplate>
-
         <DataTemplate DataType="{x:Type viewmodels:EnlargeGifViewModel}">
             <views:EnlargeGifView/>
         </DataTemplate>

@@ -28,8 +28,6 @@ namespace stepstones.ViewModels
         private readonly IDialogService _dialogService;
         private readonly ITranscodingService _transcodingService;
 
-        private CancellationTokenSource? _transcodingCts;
-
         [ObservableProperty]
         private BitmapImage? _thumbnailImage;
 
@@ -169,64 +167,21 @@ namespace stepstones.ViewModels
             switch (this.FileType)
             {
                 case MediaType.Image:
-                    BitmapImage? loadedImage = new BitmapImage();
-                    loadedImage.BeginInit();
-                    loadedImage.UriSource = new Uri(this.FilePath);
-                    loadedImage.CacheOption = BitmapCacheOption.OnLoad;
-                    loadedImage.EndInit();
-                    loadedImage.Freeze();
-
                     dialogViewModel = new EnlargeImageViewModel(
                         this.FilePath,
                         this.FileType,
                         dimensions.Width,
-                        dimensions.Height,
-                        loadedImage);
+                        dimensions.Height);
 
                     break;
 
                 case MediaType.Video:
-                    _transcodingCts = new CancellationTokenSource();
-
-                    if (await _transcodingService.IsTranscodingRequiredAsync(this.FilePath))
-                    {
-                        _dialogService.ShowTranscodingDialog(_transcodingCts);
-                    }
-
-                    try
-                    {
-                        var playableFilePath = await _transcodingService.EnsurePlayableFileAsync(this.FilePath, _transcodingCts.Token);
-
-                        if (!_transcodingCts.Token.IsCancellationRequested)
-                        {
-                            dialogViewModel = new EnlargeVideoViewModel(
-                                playableFilePath,
-                                this.FileType,
-                                dimensions.Width,
-                                dimensions.Height);
-
-                            _dialogService.ShowDialog(dialogViewModel);
-                        }
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        Log.Information("Cancellation was requested. Cleaning up transcoded file.");
-                        var cachedFilePath = _transcodingService.GetCachePathForFile(this.FilePath);
-                        try
-                        {
-                            if (File.Exists(cachedFilePath))
-                            {
-                                File.Delete(cachedFilePath);
-                                Log.Information("Successfully deleted transcoded file '{Path}'", cachedFilePath);
-
-                                return;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "Failed to delete transcoded file '{Path}'", cachedFilePath);
-                        }
-                    }
+                    dialogViewModel = new EnlargeVideoViewModel(
+                        this.FilePath,
+                        this.FileType,
+                        dimensions.Width,
+                        dimensions.Height,
+                        _transcodingService);
 
                     break;
 

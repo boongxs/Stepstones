@@ -40,7 +40,6 @@
         #region Dialog and Toast Messages
 
         public const string EditTagsDialogTitle = "Tags";
-        public const string TranscodingProgressText = "Preparing video for playback, please wait...";
         public const string SelectFilesDialogTitle = "Select file(s) to upload";
         public const string SelectFolderDialogDescription = "Select a folder";
         public const string NoMediaFolderSetTitle = "No media folder set";

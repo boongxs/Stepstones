@@ -19,7 +19,6 @@ namespace stepstones.Services.Infrastructure
 
         public async Task<string?> LoadMediaFolderPathAsync()
         {
-            // IO operation so try-catch block
             try
             {
                 // Retrieve the last saved media folder path

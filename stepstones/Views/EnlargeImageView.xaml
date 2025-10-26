@@ -14,7 +14,7 @@
           Background="Transparent"
           Margin="20">
         <Image x:Name="ImageViewer"
-               Source="{Binding ImageSource}">
+               Source="{Binding FilePath}">
         </Image>
     </Grid>
 </UserControl>

@@ -7,7 +7,6 @@ namespace stepstones.Services.Interaction
         object? ActiveDialogViewModel { get; }
 
         void ShowDialog(object viewModel);
-        void ShowTranscodingDialog(CancellationTokenSource cancellationTokenSource);
         Task<EditTagsResult> ShowEditTagsDialogAsync(string? currentTags);
         void CloseDialog(string? result);
     }

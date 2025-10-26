@@ -135,11 +135,10 @@ namespace stepstones.ViewModels
 
                 _logger.LogInformation("Application startup: No previously saved media folder path found.");
             }
-            // a media folder is set in preferences
             else
             {
+                // a media folder is set in preferences
                 _logger.LogInformation("Application startup: Located saved media folder path: {Path}", savedPath);
-
                 await LoadFolderAsync(savedPath);
             }
         }

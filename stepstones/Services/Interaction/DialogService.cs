@@ -16,17 +16,9 @@ namespace stepstones.Services.Interaction
 
         private TaskCompletionSource<EditTagsResult>? _editTagsCompletionSource;
 
-        private CancellationTokenSource? _transcodingCts;
-
         public void ShowDialog(object viewModel)
         {
             ActiveDialogViewModel = viewModel;
-        }
-
-        public void ShowTranscodingDialog(CancellationTokenSource cancellationTokenSource)
-        {
-            _transcodingCts = cancellationTokenSource;
-            ActiveDialogViewModel = new TranscodingProgressViewModel();
         }
 
         public Task<EditTagsResult> ShowEditTagsDialogAsync(string? currentTags)
@@ -46,12 +38,11 @@ namespace stepstones.Services.Interaction
                 var dialogResult = new EditTagsResult { WasSaved = wasSaved, NewTags = editTagsVM.TagsText };
                 _editTagsCompletionSource?.SetResult(dialogResult);
             }
-            else if (ActiveDialogViewModel is TranscodingProgressViewModel)
+            else if (ActiveDialogViewModel is EnlargeVideoViewModel enlargeVideoVM)
             {
-                _transcodingCts?.Cancel();
+                enlargeVideoVM.Cancel();
             }
 
-            _transcodingCts = null;
             ActiveDialogViewModel = null;
         }
     }
