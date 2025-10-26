@@ -3,6 +3,8 @@ using System.IO;
 using stepstones.Models;
 using stepstones.Services.Data;
 using stepstones.Services.Infrastructure;
+using static stepstones.Resources.AppConstants;
+using stepstones.Resources;
 
 namespace stepstones.Services.Core
 {
@@ -14,13 +16,15 @@ namespace stepstones.Services.Core
         private readonly IDatabaseService _databaseService;
         private readonly IFileService _fileService;
         private readonly IFolderWatcherService _folderWatcherService;
+        private readonly IImageDimensionService _imageDimensionService;
 
         public MediaItemProcessorService(ILogger<MediaItemProcessorService> logger, 
                                          IFileTypeIdentifierService fileTypeIdentifierService, 
                                          IThumbnailService thumbnailService, 
                                          IDatabaseService databaseService,
                                          IFileService fileService,
-                                         IFolderWatcherService folderWatcherService)
+                                         IFolderWatcherService folderWatcherService,
+                                         IImageDimensionService imageDimensionService)
         {
             _logger = logger;
             _fileTypeIdentifierService = fileTypeIdentifierService;
@@ -28,6 +32,7 @@ namespace stepstones.Services.Core
             _databaseService = databaseService;
             _fileService = fileService;
             _folderWatcherService = folderWatcherService;
+            _imageDimensionService = imageDimensionService;
         }
 
         public async Task<MediaItem?> ProcessNewFileAsync(string originalPath, string finalPath, MediaType? mediaType = null)
@@ -53,6 +58,18 @@ namespace stepstones.Services.Core
                     duration = mediaInfo.Duration;
                 }
 
+                // get width and height of the file
+                (int Width, int Height) dimensions = (0, 0);
+                if (mediaType.Value == MediaType.Audio)
+                {
+                    // default 400x400 for audio files
+                    dimensions = (AppConstants.MinimumDisplaySize, AppConstants.MinimumDisplaySize);
+                }
+                else
+                {
+                    dimensions = await _imageDimensionService.GetDimensionsAsync(finalPath, mediaType.Value);
+                }
+
                 // create the thumbnail
                 string? thumbnailPath = null;
                 if (mediaType.Value != MediaType.Audio)
@@ -67,7 +84,9 @@ namespace stepstones.Services.Core
                     FilePath = finalPath,
                     FileType = mediaType.Value,
                     ThumbnailPath = thumbnailPath,
-                    Duration = duration
+                    Duration = duration,
+                    Width = dimensions.Width,
+                    Height = dimensions.Height
                 };
 
                 // save to the database

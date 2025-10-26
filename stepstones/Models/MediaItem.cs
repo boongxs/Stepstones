@@ -20,5 +20,9 @@ namespace stepstones.Models
         public TimeSpan Duration { get; set; }
 
         public string? ThumbnailPath { get; set; }
+
+        public int Width { get; set; }
+
+        public int Height { get; set; }
     }
 }

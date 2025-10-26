@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.IO;
 using stepstones.Models;
 using stepstones.Services.Core;
-using System.IO;
+using static stepstones.Resources.AppConstants;
+using stepstones.Resources;
 
 namespace stepstones.Services.Data
 {
@@ -10,14 +12,17 @@ namespace stepstones.Services.Data
         private readonly ILogger<DataMigrationService> _logger;
         private readonly IDatabaseService _databaseService;
         private readonly IThumbnailService _thumbnailService;
+        private readonly IImageDimensionService _imageDimensionsService;
 
         public DataMigrationService(ILogger<DataMigrationService> logger, 
                                     IDatabaseService databaseService,
-                                    IThumbnailService thumbnailService)
+                                    IThumbnailService thumbnailService,
+                                    IImageDimensionService imageDimensionService)
         {
             _logger = logger;
             _databaseService = databaseService;
             _thumbnailService = thumbnailService;
+            _imageDimensionsService = imageDimensionService;
         }
 
         public void RunMigration(string folderPath, Action<MediaItem> onItemRepaired)
@@ -32,6 +37,7 @@ namespace stepstones.Services.Data
 
                     await CheckDurationsAsync(itemsInFolder, onItemRepaired);
                     await CheckThumbnailPathsAsync(itemsInFolder, onItemRepaired);
+                    await CheckDimensionsAsync(itemsInFolder, onItemRepaired);
 
                     _logger.LogInformation("Background data migration check completed for '{Path}'.", folderPath);
                 }
@@ -116,6 +122,47 @@ namespace stepstones.Services.Data
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to regenerate for '{FilePath}'. Skipping.", item.FilePath);
+                }
+            }
+        }
+
+        private async Task CheckDimensionsAsync(List<MediaItem> items, Action<MediaItem> onItemRepaired)
+        {
+            // find items where width or height is 0
+            var itemsWithMissingDimensions = items
+                .Where(item => item.Width == 0 || item.Height == 0)
+                .ToList();
+
+            if (!itemsWithMissingDimensions.Any())
+            {
+                return;
+            }
+
+            _logger.LogInformation("Found {Count} records with missing dimensions.", itemsWithMissingDimensions.Count);
+
+            foreach (var item in itemsWithMissingDimensions)
+            {
+                try
+                {
+                    if (item.FileType == MediaType.Audio)
+                    {
+                        item.Width = AppConstants.MinimumDisplaySize;
+                        item.Height = AppConstants.MinimumDisplaySize;
+                    }
+                    else
+                    {
+                        var dimensions = await _imageDimensionsService.GetDimensionsAsync(item.FilePath, item.FileType);
+                        item.Width = dimensions.Width;
+                        item.Height = dimensions.Height;
+                    }
+
+                    await _databaseService.UpdateMediaItemAsync(item);
+                    onItemRepaired(item);
+                    _logger.LogInformation("Successfully updated dimensions for '{FileName}'.", item.FileName);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to update dimensions for '{FilePath}'. Skipping", item.FilePath);
                 }
             }
         }

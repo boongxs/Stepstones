@@ -152,15 +152,7 @@ namespace stepstones.ViewModels
         [RelayCommand]
         private async Task Enlarge()
         {
-            var dimensions = (Width: 0, Height: 0);
-            if (this.FileType != MediaType.Audio)
-            {
-                dimensions = await _imageDimensionService.GetDimensionsAsync(this.FilePath, this.FileType);
-                if (dimensions.Width == 0 || dimensions.Height == 0)
-                {
-                    return;
-                }
-            }
+            var dimensions = (Width: _mediaItem.Width, Height: _mediaItem.Height);
 
             object? dialogViewModel = null;
 
@@ -200,6 +192,7 @@ namespace stepstones.ViewModels
                         this.FileType,
                         MinimumDisplaySize,
                         MinimumDisplaySize);
+
                     break;
             }
 
@@ -226,6 +219,9 @@ namespace stepstones.ViewModels
                     await _databaseService.DeleteMediaItemAsync(_mediaItem);
 
                     _messenger.Send(new MediaItemDeletedMessage(this));
+
+                    var toastMessage = string.Format(FileDeleteSuccessMessage, _mediaItem.FileName);
+                    _messenger.Send(new ShowToastMessage(toastMessage, ToastNotificationType.Success));
                 }
                 catch (Exception ex)
                 {
