@@ -8,217 +8,214 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewmodels:EnlargeVideoViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid MaxWidth="{Binding OriginalWidth}"
-          MaxHeight="{Binding OriginalHeight}"
-          MinWidth="{Binding MinSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
-          MinHeight="{Binding MinSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
-          Background="Black"
+    <Grid Background="Transparent"
           Margin="20">
-        <Border Width="{Binding OriginalWidth}"
-                Height="{Binding OriginalHeight}"
-                Visibility="Hidden">
-        </Border>
-        
-        <MediaElement x:Name="MediaPlayer"
-                      LoadedBehavior="Manual"
-                      UnloadedBehavior="Close"
-                      Source="{Binding PlayableFileUri}"
-                      Stretch="Fill"
-                      Volume="0.5">
-        </MediaElement>
+        <Viewbox Stretch="Uniform"
+                 StretchDirection="DownOnly"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center">
+            <Grid Width="{Binding LayoutWidth}"
+                  Height="{Binding LayoutHeight}">
+                <MediaElement x:Name="MediaPlayer"
+                              LoadedBehavior="Manual"
+                              UnloadedBehavior="Close"
+                              Source="{Binding PlayableFileUri}"
+                              Stretch="Fill"
+                              Volume="0.5">
+                </MediaElement>
 
-        <TextBlock Text="Preparing video for playback..."
-                   Foreground="White"
-                   FontSize="18"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center">
-            <TextBlock.Style>
-                <Style TargetType="TextBlock">
-                    <Setter Property="Visibility" Value="Collapsed"/>
+                <TextBlock Text="Preparing video for playback..."
+                           Foreground="White"
+                           FontSize="18"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsTranscoding}"
+                                             Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
 
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding IsTranscoding}"
-                                     Value="True">
-                            <Setter Property="Visibility" Value="Visible"/>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </TextBlock.Style>
-        </TextBlock>
+                <Grid IsHitTestVisible="False">
+                    <Grid x:Name="PlayIndicator"
+                          Visibility="Collapsed">
+                        <Ellipse Fill="Black"
+                                 Opacity="0.5"
+                                 Width="80"
+                                 Height="80">
+                        </Ellipse>
 
-        <Grid IsHitTestVisible="False">
-            <Grid x:Name="PlayIndicator"
-                  Visibility="Collapsed">
-                <Ellipse Fill="Black"
-                         Opacity="0.5"
-                         Width="80"
-                         Height="80">
-                </Ellipse>
+                        <Path Data="M8,5.14V19.14L19,12.14L8,5.14Z"
+                              Fill="White"
+                              Stretch="Uniform"
+                              Width="40"
+                              Height="40"
+                              Margin="5,0,0,0">
+                        </Path>
+                    </Grid>
 
-                <Path Data="M8,5.14V19.14L19,12.14L8,5.14Z"
-                      Fill="White"
-                      Stretch="Uniform"
-                      Width="40"
-                      Height="40"
-                      Margin="5,0,0,0">
-                </Path>
-            </Grid>
+                    <Grid x:Name="PauseIndicator"
+                          Visibility="Collapsed">
+                        <Ellipse Fill="Black"
+                                 Opacity="0.5"
+                                 Width="80"
+                                 Height="80">
+                        </Ellipse>
 
-            <Grid x:Name="PauseIndicator"
-                  Visibility="Collapsed">
-                <Ellipse Fill="Black"
-                         Opacity="0.5"
-                         Width="80"
-                         Height="80">
-                </Ellipse>
-
-                <Path Data="M14,19H18V5H14M6,19H10V5H6V19Z"
-                      Fill="White"
-                      Stretch="Uniform"
-                      Width="40"
-                      Height="40">
-                </Path>
-            </Grid>
-        </Grid>
-
-        <Border x:Name="ControlsOverlay"
-                VerticalAlignment="Bottom"
-                Background="#cc000000"
-                Height="50"
-                MouseLeftButtonDown="ControlsOverlay_MouseLeftButtonDown">
-            <Grid>
-                <Button HorizontalAlignment="Left"
-                        Padding="10,0,10,0"
-                        Click="PlayPauseButton_Click"
-                        Style="{StaticResource TransparentButtonStyle}">
-
-                    <Path x:Name="PlayPauseIcon"
-                          Fill="White"
-                          Stretch="Uniform"
-                          Width="25"
-                          Height="25">      
-                        <Path.Style>
-                            <Style TargetType="Path">
-                                <Setter Property="Data" Value="M8,5.14V19.14L19,12.14L8,5.14Z"/>
-
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsPlaying, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                 Value="True">
-                                        <Setter Property="Data" Value="M14,19H18V5H14M6,19H10V5H6V19Z"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Path.Style>
-                    </Path>
-                </Button>
-
-                <Grid x:Name="VolumeControlContainer"
-                      HorizontalAlignment="Right"
-                      Background="Transparent"
-                      Margin="0,0,5,0"
-                      MouseEnter="VolumeControlContainer_MouseEnter"
-                      MouseLeave="VolumeControlContainer_MouseLeave">
-                    <Popup x:Name="VolumePopup"
-                           Placement="Top"
-                           PlacementTarget="{Binding ElementName=MuteButton}"
-                           StaysOpen="True"
-                           AllowsTransparency="True"
-                           HorizontalOffset="8"
-                           VerticalOffset="-5">
-                        <Border Background="#444444"
-                                Padding="5"
-                                CornerRadius="10"
-                                MouseEnter="VolumePopup_MouseEnter"
-                                MouseLeave="VolumePopup_MouseLeave">
-                            <Slider x:Name="VolumeSlider"
-                                    Orientation="Vertical"
-                                    Height="100"
-                                    Minimum="0"
-                                    Maximum="1"
-                                    Value="{Binding Volume, ElementName=MediaPlayer, Mode=TwoWay}"
-                                    ValueChanged="VolumeSlider_ValueChanged"
-                                    PreviewMouseLeftButtonDown="VolumeSlider_PreviewMouseLeftButtonDown"
-                                    PreviewMouseMove="VolumeSlider_PreviewMouseMove"
-                                    PreviewMouseLeftButtonUp="VolumeSlider_PreviewMouseLeftButtonUp">
-                                <Slider.Style>
-                                    <Style TargetType="Slider">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="Slider">
-                                                    <ControlTemplate.Resources>
-                                                        <Style x:Key="SliderRepeatButtonStyle"
-                                                               TargetType="RepeatButton">
-                                                            <Setter Property="Template">
-                                                                <Setter.Value>
-                                                                    <ControlTemplate TargetType="RepeatButton">
-                                                                        <Grid Background="Transparent"/>
-                                                                    </ControlTemplate>
-                                                                </Setter.Value>
-                                                            </Setter>
-                                                        </Style>
-                                                    </ControlTemplate.Resources>
-
-                                                    <Grid>
-                                                        <Border x:Name="TrackBorder"
-                                                                Width="6"
-                                                                Background="Gray"
-                                                                CornerRadius="3">
-                                                        </Border>
-
-                                                        <Track x:Name="PART_Track">
-                                                            <Track.DecreaseRepeatButton>
-                                                                <RepeatButton Command="{x:Static Slider.DecreaseLarge}"
-                                                                              IsHitTestVisible="True">
-                                                                    <RepeatButton.Template>
-                                                                        <ControlTemplate TargetType="RepeatButton">
-                                                                            <Border Background="White"
-                                                                                    Width="6"
-                                                                                    CornerRadius="3"
-                                                                                    Margin="0,-5,0,0">
-                                                                            </Border>
-                                                                        </ControlTemplate>
-                                                                    </RepeatButton.Template>
-                                                                </RepeatButton>
-                                                            </Track.DecreaseRepeatButton>
-
-                                                            <Track.IncreaseRepeatButton>
-                                                                <RepeatButton Command="{x:Static Slider.IncreaseLarge}"
-                                                                              Style="{StaticResource SliderRepeatButtonStyle}"
-                                                                              IsHitTestVisible="True">
-                                                                </RepeatButton>
-                                                            </Track.IncreaseRepeatButton>
-
-                                                            <Track.Thumb>
-                                                                <Thumb Width="10"
-                                                                       Height="10">
-                                                                    <Thumb.Template>
-                                                                        <ControlTemplate TargetType="Thumb">
-                                                                            <Grid>
-                                                                                <Ellipse Fill="White"/>
-                                                                            </Grid>
-                                                                        </ControlTemplate>
-                                                                    </Thumb.Template>
-                                                                </Thumb>
-                                                            </Track.Thumb>
-                                                        </Track>
-                                                    </Grid>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </Slider.Style>
-                            </Slider>
-                        </Border>
-                    </Popup>
-
-                    <Button x:Name="MuteButton"
-                            Width="35"
-                            Height="35"
-                            Click="MuteButton_Click"
-                            Style="{StaticResource MuteButtonStyle}">
-                    </Button>
+                        <Path Data="M14,19H18V5H14M6,19H10V5H6V19Z"
+                              Fill="White"
+                              Stretch="Uniform"
+                              Width="40"
+                              Height="40">
+                        </Path>
+                    </Grid>
                 </Grid>
+
+                <Border x:Name="ControlsOverlay"
+                        VerticalAlignment="Bottom"
+                        Background="#cc000000"
+                        Height="50"
+                        MouseLeftButtonDown="ControlsOverlay_MouseLeftButtonDown">
+                    <Grid>
+                        <Button HorizontalAlignment="Left"
+                                Padding="10,0,10,0"
+                                Click="PlayPauseButton_Click"
+                                Style="{StaticResource TransparentButtonStyle}">
+                            <Path x:Name="PlayPauseIcon"
+                                  Fill="White"
+                                  Stretch="Uniform"
+                                  Width="25"
+                                  Height="25">
+                                <Path.Style>
+                                    <Style TargetType="Path">
+                                        <Setter Property="Data" Value="M8,5.14V19.14L19,12.14L8,5.14Z"/>
+
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsPlaying, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                         Value="True">
+                                                <Setter Property="Data" Value="M14,19H18V5H14M6,19H10V5H6V19Z"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Path.Style>
+                            </Path>
+                        </Button>
+
+                        <Grid x:Name="VolumeControlContainer"
+                              HorizontalAlignment="Right"
+                              Background="Transparent"
+                              Margin="0,0,5,0"
+                              MouseEnter="VolumeControlContainer_MouseEnter"
+                              MouseLeave="VolumeControlContainer_MouseLeave">
+                            <Popup x:Name="VolumePopup"
+                                   Placement="Top"
+                                   PlacementTarget="{Binding ElementName=MuteButton}"
+                                   StaysOpen="True"
+                                   AllowsTransparency="True"
+                                   HorizontalOffset="8"
+                                   VerticalOffset="-5">
+                                <Border Background="#444444"
+                                        Padding="5"
+                                        CornerRadius="10"
+                                        MouseEnter="VolumePopup_MouseEnter"
+                                        MouseLeave="VolumePopup_MouseLeave">
+                                    <Slider x:Name="VolumeSlider"
+                                            Orientation="Vertical"
+                                            Height="100"
+                                            Minimum="0"
+                                            Maximum="1"
+                                            Value="{Binding Volume, ElementName=MediaPlayer, Mode=TwoWay}"
+                                            ValueChanged="VolumeSlider_ValueChanged"
+                                            PreviewMouseLeftButtonDown="VolumeSlider_PreviewMouseLeftButtonDown"
+                                            PreviewMouseMove="VolumeSlider_PreviewMouseMove"
+                                            PreviewMouseLeftButtonUp="VolumeSlider_PreviewMouseLeftButtonUp">
+                                        <Slider.Style>
+                                            <Style TargetType="Slider">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Slider">
+                                                            <ControlTemplate.Resources>
+                                                                <Style x:Key="SliderRepeatButtonStyle"
+                                                                       TargetType="RepeatButton">
+                                                                    <Setter Property="Template">
+                                                                        <Setter.Value>
+                                                                            <ControlTemplate TargetType="RepeatButton">
+                                                                                <Grid Background="Transparent"/>
+                                                                            </ControlTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Style>
+                                                            </ControlTemplate.Resources>
+
+                                                            <Grid>
+                                                                <Border x:Name="TrackBorder"
+                                                                        Width="6"
+                                                                        Background="Gray"
+                                                                        CornerRadius="3">
+                                                                </Border>
+
+                                                                <Track x:Name="PART_Track">
+                                                                    <Track.DecreaseRepeatButton>
+                                                                        <RepeatButton Command="{x:Static Slider.DecreaseLarge}"
+                                                                                      IsHitTestVisible="True">
+                                                                            <RepeatButton.Template>
+                                                                                <ControlTemplate TargetType="RepeatButton">
+                                                                                    <Border Background="White"
+                                                                                            Width="6"
+                                                                                            CornerRadius="3"
+                                                                                            Margin="0,-5,0,0">
+                                                                                    </Border>
+                                                                                </ControlTemplate>
+                                                                            </RepeatButton.Template>
+                                                                        </RepeatButton>
+                                                                    </Track.DecreaseRepeatButton>
+
+                                                                    <Track.IncreaseRepeatButton>
+                                                                        <RepeatButton Command="{x:Static Slider.IncreaseLarge}"
+                                                                                      Style="{StaticResource SliderRepeatButtonStyle}"
+                                                                                      IsHitTestVisible="True">
+                                                                        </RepeatButton>
+                                                                    </Track.IncreaseRepeatButton>
+
+                                                                    <Track.Thumb>
+                                                                        <Thumb Width="10"
+                                                                               Height="10">
+                                                                            <Thumb.Template>
+                                                                                <ControlTemplate TargetType="Thumb">
+                                                                                    <Grid>
+                                                                                        <Ellipse Fill="White"/>
+                                                                                    </Grid>
+                                                                                </ControlTemplate>
+                                                                            </Thumb.Template>
+                                                                        </Thumb>
+                                                                    </Track.Thumb>
+                                                                </Track>
+                                                            </Grid>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </Slider.Style>
+                                    </Slider>
+                                </Border>
+                            </Popup>
+
+                            <Button x:Name="MuteButton"
+                                    Width="35"
+                                    Height="35"
+                                    Click="MuteButton_Click"
+                                    Style="{StaticResource MuteButtonStyle}">
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Border>
             </Grid>
-        </Border>
+        </Viewbox>
     </Grid>
 </views:MediaPlayerViewBase>
