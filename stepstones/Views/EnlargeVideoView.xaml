@@ -43,38 +43,15 @@
                 </TextBlock>
 
                 <Grid IsHitTestVisible="False">
-                    <Grid x:Name="PlayIndicator"
-                          Visibility="Collapsed">
-                        <Ellipse Fill="Black"
-                                 Opacity="0.5"
-                                 Width="80"
-                                 Height="80">
-                        </Ellipse>
+                    <ContentControl x:Name="PlayIndicator"
+                                    Template="{StaticResource PlayIndicatorTemplate}"
+                                    Visibility="Collapsed">
+                    </ContentControl>
 
-                        <Path Data="M8,5.14V19.14L19,12.14L8,5.14Z"
-                              Fill="White"
-                              Stretch="Uniform"
-                              Width="40"
-                              Height="40"
-                              Margin="5,0,0,0">
-                        </Path>
-                    </Grid>
-
-                    <Grid x:Name="PauseIndicator"
-                          Visibility="Collapsed">
-                        <Ellipse Fill="Black"
-                                 Opacity="0.5"
-                                 Width="80"
-                                 Height="80">
-                        </Ellipse>
-
-                        <Path Data="M14,19H18V5H14M6,19H10V5H6V19Z"
-                              Fill="White"
-                              Stretch="Uniform"
-                              Width="40"
-                              Height="40">
-                        </Path>
-                    </Grid>
+                    <ContentControl x:Name="PauseIndicator"
+                                    Template="{StaticResource PauseIndicatorTemplate}"
+                                    Visibility="Collapsed">
+                    </ContentControl>
                 </Grid>
 
                 <Border x:Name="ControlsOverlay"
@@ -94,12 +71,12 @@
                                   Height="25">
                                 <Path.Style>
                                     <Style TargetType="Path">
-                                        <Setter Property="Data" Value="M8,5.14V19.14L19,12.14L8,5.14Z"/>
+                                        <Setter Property="Data" Value="{StaticResource PlayIconData}"/>
 
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsPlaying, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                          Value="True">
-                                                <Setter Property="Data" Value="M14,19H18V5H14M6,19H10V5H6V19Z"/>
+                                                <Setter Property="Data" Value="{StaticResource PauseIconData}"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -126,6 +103,7 @@
                                         MouseEnter="VolumePopup_MouseEnter"
                                         MouseLeave="VolumePopup_MouseLeave">
                                     <Slider x:Name="VolumeSlider"
+                                            Style="{StaticResource VerticalVolumeSliderStyle}"
                                             Orientation="Vertical"
                                             Height="100"
                                             Minimum="0"
@@ -135,73 +113,6 @@
                                             PreviewMouseLeftButtonDown="VolumeSlider_PreviewMouseLeftButtonDown"
                                             PreviewMouseMove="VolumeSlider_PreviewMouseMove"
                                             PreviewMouseLeftButtonUp="VolumeSlider_PreviewMouseLeftButtonUp">
-                                        <Slider.Style>
-                                            <Style TargetType="Slider">
-                                                <Setter Property="Template">
-                                                    <Setter.Value>
-                                                        <ControlTemplate TargetType="Slider">
-                                                            <ControlTemplate.Resources>
-                                                                <Style x:Key="SliderRepeatButtonStyle"
-                                                                       TargetType="RepeatButton">
-                                                                    <Setter Property="Template">
-                                                                        <Setter.Value>
-                                                                            <ControlTemplate TargetType="RepeatButton">
-                                                                                <Grid Background="Transparent"/>
-                                                                            </ControlTemplate>
-                                                                        </Setter.Value>
-                                                                    </Setter>
-                                                                </Style>
-                                                            </ControlTemplate.Resources>
-
-                                                            <Grid>
-                                                                <Border x:Name="TrackBorder"
-                                                                        Width="6"
-                                                                        Background="Gray"
-                                                                        CornerRadius="3">
-                                                                </Border>
-
-                                                                <Track x:Name="PART_Track">
-                                                                    <Track.DecreaseRepeatButton>
-                                                                        <RepeatButton Command="{x:Static Slider.DecreaseLarge}"
-                                                                                      IsHitTestVisible="True">
-                                                                            <RepeatButton.Template>
-                                                                                <ControlTemplate TargetType="RepeatButton">
-                                                                                    <Border Background="White"
-                                                                                            Width="6"
-                                                                                            CornerRadius="3"
-                                                                                            Margin="0,-5,0,0">
-                                                                                    </Border>
-                                                                                </ControlTemplate>
-                                                                            </RepeatButton.Template>
-                                                                        </RepeatButton>
-                                                                    </Track.DecreaseRepeatButton>
-
-                                                                    <Track.IncreaseRepeatButton>
-                                                                        <RepeatButton Command="{x:Static Slider.IncreaseLarge}"
-                                                                                      Style="{StaticResource SliderRepeatButtonStyle}"
-                                                                                      IsHitTestVisible="True">
-                                                                        </RepeatButton>
-                                                                    </Track.IncreaseRepeatButton>
-
-                                                                    <Track.Thumb>
-                                                                        <Thumb Width="10"
-                                                                               Height="10">
-                                                                            <Thumb.Template>
-                                                                                <ControlTemplate TargetType="Thumb">
-                                                                                    <Grid>
-                                                                                        <Ellipse Fill="White"/>
-                                                                                    </Grid>
-                                                                                </ControlTemplate>
-                                                                            </Thumb.Template>
-                                                                        </Thumb>
-                                                                    </Track.Thumb>
-                                                                </Track>
-                                                            </Grid>
-                                                        </ControlTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </Style>
-                                        </Slider.Style>
                                     </Slider>
                                 </Border>
                             </Popup>

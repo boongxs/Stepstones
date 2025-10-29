@@ -304,4 +304,106 @@
             </DataTrigger>
         </Style.Triggers>
     </Style>
+
+    <Style x:Key="VerticalVolumeSliderStyle"
+           TargetType="Slider">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <ControlTemplate.Resources>
+                        <Style x:Key="SliderRepeatButtonStyle"
+                               TargetType="RepeatButton">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="RepeatButton">
+                                        <Grid Background="Transparent"/>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ControlTemplate.Resources>
+
+                    <Grid>
+                        <Border x:Name="TrackBorder"
+                                Width="6"
+                                Background="Gray"
+                                CornerRadius="3">
+                        </Border>
+
+                        <Track x:Name="PART_Track">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Command="{x:Static Slider.DecreaseLarge}"
+                                              IsHitTestVisible="True">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+                                            <Border Background="White"
+                                                    Width="6"
+                                                    CornerRadius="3"
+                                                    Margin="0,-5,0,0">
+                                            </Border>
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.DecreaseRepeatButton>
+
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Command="{x:Static Slider.IncreaseLarge}"
+                                              Style="{StaticResource SliderRepeatButtonStyle}"
+                                              IsHitTestVisible="True">
+                                </RepeatButton>
+                            </Track.IncreaseRepeatButton>
+
+                            <Track.Thumb>
+                                <Thumb Width="10"
+                                       Height="10">
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Grid>
+                                                <Ellipse Fill="White"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <ControlTemplate x:Key="PlayIndicatorTemplate">
+        <Grid>
+            <Ellipse Fill="Black"
+                     Opacity="0.5"
+                     Width="80"
+                     Height="80">
+            </Ellipse>
+
+            <Path Data="{StaticResource PlayIconData}"
+                  Fill="White"
+                  Stretch="Uniform"
+                  Width="40"
+                  Height="40"
+                  Margin="5,0,0,0">
+            </Path>
+        </Grid>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="PauseIndicatorTemplate">
+        <Grid>
+            <Ellipse Fill="Black"
+                     Opacity="0.5"
+                     Width="80"
+                     Height="80">
+            </Ellipse>
+
+            <Path Data="{StaticResource PauseIconData}"
+                  Fill="White"
+                  Stretch="Uniform"
+                  Width="40"
+                  Height="40">
+            </Path>
+        </Grid>
+    </ControlTemplate>
 </ResourceDictionary>
