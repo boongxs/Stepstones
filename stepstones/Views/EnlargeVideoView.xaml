@@ -9,11 +9,12 @@
              d:DataContext="{d:DesignInstance Type=viewmodels:EnlargeVideoViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid Background="Transparent"
-          Margin="20">
-        <Viewbox Stretch="Uniform"
-                 StretchDirection="DownOnly"
-                 HorizontalAlignment="Center"
-                 VerticalAlignment="Center">
+          Margin="20"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center">
+        <Viewbox x:Name="VideoViewbox"
+                 Stretch="Uniform"
+                 StretchDirection="DownOnly">
             <Grid Width="{Binding LayoutWidth}"
                   Height="{Binding LayoutHeight}">
                 <MediaElement x:Name="MediaPlayer"
@@ -23,110 +24,114 @@
                               Stretch="Fill"
                               Volume="0.5">
                 </MediaElement>
-
-                <TextBlock Text="Preparing video for playback..."
-                           Foreground="White"
-                           FontSize="18"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsTranscoding}"
-                                             Value="True">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-
-                <Grid IsHitTestVisible="False">
-                    <ContentControl x:Name="PlayIndicator"
-                                    Template="{StaticResource PlayIndicatorTemplate}"
-                                    Visibility="Collapsed">
-                    </ContentControl>
-
-                    <ContentControl x:Name="PauseIndicator"
-                                    Template="{StaticResource PauseIndicatorTemplate}"
-                                    Visibility="Collapsed">
-                    </ContentControl>
-                </Grid>
-
-                <Border x:Name="ControlsOverlay"
-                        VerticalAlignment="Bottom"
-                        Background="#cc000000"
-                        Height="50"
-                        MouseLeftButtonDown="ControlsOverlay_MouseLeftButtonDown">
-                    <Grid>
-                        <Button HorizontalAlignment="Left"
-                                Padding="10,0,10,0"
-                                Click="PlayPauseButton_Click"
-                                Style="{StaticResource TransparentButtonStyle}">
-                            <Path x:Name="PlayPauseIcon"
-                                  Fill="White"
-                                  Stretch="Uniform"
-                                  Width="25"
-                                  Height="25">
-                                <Path.Style>
-                                    <Style TargetType="Path">
-                                        <Setter Property="Data" Value="{StaticResource PlayIconData}"/>
-
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsPlaying, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                         Value="True">
-                                                <Setter Property="Data" Value="{StaticResource PauseIconData}"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Path.Style>
-                            </Path>
-                        </Button>
-
-                        <Grid x:Name="VolumeControlContainer"
-                              HorizontalAlignment="Right"
-                              Background="Transparent"
-                              Margin="0,0,5,0"
-                              MouseEnter="VolumeControlContainer_MouseEnter"
-                              MouseLeave="VolumeControlContainer_MouseLeave">
-                            <Popup x:Name="VolumePopup"
-                                   Placement="Top"
-                                   PlacementTarget="{Binding ElementName=MuteButton}"
-                                   StaysOpen="True"
-                                   AllowsTransparency="True"
-                                   HorizontalOffset="8"
-                                   VerticalOffset="-5">
-                                <Border Background="#444444"
-                                        Padding="5"
-                                        CornerRadius="10"
-                                        MouseEnter="VolumePopup_MouseEnter"
-                                        MouseLeave="VolumePopup_MouseLeave">
-                                    <Slider x:Name="VolumeSlider"
-                                            Style="{StaticResource VerticalVolumeSliderStyle}"
-                                            Orientation="Vertical"
-                                            Height="100"
-                                            Minimum="0"
-                                            Maximum="1"
-                                            Value="{Binding Volume, ElementName=MediaPlayer, Mode=TwoWay}"
-                                            ValueChanged="VolumeSlider_ValueChanged"
-                                            PreviewMouseLeftButtonDown="VolumeSlider_PreviewMouseLeftButtonDown"
-                                            PreviewMouseMove="VolumeSlider_PreviewMouseMove"
-                                            PreviewMouseLeftButtonUp="VolumeSlider_PreviewMouseLeftButtonUp">
-                                    </Slider>
-                                </Border>
-                            </Popup>
-
-                            <Button x:Name="MuteButton"
-                                    Width="35"
-                                    Height="35"
-                                    Click="MuteButton_Click"
-                                    Style="{StaticResource MuteButtonStyle}">
-                            </Button>
-                        </Grid>
-                    </Grid>
-                </Border>
             </Grid>
         </Viewbox>
+
+        <Grid x:Name="ControlsContainer"
+              Width="{Binding ElementName=VideoViewbox, Path=ActualWidth}"
+              Height="{Binding ElementName=VideoViewbox, Path=ActualHeight}">
+            <TextBlock Text="Preparing video for playback..."
+                       Foreground="White"
+                       FontSize="18"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsTranscoding}"
+                                         Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <Grid IsHitTestVisible="False">
+                <ContentControl x:Name="PlayIndicator"
+                                Template="{StaticResource PlayIndicatorTemplate}"
+                                Visibility="Collapsed">
+                </ContentControl>
+
+                <ContentControl x:Name="PauseIndicator"
+                                Template="{StaticResource PauseIndicatorTemplate}"
+                                Visibility="Collapsed">
+                </ContentControl>
+            </Grid>
+
+            <Border x:Name="ControlsOverlay"
+                    VerticalAlignment="Bottom"
+                    Background="#cc000000"
+                    Height="50"
+                    MouseLeftButtonDown="ControlsOverlay_MouseLeftButtonDown">
+                <Grid>
+                    <Button HorizontalAlignment="Left"
+                            Padding="10,0,10,0"
+                            Click="PlayPauseButton_Click"
+                            Style="{StaticResource TransparentButtonStyle}">
+                        <Path x:Name="PlayPauseIcon"
+                              Fill="White"
+                              Stretch="Uniform"
+                              Width="25"
+                              Height="25">
+                            <Path.Style>
+                                <Style TargetType="Path">
+                                    <Setter Property="Data" Value="{StaticResource PlayIconData}"/>
+
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsPlaying, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                     Value="True">
+                                            <Setter Property="Data" Value="{StaticResource PauseIconData}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Path.Style>
+                        </Path>
+                    </Button>
+
+                    <Grid x:Name="VolumeControlContainer"
+                          HorizontalAlignment="Right"
+                          Background="Transparent"
+                          Margin="0,0,5,0"
+                          MouseEnter="VolumeControlContainer_MouseEnter"
+                          MouseLeave="VolumeControlContainer_MouseLeave">
+                        <Popup x:Name="VolumePopup"
+                               Placement="Top"
+                               PlacementTarget="{Binding ElementName=MuteButton}"
+                               StaysOpen="True"
+                               AllowsTransparency="True"
+                               HorizontalOffset="8"
+                               VerticalOffset="-5">
+                            <Border Background="#444444"
+                                    Padding="5"
+                                    CornerRadius="10"
+                                    MouseEnter="VolumePopup_MouseEnter"
+                                    MouseLeave="VolumePopup_MouseLeave">
+                                <Slider x:Name="VolumeSlider"
+                                        Style="{StaticResource VerticalVolumeSliderStyle}"
+                                        Orientation="Vertical"
+                                        Height="100"
+                                        Minimum="0"
+                                        Maximum="1"
+                                        Value="{Binding Volume, ElementName=MediaPlayer, Mode=TwoWay}"
+                                        ValueChanged="VolumeSlider_ValueChanged"
+                                        PreviewMouseLeftButtonDown="VolumeSlider_PreviewMouseLeftButtonDown"
+                                        PreviewMouseMove="VolumeSlider_PreviewMouseMove"
+                                        PreviewMouseLeftButtonUp="VolumeSlider_PreviewMouseLeftButtonUp">
+                                </Slider>
+                            </Border>
+                        </Popup>
+
+                        <Button x:Name="MuteButton"
+                                Width="35"
+                                Height="35"
+                                Click="MuteButton_Click"
+                                Style="{StaticResource MuteButtonStyle}">
+                        </Button>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </views:MediaPlayerViewBase>
