@@ -12,5 +12,11 @@
             base.VolumePopup = this.VolumePopup;
             base.VolumeControlContainer = this.VolumeControlContainer;
         }
+
+        private void MediaPlayer_MediaEnded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            base.IsPlaying = false;
+            base._isVideoEnded = true;
+        }
     }
 }

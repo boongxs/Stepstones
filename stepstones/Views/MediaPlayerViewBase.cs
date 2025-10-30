@@ -26,6 +26,8 @@ namespace stepstones.Views
         protected Popup? VolumePopup;
         protected FrameworkElement? VolumeControlContainer;
 
+        protected bool _isVideoEnded = false;
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         protected void OnPropertyChanged([CallerMemberName] string? name = null)
@@ -124,7 +126,11 @@ namespace stepstones.Views
             {
                 StopAnimationAndHide(PlayIndicator);
                 PauseIndicator.Visibility = Visibility.Visible;
-                AnimateElement(PauseIndicator, "FadeInAnimation");
+
+                if (!_isVideoEnded)
+                {
+                    AnimateElement(PauseIndicator, "FadeInAnimation");
+                }
 
                 MediaPlayer.Pause();
                 IsPlaying = false;
@@ -133,14 +139,29 @@ namespace stepstones.Views
             {
                 StopAnimationAndHide(PauseIndicator);
                 PlayIndicator.Visibility = Visibility.Visible;
-                AnimateElement(PlayIndicator, "FadeInAnimation");
+
+                if (!_isVideoEnded)
+                {
+                    AnimateElement(PlayIndicator, "FadeInAnimation");
+                }
 
                 MediaPlayer.Play();
                 IsPlaying = true;
             }
 
-            _indicatorTimer.Stop();
-            _indicatorTimer.Start();
+            if (!_isVideoEnded)
+            {
+                _indicatorTimer.Stop();
+                _indicatorTimer.Start();
+            }
+            else
+            {
+                StopAnimationAndHide(PlayIndicator);
+                StopAnimationAndHide(PauseIndicator);
+            }
+
+            _inactivityTimer.Stop();
+            _inactivityTimer.Start();
 
             if (e != null)
             {
@@ -188,13 +209,16 @@ namespace stepstones.Views
 
         protected void IndicatorTimer_Tick(object sender, EventArgs e)
         {
-            if (PlayIndicator != null && PlayIndicator.Opacity > 0)
+            if (!_isVideoEnded)
             {
-                AnimateElement(PlayIndicator, "FadeOutAnimation");
-            }
-            if (PauseIndicator != null && PauseIndicator.Opacity > 0)
-            {
-                AnimateElement(PauseIndicator, "FadeOutAnimation");
+                if (PlayIndicator != null && PlayIndicator.Opacity > 0)
+                {
+                    AnimateElement(PlayIndicator, "FadeOutAnimation");
+                }
+                if (PauseIndicator != null && PauseIndicator.Opacity > 0)
+                {
+                    AnimateElement(PauseIndicator, "FadeOutAnimation");
+                }
             }
 
             _indicatorTimer.Stop();

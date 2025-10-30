@@ -22,7 +22,8 @@
                               UnloadedBehavior="Close"
                               Source="{Binding PlayableFileUri}"
                               Stretch="Fill"
-                              Volume="0.5">
+                              Volume="0.5"
+                              MediaEnded="MediaPlayer_MediaEnded">
                 </MediaElement>
             </Grid>
         </Viewbox>
