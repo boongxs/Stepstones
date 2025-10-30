@@ -268,14 +268,14 @@
         <Setter Property="Template" Value="{StaticResource VolumeLowIconTemplate}"/>
 
         <Style.Triggers>
-            <DataTrigger Binding="{Binding IsMuted, ElementName=MediaPlayer}"
-                         Value="True">
-                <Setter Property="Template" Value="{StaticResource VolumeOffIconTemplate}"/>
-            </DataTrigger>
-
-            <DataTrigger Binding="{Binding Volume, ElementName=MediaPlayer, Converter={StaticResource VolumeToIconStateConverter}}"
+            <DataTrigger Binding="{Binding Volume, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource VolumeToIconStateConverter}}"
                          Value="High">
                 <Setter Property="Template" Value="{StaticResource VolumeHighIconTemplate}"/>
+            </DataTrigger>
+
+            <DataTrigger Binding="{Binding IsMuted, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                         Value="True">
+                <Setter Property="Template" Value="{StaticResource VolumeOffIconTemplate}"/>
             </DataTrigger>
         </Style.Triggers>
     </Style>

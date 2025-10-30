@@ -18,6 +18,7 @@ namespace stepstones.Views
         private readonly DispatcherTimer _volumePopupTimer;
         private bool _isOverlayVisible = true;
         private bool _isMuted = false;
+        private double _volume = 0.5;
 
         protected MediaElement? MediaPlayer;
         protected FrameworkElement? PlayIndicator;
@@ -61,6 +62,19 @@ namespace stepstones.Views
             }
         }
 
+        public double Volume
+        {
+            get => _volume;
+            set
+            {
+                if (_volume != value)
+                {
+                    _volume = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public int MinSize => MinimumDisplaySize;
 
         public MediaPlayerViewBase()
@@ -95,6 +109,9 @@ namespace stepstones.Views
             {
                 return;
             }
+
+            this.Volume = MediaPlayer.Volume;
+            this.IsMuted = MediaPlayer.IsMuted;
 
             MediaPlayer.Play();
             IsPlaying = true;
@@ -273,8 +290,11 @@ namespace stepstones.Views
                 return;
             }
 
+            MediaPlayer.Volume = e.NewValue;
             MediaPlayer.IsMuted = e.NewValue == 0;
-            IsMuted = MediaPlayer.IsMuted;
+
+            this.Volume = e.NewValue;
+            this.IsMuted = MediaPlayer.IsMuted;
         }
 
         protected void VolumeControlContainer_MouseEnter(object sender, MouseEventArgs e)

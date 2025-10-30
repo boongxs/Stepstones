@@ -115,7 +115,7 @@
                                         Height="100"
                                         Minimum="0"
                                         Maximum="1"
-                                        Value="{Binding Volume, ElementName=MediaPlayer, Mode=TwoWay}"
+                                        Value="{Binding Volume, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}"
                                         ValueChanged="VolumeSlider_ValueChanged"
                                         PreviewMouseLeftButtonDown="VolumeSlider_PreviewMouseLeftButtonDown"
                                         PreviewMouseMove="VolumeSlider_PreviewMouseMove"
