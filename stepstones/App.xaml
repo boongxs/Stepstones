@@ -8,6 +8,12 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary>
+                    <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+                    <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+                    <converters:VolumeToIconStateConverter x:Key="VolumeToIconStateConverter"/>
+                </ResourceDictionary>
+                
                 <ResourceDictionary Source="/Resources/Iconography.xaml"/>
                 <ResourceDictionary Source="/Resources/Styles/CommonStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
@@ -15,9 +21,6 @@
             <DataTemplate DataType="{x:Type viewmodels:ToastViewModel}">
                 <views:ToastView/>
             </DataTemplate>
-
-            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-            <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

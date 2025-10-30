@@ -72,7 +72,7 @@
                             Click="PlayPauseButton_Click"
                             Style="{StaticResource TransparentButtonStyle}">
                         <Path x:Name="PlayPauseIcon"
-                              Fill="White"
+                              Fill="#a0a0a1"
                               Stretch="Uniform"
                               Width="25"
                               Height="25">
@@ -125,10 +125,11 @@
                         </Popup>
 
                         <Button x:Name="MuteButton"
-                                Width="35"
-                                Height="35"
+                                Width="30"
+                                Height="30"
                                 Click="MuteButton_Click"
-                                Style="{StaticResource MuteButtonStyle}">
+                                Style="{StaticResource MuteButtonStyle}"
+                                Margin="0,0,5,3">
                         </Button>
                     </Grid>
                 </Grid>
